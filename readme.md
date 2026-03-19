@@ -8,7 +8,7 @@
 
 ## 🎮 L'idée du jeu
 
-C'est un petit projet hybride pour une fête d'anniversaire avec **8 joueuses de 9 ans**. L'idée est de mêler le monde réel et l'écran : les enfants cherchent des **Sceaux-QR** cachés un peu partout. En scannant ces sceaux, elles réveillent les **9 Nekos** (les chats gardiens) qui s'étaient perdus.
+C'est un petit projet hybride pour une fête d'anniversaire avec **8 joueuses de 9 ans**. L'idée est de mêler le monde réel et l'écran : les enfants cherchent des **Nekos** cachés un peu partout. En scannant les qr code dessus, elles réveillent les **9 Nekos** (les chats gardiens) qui s'étaient perdus.
 
 L'ambiance visuelle s'inspire de l'encre de Chine et des dessins animés, avec quelque chose d'assez simple et doux.
 
