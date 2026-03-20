@@ -1122,4 +1122,3 @@ async function launchEpilogue() {
 }
 
 function downloadPolaroid() { openMirror(); }
-
