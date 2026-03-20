@@ -1,16 +1,11 @@
-/* ============================================
-   CINEMATICS.JS — Narration, Scènes, Skip
-   Typewriter, Ken-Burns dynamique, Effets cinéma
-   ============================================ */
+/* --- CINEMATICS.JS — Narration, Scènes, Skip --- */
 
 let eyesTimeout = setTimeout(() => {
     const eyes = document.getElementById('intro-eyes');
     if(eyes && eyes.style.display !== 'none') eyes.style.opacity = 1;
 }, 1500);
 
-/* =============================================================
-   UTILITAIRES CINÉMATIQUES
-   ============================================================= */
+/* --- UTILITAIRES CINÉMATIQUES --- */
 
 /* Ken-Burns dynamique — change la caméra par scène */
 function setKenBurns(mode) {
@@ -56,9 +51,7 @@ function clearInkWash() {
     if (ink) { ink.style.opacity = 0; ink.style.setProperty('--ink-progress', '0%'); }
 }
 
-/* =============================================================
-   TYPEWRITER — Texte caractère par caractère
-   ============================================================= */
+/* --- TYPEWRITER — Texte caractère par caractère --- */
 
 async function showStoryText(htmlStr, spokenText, lang="ja-JP", rate=0.7) {
     if(introSkipped) return Promise.resolve();
@@ -125,9 +118,7 @@ async function showStoryText(htmlStr, spokenText, lang="ja-JP", rate=0.7) {
     await Promise.all([voicePromise, typePromise]);
 }
 
-/* =============================================================
-   TRANSITIONS DE SCÈNES
-   ============================================================= */
+/* --- TRANSITIONS DE SCÈNES --- */
 
 async function transitionScreen(targetId, shadowEmoji = null) {
     const doors = document.getElementById('shoji-doors');
@@ -193,9 +184,7 @@ async function playScene(showIds, playAudio) {
     await new Promise(r => setTimeout(r, 400)); 
 }
 
-/* =============================================================
-   GSAP ANIMATIONS (Kodamas, Lucioles)
-   ============================================================= */
+/* --- GSAP ANIMATIONS (Kodamas, Lucioles) --- */
 
 function startKodamaAnimations() {
     if(typeof gsap === 'undefined') return;
@@ -213,9 +202,7 @@ function rattleHead(target) {
     });
 }
 
-/* =============================================================
-   ASSEMBLÉE DES GARDIENS (cercle dynamique)
-   ============================================================= */
+/* --- ASSEMBLÉE DES GARDIENS (cercle dynamique) --- */
 
 function spawnGhostGuardians() {
     const container = document.getElementById('ghost-guardians-container');
@@ -300,9 +287,7 @@ function showActCounter(actIndex) {
     setTimeout(() => el.classList.remove('visible'), 4000);
 }
 
-/* =============================================================
-   DEVICE ORIENTATION / MOTION
-   ============================================================= */
+/* --- DEVICE ORIENTATION / MOTION --- */
 
 window.addEventListener('deviceorientation', (e) => {
     if(e.gamma !== null && e.beta !== null) {
@@ -319,9 +304,7 @@ window.addEventListener('devicemotion', (e) => {
     }
 }, true);
 
-/* =============================================================
-   SKIP INTRO
-   ============================================================= */
+/* --- SKIP INTRO --- */
 
 let skipFillObj = null; let skipProgress = 0; let skipAnimFrame;
 document.addEventListener('pointerdown', startSkip);
@@ -346,9 +329,7 @@ function forceSkipIntro() {
     transitionScreen('screen-rules', "📜"); 
 }
 
-/* =============================================================
-   🎬 CINÉMATIQUE PRINCIPALE — Arc narratif complet
-   ============================================================= */
+/* --- 🎬 CINÉMATIQUE PRINCIPALE — Arc narratif complet --- */
 
 async function launchExperience(event) {
     window.speechSynthesis.speak(new SpeechSynthesisUtterance("")); 

@@ -1,8 +1,4 @@
-/* ============================================
-   THEME MANAGER — Le Sanctuaire des 9 Nekos
-   Handles dynamic background theming across
-   cinematics, screens, and mood transitions.
-   ============================================ */
+/* --- THEME MANAGER — Le Sanctuaire des 9 Nekos --- */
 
 const ThemeManager = {
 
@@ -90,53 +86,7 @@ const ThemeManager = {
 };
 
 
-/* ============================================
-   CINEMATIC THEME TRIGGERS
-   Call these inside forceAct() or your scene
-   transition callbacks.
-   ============================================ */
-
-/**
- * Bind themes to cinematic acts.
- * Mirrors the forceAct() switch structure exactly.
- * @param {number} actNumber
- */
-function applyActTheme(actNumber) {
-  switch (actNumber) {
-    case 1:
-      ThemeManager.apply('voyage', 1500);      // Slow bleed into ocean navy
-      break;
-    case 2:
-      ThemeManager.apply('decouverte', 1200);  // Forest discovery
-      break;
-    case 3:
-      ThemeManager.apply('sacre', 1000);       // Deep indigo, sacred space
-      break;
-    case 4:
-      ThemeManager.snap('rupture');            // Hard cut to near-black
-      setTimeout(() => ThemeManager.apply('daruma', 600), 80); // Then bleed red
-      break;
-    default:
-      ThemeManager.reset();
-  }
-}
-
-/* ============================================
-   USAGE EXAMPLES
-   ============================================
-
-   // Inside forceAct():
-   applyActTheme(actNumber);
-
-   // Manual trigger anywhere:
-   ThemeManager.apply('void', 400);       // Fast snap to dark
-   ThemeManager.apply('#3d0066', 2000);   // Custom hex, slow fade
-   ThemeManager.reset(1000);             // Back to sanctuary
-   ThemeManager.snap('rupture');          // Instant, no transition
-
-   ============================================ *//* ============================================
-   GAME.JS — Règles, Hub, Quiz, Minijeux, Final
-   ============================================ */
+/* --- GAME.JS — Règles, Hub, Quiz, Minijeux, Final --- */
 
 /* --- ACTIVATION DU MIROIR (Permission caméra diégétique) --- */
 let mirrorRequested = false;
@@ -1102,5 +1052,3 @@ async function launchEpilogue() {
     await new Promise(r => setTimeout(r, 2000));
     owari.remove(); lastPetal.remove();
 }
-
-function downloadPolaroid() { openMirror(); }

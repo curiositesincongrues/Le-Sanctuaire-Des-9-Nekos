@@ -229,9 +229,8 @@ body.ar-mode #screen-hub { background: transparent !important; }
 /* --- UTILITAIRES --- */
 .easter-glitch { animation: glitch-anim 0.2s infinite; filter: invert(1) hue-rotate(180deg) !important; }
 .falling-star { opacity: 0; transform: translateY(-500px) scale(0.1); animation: star-fall 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
-@keyframes star-fall { 100% { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; } }
-.shake-screen { animation: screen-shake 0.1s linear infinite; }
-@keyframes screen-shake { 0%, 100% {transform:translate(0,0)} 25% {transform:translate(5px,5px)} 50% {transform:translate(-5px,-5px)} 75% {transform:translate(5px,-5px)} }
+/* @keyframes star-fall: defined in cinematics.css */
+/* screen-shake: defined in game.css */
 
 /* --- INK WASH (encre sumi-e qui coule) --- */
 #ink-wash { position: fixed; inset: 0; z-index: 8500; pointer-events: none; opacity: 0; background: linear-gradient(to bottom, #000 0%, #000 var(--ink-progress, 0%), transparent var(--ink-progress, 0%)); transition: opacity 0.3s; }

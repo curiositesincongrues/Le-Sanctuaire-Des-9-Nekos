@@ -1,6 +1,4 @@
-/* ============================================
-   AUDIO.JS — Musique Cinématique + SFX + Voix
-   ============================================ */
+/* --- AUDIO.JS — Musique Cinématique + SFX + Voix --- */
 
 async function requestWakeLock() {
     try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } 
@@ -185,9 +183,7 @@ function playTaikoHit() {
     if (nekoStage) { nekoStage.classList.add('bell-pulse'); setTimeout(() => nekoStage.classList.remove('bell-pulse'), 350); }
 }
 
-/* =============================================================
-   setMusicMood(scene) — Synchronise la musique avec le scénario
-   ============================================================= */
+/* --- setMusicMood(scene) — Synchronise la musique avec le scénario --- */
 let currentMusicMood = null;
 
 function setMusicMood(scene) {
@@ -355,9 +351,7 @@ function transitionToDarkAudio() {
     setMusicMood('RUPTURE');
 }
 
-/* =============================================================
-   SFX — Inchangés
-   ============================================================= */
+/* --- SFX — Inchangés --- */
 
 function playGameSFX(type, freq=440) {
     if(!audioCtx) return; const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
@@ -422,9 +416,7 @@ function playEvilLaugh() {
     });
 }
 
-/* =============================================================
-   VOIX DU SAGE — Sélection avec fallback JP → FR → défaut
-   ============================================================= */
+/* --- VOIX DU SAGE — Sélection avec fallback JP → FR → défaut --- */
 
 let sageVoice = null, sageVoiceSearched = false;
 
