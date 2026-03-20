@@ -70,17 +70,31 @@ function rgbToHex(rgb) {
 }
 
 /* Push a mood's bg color to CSS — the REVERSE bridge (WebGL → CSS).
-   Sets CSS custom properties that drive both body and screen backgrounds.
-   On mobile, --bg-glow + --bg-edge enable a radial gradient in CSS
-   matching the WebGL shader: smoothstep glow centered at (50%, 35%). */
+   Sets CSS custom properties that drive body radial gradient on mobile.
+   
+   The WebGL shader does: mix(bg, glow, smoothstep(0.8, 0, dist))
+   At center: ~100% glow. At edges (dist≈0.6): ~20% glow blended in.
+   Raw glow/bg values look too dark as flat CSS because the shader's
+   smoothstep spreads light much wider. We compensate by:
+   - Boosting glow center 1.5× (mimics the bright shader hotspot)
+   - Lifting edge color with 20% glow mixed in (shader edge ambient) */
 function syncMoodToCSS(moodObj) {
     const root = document.documentElement;
-    const bgHex = rgbToHex(moodObj.bg);
-    const glowHex = rgbToHex(moodObj.glow);
+    const bg = moodObj.bg;
+    const glow = moodObj.glow;
+
+    // Boosted center: 1.5× glow, clamped
+    const centerBoosted = glow.map(v => Math.min(1, v * 1.5));
+    // Lifted edge: 80% bg + 20% glow (matches shader edge bleed)
+    const edgeLifted = bg.map((v, i) => v * 0.8 + glow[i] * 0.2);
+
+    const centerHex = rgbToHex(centerBoosted);
+    const edgeHex = rgbToHex(edgeLifted);
+    const bgHex = rgbToHex(bg);
 
     root.style.setProperty('--bg-current', bgHex);
-    root.style.setProperty('--bg-glow', glowHex);
-    root.style.setProperty('--bg-edge', bgHex);
+    root.style.setProperty('--bg-glow', centerHex);
+    root.style.setProperty('--bg-edge', edgeHex);
 }
 
 window.setSakuraMood = function(moodType) {

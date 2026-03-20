@@ -2,7 +2,7 @@
    BASE.CSS — Variables, Reset, Body, Global UI
    ============================================ */
 
-:root { --sakura: #ffb7c5; --gold: #ffd700; --deep: #1a051d; --white: #ffffff; --oni: #ff4d4d; --kusanagi: #4fc3f7; --bg-lightness: 10%; --bg-current: #5d1a4a; --bg-glow: #8c3873; --bg-edge: #5d1a4a; color-scheme: light only; }
+:root { --sakura: #ffb7c5; --gold: #ffd700; --deep: #1a051d; --white: #ffffff; --oni: #ff4d4d; --kusanagi: #4fc3f7; --bg-lightness: 10%; --bg-current: #5d1a4a; --bg-glow: #d254ac; --bg-edge: #672052; color-scheme: light only; }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
 body { margin: 0; background: var(--bg-current); height: 100dvh; width: 100vw; overflow: hidden; color: white; transition: background 1.5s ease-in-out; overscroll-behavior: none; user-select: none; -webkit-user-select: none; font-family: 'Fredoka One', cursive;}
@@ -153,7 +153,7 @@ body.ar-mode #screen-hub { background: transparent !important; }
    60fps safe: no animation, no JS, no blend mode issues. */
 .is-mobile .screen::before {
     content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none;
-    opacity: 0.06;
+    opacity: 0.14;
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
     background-size: 256px 256px;
 }
