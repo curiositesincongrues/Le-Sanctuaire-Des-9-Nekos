@@ -413,7 +413,7 @@ function playWrong() {
 }
 
 function playEvilLaugh() {
-    const u = new SpeechSynthesisUtterance("Ha ha ha ha ha"); u.lang = "ja-JP"; u.pitch = 0.1; u.rate = 0.5; u.volume = 0.5; window.speechSynthesis.speak(u);
+    speakDuckedFire("Ha ha ha ha ha", { pitch: 0.1, rate: 0.5, volume: 0.5 });
     if(!audioCtx) return;
     [100, 115, 130].forEach(f => {
         const osc = audioCtx.createOscillator(); osc.type = 'sawtooth'; osc.frequency.value = f;
@@ -423,7 +423,7 @@ function playEvilLaugh() {
 }
 
 /* =============================================================
-   VOIX DU SAGE
+   VOIX DU SAGE — Sélection avec fallback JP → FR → défaut
    ============================================================= */
 
 let sageVoice = null, sageVoiceSearched = false;
@@ -432,19 +432,68 @@ function findSageVoice() {
     if (sageVoiceSearched) return sageVoice;
     sageVoiceSearched = true;
     const voices = window.speechSynthesis.getVoices();
+    if (!voices.length) return null;
+
+    // Prefer masculine-sounding voice via name heuristics
+    const femaleRx = /female|woman|femme|kyoko|haruka|nanami|o-ren|mizuki|mei|sakura|hana|yui|aoi|amelie|chloe|marie|audrey|virginie/i;
+    const maleRx = /male|man|homme|takumi|ichiro|kenta|kenji|otoko|ryo|daichi|hiro|kenichi|daisuke|thomas|nicolas|philippe/i;
+
+    function pickBestFrom(pool) {
+        if (!pool.length) return null;
+        const notFemale = pool.filter(v => !femaleRx.test(v.name));
+        const male = (notFemale.length ? notFemale : pool).find(v => maleRx.test(v.name));
+        return male || notFemale[0] || pool[0];
+    }
+
+    // Priority: Japanese → French → any voice
     const jpVoices = voices.filter(v => v.lang.startsWith('ja'));
-    if (jpVoices.length === 0) return null;
-    const notFemale = jpVoices.filter(v => !/female|woman|femme|kyoko|haruka|nanami|o-ren|mizuki|mei|sakura|hana|yui|aoi/i.test(v.name));
-    const male = (notFemale.length ? notFemale : jpVoices).find(v => 
-        /male|man|homme|takumi|ichiro|kenta|kenji|otoko|ryo|daichi|hiro|kenichi|daisuke/i.test(v.name)
-    );
-    sageVoice = male || notFemale[0] || jpVoices[0];
-    console.log('[Sage Voice]', sageVoice ? `${sageVoice.name} (${sageVoice.lang})` : 'aucune voix JP');
+    const frVoices = voices.filter(v => v.lang.startsWith('fr'));
+
+    sageVoice = pickBestFrom(jpVoices) || pickBestFrom(frVoices) || voices[0];
+    console.log('[Sage Voice]', sageVoice ? `${sageVoice.name} (${sageVoice.lang})` : 'aucune voix');
     return sageVoice;
 }
 
 if (window.speechSynthesis.onvoiceschanged !== undefined) {
     window.speechSynthesis.onvoiceschanged = () => { sageVoiceSearched = false; findSageVoice(); };
+}
+
+/**
+ * speakDucked — Unified TTS with music ducking.
+ * Replaces all scattered speechSynthesis.speak() calls in game.js.
+ * Cancels current speech, ducks music, speaks, restores music.
+ * @param {string} text    — Text to speak
+ * @param {object} opts    — { lang, rate, pitch, volume, maxMs }
+ * @returns {Promise} resolves when speech ends or times out
+ */
+function speakDucked(text, opts = {}) {
+    const lang    = opts.lang    || 'ja-JP';
+    const rate    = opts.rate    || 0.9;
+    const pitch   = opts.pitch   || 0.5;
+    const volume  = opts.volume  || 0.85;
+    const maxMs   = opts.maxMs   || 8000;
+
+    return new Promise(resolve => {
+        window.speechSynthesis.cancel();
+        enterTempleMode();
+
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = lang; u.rate = rate; u.pitch = pitch; u.volume = volume;
+        const voice = findSageVoice();
+        if (voice) u.voice = voice;
+
+        let done = false;
+        const finish = () => { if (done) return; done = true; clearTimeout(timeout); exitTempleMode(); resolve(); };
+        const timeout = setTimeout(() => { window.speechSynthesis.cancel(); finish(); }, maxMs);
+        u.onend = finish;
+        u.onerror = finish;
+        window.speechSynthesis.speak(u);
+    });
+}
+
+/** Quick fire-and-forget speech with ducking (no await needed) */
+function speakDuckedFire(text, opts = {}) {
+    speakDucked(text, opts);
 }
 
 function talkSync(txt, lang, rate=0.7) {
@@ -459,6 +508,7 @@ function talkSync(txt, lang, rate=0.7) {
         const finish = () => { exitTempleMode(); r(); };
         let timeout = setTimeout(() => { window.speechSynthesis.cancel(); finish(); }, 12000);
         u.onend = () => { clearTimeout(timeout); finish(); };
+        u.onerror = () => { clearTimeout(timeout); finish(); };
         window.speechSynthesis.speak(u); 
     });
 }

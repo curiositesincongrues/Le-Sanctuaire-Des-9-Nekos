@@ -543,7 +543,7 @@ function setupQuiz() {
     
     transitionScreen('screen-quiz');
     
-    const u = new SpeechSynthesisUtterance(g.q); u.lang = "ja-JP"; u.volume = 0.5; window.speechSynthesis.speak(u);
+    speakDuckedFire(g.q, { volume: 0.5 });
 
     quizFuseTime = 100; 
     const fuseBar = document.getElementById('fuse-bar');
@@ -776,16 +776,7 @@ async function launchFinalCinematic() {
         sf.style.opacity = 0; sf.style.transform = 'translateY(20px)';
         await new Promise(r => setTimeout(r, 400)); 
         sf.innerHTML = htmlStr; sf.style.opacity = 1; sf.style.transform = 'translateY(0)';
-        // TTS direct — pas de enterTempleMode pour ne pas écraser le masterGain
-        await new Promise(r => {
-            window.speechSynthesis.cancel();
-            const u = new SpeechSynthesisUtterance(spokenJP);
-            u.lang = "ja-JP"; u.rate = 0.9; u.pitch = 0.5; u.volume = 0.9;
-            const timeout = setTimeout(() => { window.speechSynthesis.cancel(); r(); }, 8000);
-            u.onend = () => { clearTimeout(timeout); r(); };
-            u.onerror = () => { clearTimeout(timeout); r(); };
-            window.speechSynthesis.speak(u);
-        });
+        await speakDucked(spokenJP, { rate: 0.9, volume: 0.9 });
         await new Promise(r => setTimeout(r, pause));
     };
     sf.style.transition = "opacity 0.5s ease, transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1)";
@@ -859,11 +850,7 @@ async function launchFinalCinematic() {
     
     setTimeout(() => { document.getElementById('flash').style.opacity = 0; document.getElementById('flash').style.background = 'transparent'; }, 800);
     await new Promise(r => setTimeout(r, 1000));
-    // Murmure direct (pas de talkSync/temple mode)
-    window.speechSynthesis.cancel();
-    const uHikari = new SpeechSynthesisUtterance("Hikari...");
-    uHikari.lang = "ja-JP"; uHikari.rate = 0.5; uHikari.pitch = 0.4; uHikari.volume = 0.8;
-    window.speechSynthesis.speak(uHikari);
+    speakDuckedFire("Hikari...", { rate: 0.5, pitch: 0.4, volume: 0.8 });
     hikari.style.opacity = 1;
     await new Promise(r => setTimeout(r, 3000));
     hikari.style.opacity = 0;
@@ -1048,30 +1035,14 @@ async function launchEpilogue() {
         sf.style.opacity = 0; sf.style.transform = 'translateY(20px)';
         await new Promise(r => setTimeout(r, 400)); 
         sf.innerHTML = htmlStr; sf.style.opacity = 1; sf.style.transform = 'translateY(0)';
-        await new Promise(r => {
-            window.speechSynthesis.cancel();
-            const u = new SpeechSynthesisUtterance(spokenJP);
-            u.lang = "ja-JP"; u.rate = 0.9; u.pitch = 0.5; u.volume = 0.9;
-            const timeout = setTimeout(() => { window.speechSynthesis.cancel(); r(); }, 8000);
-            u.onend = () => { clearTimeout(timeout); r(); };
-            u.onerror = () => { clearTimeout(timeout); r(); };
-            window.speechSynthesis.speak(u);
-        });
+        await speakDucked(spokenJP, { rate: 0.9, volume: 0.9 });
         await new Promise(r => setTimeout(r, pause));
     };
     
     // Adieu du sage — voix seule
     sf.style.opacity = 0;
     await new Promise(r => setTimeout(r, 500));
-    await new Promise(r => {
-        window.speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance("Sayonara... chiisana shugosha-tachi.");
-        u.lang = "ja-JP"; u.rate = 0.6; u.pitch = 0.4; u.volume = 0.9;
-        const timeout = setTimeout(() => { window.speechSynthesis.cancel(); r(); }, 8000);
-        u.onend = () => { clearTimeout(timeout); r(); };
-        u.onerror = () => { clearTimeout(timeout); r(); };
-        window.speechSynthesis.speak(u);
-    });
+    await speakDucked("Sayonara... chiisana shugosha-tachi.", { rate: 0.6, pitch: 0.4, volume: 0.9 });
     await new Promise(r => setTimeout(r, 3000));
     
     document.getElementById('victory-cert').style.opacity = 0;
