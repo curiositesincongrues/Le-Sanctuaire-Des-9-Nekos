@@ -1,0 +1,275 @@
+/* ============================================
+   BASE.CSS — Variables, Reset, Body, Global UI
+   ============================================ */
+
+:root { --sakura: #ffb7c5; --gold: #ffd700; --deep: #1a051d; --white: #ffffff; --oni: #ff4d4d; --kusanagi: #4fc3f7; --bg-lightness: 10%;}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+body { margin: 0; background: var(--deep); height: 100dvh; width: 100vw; overflow: hidden; color: white; transition: background 1.5s ease-in-out; overscroll-behavior: none; user-select: none; -webkit-user-select: none; font-family: 'Fredoka One', cursive;}
+
+#canvas-fx { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+#flash { position: fixed; inset: 0; background: transparent; opacity: 0; z-index: 9000; pointer-events: none; transition: opacity 0.1s, background 0.1s; }
+
+/* --- OVERLAYS CINÉMATIQUES --- */
+#cinema-vignette { position: fixed; inset: 0; z-index: 3; pointer-events: none; opacity: 0; transition: opacity 2s ease; background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.6) 100%); }
+#cinema-grain { position: fixed; inset: 0; z-index: 3; pointer-events: none; opacity: 0; transition: opacity 1s ease; mix-blend-mode: overlay; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E"); }
+body.cinema-glitch #canvas-fx { filter: hue-rotate(-30deg) saturate(1.5); }
+body.cinema-glitch #cinema-grain { opacity: 0.3 !important; animation: grain-flicker 0.1s steps(1) infinite; }
+@keyframes grain-flicker { 0% { transform: translate(0,0); } 50% { transform: translate(-2px, 1px); } 100% { transform: translate(1px, -1px); } }
+
+.fog { position: absolute; inset: -50%; background: url('https://www.transparenttextures.com/patterns/stardust.png'); opacity: 0.15; animation: fog-move 30s linear infinite; pointer-events: none; z-index: 0; transform: none; }
+@keyframes fog-move { from { transform: translate(0px, 0px) rotate(0deg); } to { transform: translate(5%, 5%) rotate(5deg); } }
+
+/* --- QR / AR MODE --- */
+#qr-reader-container { display: none; }
+body.ar-mode #qr-reader-container { display: block; position: fixed; inset: 0; z-index: 500; background: black; }
+body.ar-mode #qr-reader { width: 100% !important; height: 100vh !important; object-fit: cover; border: none !important; }
+body.ar-mode #qr-reader video { object-fit: cover !important; width: 100% !important; height: 100vh !important; }
+body.ar-mode #qr-reader img { display: none !important; } /* Hide html5-qrcode default UI */
+body.ar-mode #screen-hub { background: transparent !important; }
+
+/* Overlay magique par-dessus le flux caméra */
+#scan-overlay {
+    position: fixed; inset: 0; z-index: 510;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    pointer-events: none;
+    background: none;
+}
+#scan-overlay > * { pointer-events: auto; }
+
+/* Vignette violette sur le flux caméra */
+.scan-vignette {
+    position: absolute; inset: 0;
+    background: radial-gradient(circle at center, transparent 25%, rgba(26,5,29,0.5) 50%, rgba(26,5,29,0.85) 100%);
+    pointer-events: none; z-index: 0;
+}
+
+/* Cercle sacré de scan */
+.scan-circle {
+    position: relative; width: 260px; height: 260px;
+    z-index: 1;
+}
+
+/* Anneau shimenawa — corde sacrée */
+.scan-ring {
+    position: absolute; inset: 0; border-radius: 50%;
+    border: 3px solid rgba(255,215,0,0.5);
+    box-shadow: 0 0 15px rgba(255,215,0,0.3), 0 0 40px rgba(255,215,0,0.1), inset 0 0 15px rgba(255,215,0,0.1);
+    animation: scan-ring-spin 12s linear infinite, scan-ring-pulse 3s ease-in-out infinite alternate;
+}
+.scan-ring-inner {
+    inset: 15px; border-color: rgba(255,183,197,0.3);
+    box-shadow: 0 0 10px rgba(255,183,197,0.2), inset 0 0 10px rgba(255,183,197,0.1);
+    animation-direction: reverse;
+    animation-duration: 8s, 2.5s;
+}
+@keyframes scan-ring-spin { 100% { transform: rotate(360deg); } }
+@keyframes scan-ring-pulse {
+    0% { opacity: 0.6; border-width: 2px; }
+    100% { opacity: 1; border-width: 4px; }
+}
+
+/* Particules dorées convergentes */
+.scan-particles { position: absolute; inset: -30px; pointer-events: none; }
+.scan-particle {
+    position: absolute; width: 4px; height: 4px; border-radius: 50%;
+    background: #ffd700;
+    box-shadow: 0 0 6px #ffd700, 0 0 12px rgba(255,215,0,0.4);
+    opacity: 0;
+}
+.scan-active .scan-particle { animation: scan-particle-converge 2s ease-in-out infinite; }
+.sp-s1 { top: 0; left: 50%; animation-delay: 0s; }
+.sp-s2 { top: 25%; right: 0; animation-delay: -0.3s; }
+.sp-s3 { bottom: 0; left: 50%; animation-delay: -0.6s; }
+.sp-s4 { top: 25%; left: 0; animation-delay: -0.9s; }
+.sp-s5 { bottom: 25%; right: 10%; animation-delay: -1.2s; }
+.sp-s6 { bottom: 25%; left: 10%; animation-delay: -1.5s; }
+@keyframes scan-particle-converge {
+    0% { transform: translate(0,0) scale(1); opacity: 0; }
+    30% { opacity: 0.8; }
+    100% { transform: translate(calc(130px - 100%), calc(130px - 100%)) scale(0.3); opacity: 0; }
+}
+
+/* Scan réussi — flash doré */
+.scan-success .scan-ring {
+    border-color: rgba(255,215,0,0.9) !important;
+    box-shadow: 0 0 30px rgba(255,215,0,0.7), 0 0 80px rgba(255,215,0,0.4) !important;
+    animation: none !important;
+}
+.scan-success .scan-ring-inner { animation: none !important; border-color: rgba(255,215,0,0.7) !important; }
+
+/* Scan raté — flash rouge */
+.scan-wrong .scan-ring {
+    border-color: rgba(255,50,50,0.8) !important;
+    box-shadow: 0 0 20px rgba(255,50,50,0.5) !important;
+    animation: scan-shake 0.3s ease !important;
+}
+@keyframes scan-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+
+/* Texte et boutons */
+.scan-text {
+    color: rgba(255,255,255,0.8); font-size: 16px; margin-top: 20px;
+    font-family: 'Ma Shan Zheng', cursive; letter-spacing: 2px;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+    z-index: 1;
+}
+.scan-buttons { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; justify-content: center; z-index: 1; }
+.scan-btn {
+    padding: 10px 18px; border-radius: 25px;
+    border: 1px solid rgba(255,255,255,0.2); color: white;
+    background: rgba(0,0,0,0.5); font-size: 14px;
+    font-family: 'Fredoka One', cursive; cursor: pointer;
+    backdrop-filter: blur(5px); transition: all 0.3s;
+}
+.scan-btn:hover { background: rgba(255,215,0,0.15); border-color: var(--gold); }
+.scan-btn-cancel { color: rgba(255,150,150,0.8); border-color: rgba(255,100,100,0.3); }
+
+#manual-entry { z-index: 1; text-align: center; margin-top: 15px; }
+#scan-result { z-index: 1; text-align: center; animation: scan-result-pop 0.5s cubic-bezier(0.17,0.89,0.32,1.49); }
+@keyframes scan-result-pop { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+/* --- PORTES SHOJI --- */
+#shoji-doors { position: fixed; inset: 0; z-index: 8000; display: flex; pointer-events: none; }
+.shoji-door { width: 50%; height: 100%; background-color: #f4f4f0; background-image: linear-gradient(90deg, transparent 95%, #d0c8b8 95%), linear-gradient(0deg, transparent 95%, #d0c8b8 95%); background-size: 20% 10%; border: 8px solid #3d2f2d; transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 30px rgba(0,0,0,0.8);}
+.shoji-door.left { transform: translateX(-100%); border-right: 4px solid #3d2f2d; }
+.shoji-door.right { transform: translateX(100%); border-left: 4px solid #3d2f2d; }
+#shoji-doors.closed .shoji-door.left { transform: translateX(0); }
+#shoji-doors.closed .shoji-door.right { transform: translateX(0); }
+#shoji-shadow { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: 150px; font-family: 'Ma Shan Zheng', cursive; filter: drop-shadow(0 0 10px rgba(0,0,0,0.8)) brightness(0); opacity: 0; transition: opacity 0.2s; pointer-events: none; z-index: 8001; }
+#shoji-doors.closed #shoji-shadow { opacity: 0.8; }
+
+/* --- SKIP ZONE --- */
+#skip-zone { position: absolute; bottom: 30px; right: 30px; z-index: 9999; display: flex; flex-direction: column; align-items: center; opacity: 0.8; }
+.skip-circle { width: 50px; height: 50px; border: 3px solid rgba(255,255,255,0.5); border-radius: 50%; position: relative; display: flex; justify-content: center; align-items: center; }
+.skip-fill { background: white; border-radius: 50%; width: 0%; height: 0%; transition: all 0.05s linear; }
+
+/* --- ÉCRANS GÉNÉRIQUES --- */
+.screen { position: absolute; inset: 0; display: none; flex-direction: column; padding-top: calc(25px + env(safe-area-inset-top)); padding-bottom: calc(25px + env(safe-area-inset-bottom)); padding-left: 20px; padding-right: 20px; z-index: 50; align-items: center; justify-content: center; text-align: center; }
+.active { display: flex !important; animation: fadeIn 0.4s ease-out forwards; }
+@keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+.bg-kanji { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 280px; color: rgba(255, 255, 255, 0.04); z-index: 0; pointer-events: none; white-space: nowrap; font-family: 'Ma Shan Zheng', cursive; transition: opacity 1.5s ease; }
+.game-title-3d { position: absolute; top: 12%; width: 100%; text-align: center; padding: 0 10px; font-size: 36px; color: var(--gold); letter-spacing: 2px; line-height: 1.4; opacity: 0; transform: translateY(-20px); transition: all 1s ease; z-index: 100; pointer-events: none; margin: 0; }
+.game-title-3d.visible { opacity: 1; transform: translateY(0); }
+
+/* --- BOUTONS --- */
+.btn-grad { padding: 16px 32px; border-radius: 50px; border: 4px solid white; color: var(--deep); font-weight: 900; background: linear-gradient(90deg, #ffb7c5 0%, #ffd700 100%); font-size: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); cursor: pointer; text-transform: uppercase; margin: 8px; width: 90%; z-index: 100; transition: opacity 0.5s ease; font-family: 'Fredoka One', cursive; }
+.pulse-btn { animation: pulse-glow 2s infinite alternate; }
+@keyframes pulse-glow { 0% { box-shadow: 0 0 10px var(--sakura); transform: scale(1); } 100% { box-shadow: 0 0 35px var(--sakura); transform: scale(1.05); } }
+
+.btn-ema { padding: 16px 32px; border-radius: 8px; border: 4px solid #5c3a21; color: #3a2210; font-weight: 900; background: #d4a373; font-size: 16px; box-shadow: 0 5px 15px rgba(0,0,0,0.4); cursor: pointer; text-transform: uppercase; margin: 8px; width: 90%; transition: all 0.3s cubic-bezier(0.17, 0.89, 0.32, 1.49); position: relative; overflow: hidden; font-family: 'Fredoka One', cursive; }
+.btn-ema::after { content:''; position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 10px; height: 10px; background: #fff; border-radius: 50%; box-shadow: inset 0 2px 4px rgba(0,0,0,0.5); }
+.btn-ema.broken { transform: scale(0.9) rotate(8deg); filter: grayscale(0.5); opacity: 0.5; pointer-events: none; }
+.btn-ema.broken::before { content:''; position:absolute; top:0; left:50%; width:4px; height:100%; background:#3a2210; transform: rotate(20deg); box-shadow: 0 0 5px black; }
+
+/* --- CADRE PARCHEMIN --- */
+.frame-parchemin { 
+    background: rgba(25, 5, 30, 0.8); backdrop-filter: blur(10px); color: #fffdfa; 
+    border: 2px solid var(--sakura); border-radius: 20px; padding: 30px; width: 92%; max-width: 400px; 
+    box-shadow: 0 10px 40px rgba(0,0,0,0.8), inset 0 0 30px rgba(255, 183, 197, 0.2); 
+    position: relative; margin: auto; text-align: center; 
+}
+.frame-parchemin::before { content:''; position:absolute; inset: 5px; border: 1px solid rgba(255, 215, 0, 0.4); border-radius: 15px; pointer-events:none; }
+
+/* --- RÈGLES UI --- */
+.rule-step { flex-direction: column; align-items: center; justify-content: center; text-align: center; width: 100%; height: 100%; animation: fadeIn 0.5s ease-out; }
+.rule-icon { font-size: 80px; margin-bottom: 20px; position: relative; display: flex; justify-content: center; align-items: center;}
+.rule-warning { 
+    font-size: 15px; color: var(--sakura); border-top: 1px solid rgba(255, 183, 197, 0.4); border-bottom: 1px solid rgba(255, 183, 197, 0.4); 
+    padding: 15px 5px; margin: 20px 0; background: linear-gradient(90deg, transparent, rgba(255, 183, 197, 0.1), transparent); 
+    text-shadow: 0 1px 3px black; position: relative; font-style: italic;
+}
+.rule-warning::before { content: '✨'; display: block; font-size: 20px; margin-bottom: 5px; text-shadow: 0 0 10px white; }
+.pulse-aura::before { content:''; position: absolute; width: 120%; height: 120%; background: radial-gradient(circle, rgba(255,215,0,0.6) 0%, transparent 70%); border-radius: 50%; z-index:-1; animation: pulse-mag 2s infinite alternate; }
+@keyframes pulse-mag { 0% { transform: scale(0.8); opacity: 0.5; } 100% { transform: scale(1.2); opacity: 1; } }
+.float-icon { animation: float-kodama 3s ease-in-out infinite alternate; }
+@keyframes float-kodama { 0% { transform: translateY(0); } 100% { transform: translateY(-15px); } }
+.harmony-circle { position: relative; width: 100px; height: 100px; animation: spin-slowly 15s linear infinite; }
+.orb { position: absolute; top: 50%; left: 50%; width: 15px; height: 15px; background: var(--sakura); border-radius: 50%; box-shadow: 0 0 15px var(--sakura), 0 0 30px white; transform: translate(-50%, -50%) rotate(calc(var(--i) * 45deg)) translateY(-45px); }
+.destiny-wheel { position: relative; width: 100px; height: 100px; animation: spin-slowly 20s linear infinite; }
+.destiny-wheel span { position: absolute; top: 50%; left: 50%; font-size: 24px; color: var(--gold); text-shadow: 0 0 10px var(--gold); font-family: 'Ma Shan Zheng', cursive; transform: translate(-50%, -50%) rotate(calc(var(--i) * 45deg)) translateY(-50px) rotate(calc(var(--i) * -45deg)); }
+@keyframes spin-slowly { 100% { transform: rotate(360deg); } }
+
+/* --- CONSTELLATION / SERMENT --- */
+#constellation-box { position: absolute; inset: 0; width: 100%; max-width: 450px; margin: 0 auto; z-index: 90; overflow: hidden;}
+#constellation-lines { position: absolute; inset: 0; z-index: 100; pointer-events: none; }
+.rune-node { position: absolute; font-size: 40px; transform: translate(-50%, -50%); transition: transform 0.2s cubic-bezier(0.17, 0.89, 0.32, 1.49), filter 0.2s; z-index: 101; user-select: none; -webkit-user-select: none; touch-action: none; filter: drop-shadow(0 0 15px rgba(255,183,197,0.3)); cursor: pointer;}
+
+/* --- VIGNETTE / CŒUR --- */
+.shadow-heart-box { position: absolute; top: 20px; right: 20px; font-size: 30px; filter: drop-shadow(0 0 10px red); z-index: 60; transition: transform 0.2s; }
+#dark-vignette { position: fixed; inset: 0; background: radial-gradient(circle, transparent 40%, rgba(20, 0, 0, 0) 100%); pointer-events: none; z-index: 55; transition: background 1s linear; }
+
+/* --- TEXTE NARRATIF --- */
+#story-text { 
+    font-family: 'Fredoka One', cursive; 
+    font-size: 18px; line-height: 1.6; min-height: 100px; margin-top: 10px; 
+    color: #ffffff !important; 
+    text-shadow: 0px 4px 10px rgba(0,0,0,1), 0px 0px 5px rgba(0,0,0,1) !important; 
+    font-weight: bold; transition: opacity 0.8s ease, transform 0.8s ease; 
+    opacity: 1; transform: translateY(0); 
+    z-index: 9999 !important; 
+    position: relative;
+}
+.text-fade-out { opacity: 0 !important; transform: translateY(10px) !important; }
+.line-break { display: block; margin-top: 5px; color: var(--sakura); font-size: 20px; }
+.typewriter-cursor::after { content: '▎'; animation: blink-cursor 0.8s step-end infinite; color: var(--sakura); }
+@keyframes blink-cursor { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+/* --- UTILITAIRES --- */
+.easter-glitch { animation: glitch-anim 0.2s infinite; filter: invert(1) hue-rotate(180deg) !important; }
+.falling-star { opacity: 0; transform: translateY(-500px) scale(0.1); animation: star-fall 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+@keyframes star-fall { 100% { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; } }
+.shake-screen { animation: screen-shake 0.1s linear infinite; }
+@keyframes screen-shake { 0%, 100% {transform:translate(0,0)} 25% {transform:translate(5px,5px)} 50% {transform:translate(-5px,-5px)} 75% {transform:translate(5px,-5px)} }
+
+/* --- INK WASH (encre sumi-e qui coule) --- */
+#ink-wash { position: fixed; inset: 0; z-index: 8500; pointer-events: none; opacity: 0; background: linear-gradient(to bottom, #000 0%, #000 var(--ink-progress, 0%), transparent var(--ink-progress, 0%)); transition: opacity 0.3s; }
+
+/* --- FISSURES D'ÉCRAN (rupture du monde) --- */
+#screen-crack {
+    position: fixed; inset: 0; z-index: 8400; pointer-events: none;
+    opacity: 0; transition: opacity 0.2s;
+}
+#screen-crack.active {
+    opacity: 1; animation: crack-flash 0.3s ease-out forwards;
+}
+#screen-crack.active::before {
+    content: ''; position: absolute; top: 30%; left: 45%;
+    width: 3px; height: 40%; background: rgba(255,255,255,0.8);
+    transform: rotate(15deg); box-shadow: 0 0 8px white, 0 0 20px rgba(255,255,255,0.4);
+    clip-path: polygon(0 0, 100% 0, 80% 30%, 120% 50%, 60% 70%, 100% 100%, 0 100%, 40% 65%, -20% 45%, 30% 25%);
+}
+#screen-crack.active::after {
+    content: ''; position: absolute; top: 25%; left: 52%;
+    width: 2px; height: 50%; background: rgba(255,255,255,0.6);
+    transform: rotate(-20deg); box-shadow: 0 0 6px white;
+    clip-path: polygon(0 0, 100% 10%, 60% 35%, 100% 55%, 40% 75%, 100% 100%, 0 90%, 50% 70%, 0% 50%, 60% 30%);
+}
+@keyframes crack-flash { 0% { opacity: 1; } 100% { opacity: 0.6; } }
+
+/* --- TAIKO BELL PULSE (synchro clochette/taiko) --- */
+.bell-pulse .bell {
+    animation: bell-flash 0.3s ease-out !important;
+}
+@keyframes bell-flash {
+    0% { box-shadow: 0 0 30px rgba(255,215,0,0.8) !important; transform: scale(1.1); }
+    100% { box-shadow: none; transform: scale(1); }
+}
+
+/* ═══════════════════════════════════════════
+   MODE LITE — Appareils faibles (< 4GB RAM)
+   Réduit les blur, particules, gooey
+   ═══════════════════════════════════════════ */
+.lite-mode .shadow-smoke { filter: none !important; }
+.lite-mode .smoke-particle { filter: blur(15px) !important; }
+.lite-mode .sp-fade-1, .lite-mode .sp-fade-2, .lite-mode .sp-fade-3,
+.lite-mode .sp-blood-1, .lite-mode .sp-blood-2, .lite-mode .sp-blood-3 { display: none !important; }
+.lite-mode .eclipse-pulse-deep { display: none !important; }
+.lite-mode .sacred-dust .gold-mote:nth-child(n+5) { display: none !important; }
+.lite-mode .divine-rays .ray:nth-child(n+4) { display: none !important; }
+.lite-mode .pollen:nth-child(n+5) { display: none !important; }
+
+/* GPU Acceleration hints */
+.smoke-particle, .ember, .gold-mote, .ray, .final-lantern, .eclipse-ring, .eclipse-pulse,
+.ghost-guardian, .kd-container, .kodama-new-head, .ritual-mandala, .kusanagi-svg {
+    will-change: transform, opacity;
+}

@@ -1,0 +1,293 @@
+/* ============================================
+   GAME.CSS — Hub, Quiz, Minigames, Final
+   ============================================ */
+
+/* --- ÉCRAN COMBAT TÉNÈBRES --- */
+#oni-fight { 
+    position: fixed; inset: 0; 
+    background: radial-gradient(ellipse at center, #0a0508 0%, #020104 60%) !important; 
+    z-index: 3000; display: none; flex-direction: column; align-items: center; justify-content: center; 
+}
+.shake-oni { cursor: pointer; filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.8)); }
+.oni-hit { animation: tremor-hit 0.1s infinite !important; filter: drop-shadow(0 0 40px white) brightness(1.5) !important; }
+@keyframes tremor-hit { 0%{transform:translate(10px,10px) scale(1.1)} 50%{transform:translate(-10px,-10px) scale(1.1)} 100%{transform:translate(10px,-10px) scale(1.1)} }
+
+/* --- HUB --- */
+#screen-hub { background: radial-gradient(circle at center, rgba(255, 183, 197, 0.2) 0%, hsl(310, 80%, var(--bg-lightness)) 100%); transition: background 1.5s ease; }
+.compass-ring { width: 180px; height: 180px; border: 6px solid var(--sakura); border-radius: 50%; position: relative; display: flex; align-items: center; justify-content: center; margin: 10px; background: rgba(255,255,255,0.05); box-shadow: inset 0 0 20px rgba(255,183,197,0.2), 0 0 20px rgba(255,183,197,0.2); }
+.compass-inner-ring { position: absolute; width: 150px; height: 150px; border: 3px dashed var(--sakura); border-radius: 50%; animation: spin-reverse 15s linear infinite; opacity: 0.6; pointer-events: none;}
+#needle-gold { width: 6px; height: 80px; background: var(--gold); position: absolute; bottom: 50%; transform-origin: bottom center; border-radius: 10px; box-shadow: 0 0 15px var(--gold); z-index: 4; transition: transform 0.2s ease-out;}
+.grid-9 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 20px; margin-bottom: 10px; }
+.slot { width: 70px; height: 70px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.05); border: 2px dashed rgba(255,183,197,0.4); border-radius: 15px; font-size: 30px; transition: all 0.5s cubic-bezier(0.17, 0.89, 0.32, 1.49); cursor: pointer; position: relative; filter: grayscale(0.9) opacity(0.4); }
+.slot.unlocked { filter: grayscale(0) opacity(1); border: 3px solid var(--gold); background: rgba(255, 183, 197, 0.2); box-shadow: 0 0 15px rgba(255,183,197,0.5); font-size: 40px; animation: pulse-card 2s infinite alternate; }
+#hub-progress-container { width: 80%; height: 14px; background: rgba(0,0,0,0.5); border-radius: 10px; overflow: hidden; margin-top: 8px; border: 2px solid rgba(255,183,197,0.3); }
+#hub-progress-bar { width: 0%; height: 100%; background: linear-gradient(90deg, var(--sakura), var(--gold)); transition: width 0.8s cubic-bezier(0.17, 0.89, 0.32, 1.49); }
+
+/* --- GAME ARENA --- */
+#game-arena { position:relative; width:100%; min-height:200px; display:flex; flex-direction:column; align-items:center; justify-content:center; touch-action: none; }
+#game-target { font-size: 100px; cursor: pointer; transition: left 0.1s, top 0.1s, transform 0.1s; display: inline-block; position: relative; touch-action: none; filter: drop-shadow(0 0 10px rgba(255,255,255,0.2));}
+.catch-target { position: relative; transition: transform 0.2s ease-out; will-change: transform; }
+.drum-btn { font-size: 30px; padding: 20px; margin: 10px; border-radius: 50%; background: var(--sakura); border: 4px solid white; color: white; cursor: pointer; touch-action: manipulation; font-family: 'Fredoka One', cursive;}
+.mem-btn { font-size: 40px; margin: 5px; cursor: pointer; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 10px; touch-action: manipulation;}
+
+/* --- EFFETS DE JEU --- */
+.magic-paw { position: fixed; font-size: 45px; pointer-events: none; z-index: 9999; filter: drop-shadow(0 0 15px var(--sakura)); transform: translate(-50%, -50%); animation: paw-fade 1s cubic-bezier(0.1, 0.8, 0.2, 1) forwards; }
+@keyframes paw-fade { 0% { opacity: 1; transform: translate(-50%, -50%) scale(0.5); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); } }
+
+#intro-eyes { position: absolute; top: 40%; left: 50%; transform: translateX(-50%); display: flex; gap: 45px; opacity: 0; transition: opacity 3s ease; z-index: 50; pointer-events: none; filter: drop-shadow(0 0 25px var(--sakura)); }
+.intro-eye { width: 35px; height: 12px; background: white; border-radius: 50%; box-shadow: 0 0 15px white, 0 0 40px var(--sakura); animation: eye-blink 5s infinite; }
+@keyframes eye-blink { 0%, 90%, 100% { transform: scaleY(1); } 95% { transform: scaleY(0.1); } }
+
+.fleeing-neko { 
+    position: absolute; font-size: 35px; z-index: 2000; filter: drop-shadow(0 0 15px white); 
+    pointer-events: none; will-change: transform, opacity; opacity: 0;
+    left: 50%; top: 50%;
+}
+.fleeing-neko::after {
+    content: ''; position: absolute; top: 50%; left: 50%;
+    width: 4px; height: 30px; transform: translate(-50%, -50%) rotate(var(--trail-angle, 0deg));
+    background: linear-gradient(to bottom, rgba(255,255,255,0.6), transparent);
+    border-radius: 2px; filter: blur(2px);
+}
+@keyframes blast-out { 0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; } 10% { opacity: 1; } 100% { transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(2); opacity: 0; filter: blur(2px); } }
+
+.smoke-puff { position: absolute; font-size: 60px; pointer-events: none; animation: smoke-fade 0.4s ease-out forwards; z-index: 100;}
+@keyframes smoke-fade { 0% { opacity: 1; transform: scale(0.5); filter: blur(0px); } 100% { opacity: 0; transform: scale(1.5); filter: blur(5px); } }
+.laser-beam { position: absolute; height: 6px; background: white; z-index: 3000; pointer-events: none; box-shadow: 0 0 15px var(--gold), 0 0 30px var(--gold); transform-origin: left center; border-radius: 3px; animation: laser-shoot 0.3s ease-out forwards; }
+@keyframes laser-shoot { 0% { width: 0; opacity: 1; } 50% { width: var(--length); opacity: 1; } 100% { width: var(--length); opacity: 0; } }
+
+.captured-soul { position: absolute; font-size: 50px; z-index: 4000; filter: drop-shadow(0 0 20px white); pointer-events: none; transition: all 1s cubic-bezier(0.5, 0, 0.2, 1); left: 50%; top: 40%; transform: translate(-50%, -50%) scale(1.5); }
+
+/* --- ÉCRAN FINAL --- */
+#screen-final { background: linear-gradient(to bottom, transparent 0%, transparent 100%); transition: background 1.5s ease; }
+#final-circ-nekos { position: relative; width: 300px; height: 300px; display: flex; align-items: center; justify-content: center; margin: 20px 0; transition: opacity 1.5s ease;}
+.final-node { position: absolute; font-size: 50px; opacity: 0; transform: scale(0) rotate(180deg); transition: all 0.6s cubic-bezier(0.17, 0.89, 0.32, 1.49); filter: drop-shadow(0 0 10px white); z-index: 10;}
+#final-story-box { font-family: 'Fredoka One', cursive; font-size: 20px; line-height: 1.6; min-height: 140px; margin-top: 10px; color:white; font-weight: bold; text-shadow: 0 4px 15px rgba(0,0,0,1), 0 0 5px rgba(0,0,0,0.8); transition: opacity 0.4s ease; z-index: 100;}
+
+/* --- CERTIFICAT --- */
+.certificate { background: #fffdfa; color: #3d2f2d; border: 8px solid var(--gold); border-radius: 15px; padding: 20px; width: 90%; max-width: 380px; box-shadow: 0 10px 40px rgba(0,0,0,0.8); position: relative; margin: 20px auto; text-align: center; }
+.certificate h3 { color: var(--gold); margin: 0 0 15px 0; text-shadow: 1px 1px 2px black; font-size: 24px; }
+.certificate p { font-size: 16px; margin: 8px 0; }
+.cert-names { font-size: 14px; color: var(--sakura); line-height: 1.6; margin-top: 15px; font-weight: bold;}
+
+/* ═══════════════════════════════════════════
+   RELIQUES SVG SUMI-E + INVENTAIRE MIKO
+   ═══════════════════════════════════════════ */
+
+/* SVG Reliques — style encre */
+.relic-svg {
+    width: 100%; height: 100%;
+    color: var(--gold);
+    filter: drop-shadow(0 0 4px rgba(255,215,0,0.3));
+    transition: all 0.3s ease;
+}
+
+/* Slot débloqué — glow pulse + fond subtil */
+.slot.unlocked {
+    background: radial-gradient(circle, rgba(255,215,0,0.08) 0%, transparent 70%);
+    animation: slot-glow 3s ease-in-out infinite alternate;
+}
+.slot.unlocked .relic-svg { color: var(--gold); filter: drop-shadow(0 0 8px rgba(255,215,0,0.4)); }
+@keyframes slot-glow {
+    0% { box-shadow: 0 0 5px rgba(255,215,0,0.15); }
+    100% { box-shadow: 0 0 15px rgba(255,215,0,0.35); }
+}
+
+/* Slot verrouillé — silhouette fantôme */
+.slot.locked {
+    background: radial-gradient(circle, rgba(255,255,255,0.02) 0%, transparent 70%);
+}
+.slot.locked .relic-svg {
+    color: rgba(255,255,255,0.1);
+    filter: none;
+    opacity: 0.4;
+}
+
+/* Animation pop quand on débloque un slot */
+.slot.just-unlocked {
+    animation: slot-pop 0.6s cubic-bezier(0.17, 0.89, 0.32, 1.49);
+}
+@keyframes slot-pop {
+    0% { transform: scale(0.3) rotate(-20deg); opacity: 0; }
+    60% { transform: scale(1.3) rotate(5deg); opacity: 1; }
+    100% { transform: scale(1) rotate(0); opacity: 1; }
+}
+
+/* --- GAME TARGET SVG (minijeux) --- */
+.game-target-svg {
+    width: 80px; height: 80px;
+    color: var(--gold);
+    filter: drop-shadow(0 0 15px rgba(255,215,0,0.4));
+    cursor: pointer;
+    transition: transform 0.15s ease;
+    position: relative;
+}
+.game-target-svg:active { transform: scale(0.9); }
+
+/* --- WIN RELIC (écran réussi) --- */
+.win-relic-icon {
+    width: 120px; height: 120px;
+    color: var(--gold);
+    margin: 0 auto;
+    filter: drop-shadow(0 0 25px rgba(255,215,0,0.6)) drop-shadow(0 0 50px rgba(255,215,0,0.3));
+    animation: win-relic-pop 0.8s cubic-bezier(0.17, 0.89, 0.32, 1.49);
+}
+@keyframes win-relic-pop {
+    0% { transform: scale(0) rotate(-30deg); opacity: 0; filter: drop-shadow(0 0 0 transparent); }
+    50% { transform: scale(1.4) rotate(10deg); opacity: 1; }
+    100% { transform: scale(1) rotate(0); filter: drop-shadow(0 0 25px rgba(255,215,0,0.6)) drop-shadow(0 0 50px rgba(255,215,0,0.3)); }
+}
+
+/* --- CEINTURE DE MIKO (Inventaire bas de l'écran) --- */
+#miko-belt {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    height: 60px; z-index: 200;
+    background: linear-gradient(to top, rgba(26,5,29,0.95), rgba(26,5,29,0.7), transparent);
+    display: none; /* Affiché seulement sur le hub */
+    align-items: center; justify-content: center;
+    gap: 4px; padding: 8px 10px;
+    pointer-events: auto;
+}
+#miko-belt.visible { display: flex !important; }
+
+.belt-slot {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,215,0,0.12);
+    background: rgba(0,0,0,0.4);
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    padding: 8px;
+}
+.belt-slot .relic-svg { stroke-width: 2.5; }
+.belt-slot.belt-filled {
+    border-color: rgba(255,215,0,0.5);
+    background: rgba(255,215,0,0.08);
+}
+.belt-slot.belt-filled .relic-svg {
+    color: var(--gold);
+    filter: drop-shadow(0 0 5px rgba(255,215,0,0.3));
+}
+.belt-slot:not(.belt-filled) .relic-svg {
+    color: rgba(255,255,255,0.08);
+    filter: none;
+}
+.belt-slot.belt-filled::after {
+    content: ''; position: absolute; inset: -3px;
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(255,215,0,0.2);
+    pointer-events: none;
+}
+
+/* Tooltip au tap */
+.belt-tooltip {
+    position: absolute; bottom: 55px; left: 50%; transform: translateX(-50%);
+    background: rgba(26,5,29,0.95); border: 1px solid var(--gold);
+    border-radius: 10px; padding: 8px 14px;
+    color: white; font-size: 13px; text-align: center;
+    white-space: nowrap; pointer-events: none;
+    opacity: 0; transition: opacity 0.3s;
+    font-family: 'Fredoka One', cursive;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+    z-index: 210;
+}
+.belt-tooltip.show { opacity: 1; }
+.belt-tooltip .tooltip-name { color: var(--gold); font-size: 15px; }
+
+/* --- MEMORY GAME SVG BUTTONS --- */
+.mem-btn-svg {
+    width: 70px !important; height: 70px !important;
+    padding: 12px !important;
+    color: var(--gold);
+    background: rgba(0,0,0,0.3) !important;
+    border: 2px solid rgba(255,215,0,0.3) !important;
+    border-radius: 12px !important;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.mem-btn-svg:active {
+    transform: scale(0.9);
+    background: rgba(255,215,0,0.15) !important;
+    border-color: var(--gold) !important;
+}
+
+/* --- TIMER ENCENS --- */
+@keyframes smoke-rise {
+    0% { opacity: 0.3; transform: translateY(0) scaleX(1); }
+    50% { opacity: 0.15; transform: translateY(-15px) scaleX(1.5); }
+    100% { opacity: 0; transform: translateY(-30px) scaleX(2); }
+}
+
+/* --- INDICES PROGRESSIFS --- */
+.quiz-hint {
+    color: rgba(168,213,162,0.8); font-size: 14px; font-style: italic;
+    text-align: center; margin: 8px 0; padding: 6px 12px;
+    background: rgba(0,0,0,0.2); border-radius: 8px;
+    animation: hint-fade-in 1s ease;
+}
+@keyframes hint-fade-in { 0% { opacity: 0; transform: translateY(10px); } 100% { opacity: 1; transform: translateY(0); } }
+
+/* =========================================
+   NOUVEAUX STYLES : KAWAII & PÉNALITÉ
+   ========================================= */
+
+/* 1. Typo du Quiz lisible et ronde */
+#quiz-title {
+    font-family: 'Fredoka One', cursive !important;
+    letter-spacing: 1px;
+    font-size: 28px !important;
+}
+
+/* 2. Flottement poétique et doux pour les objets des mini-jeux */
+.game-target-svg {
+    filter: drop-shadow(0 0 10px #ffb7c5) drop-shadow(0 0 25px rgba(255,183,197,0.5));
+    animation: float-kawaii 3s ease-in-out infinite alternate;
+    transition: transform 0.2s ease;
+}
+.game-target-svg:active {
+    transform: scale(0.9) !important;
+}
+@keyframes float-kawaii {
+    0% { transform: translateY(0px) scale(1); }
+    100% { transform: translateY(-12px) scale(1.05); }
+}
+
+/* 3. Tremblement d'écran (Pénalité douce au lieu de l'Oni) */
+.shake-screen {
+    animation: screen-shake 0.4s cubic-bezier(.36,.07,.19,.97) both !important;
+    /* Petit flash rouge subtil sur les bords de l'écran */
+    box-shadow: inset 0 0 80px rgba(255, 77, 77, 0.4) !important; 
+}
+@keyframes screen-shake {
+    10%, 90% { transform: translate3d(-2px, 2px, 0); }
+    20%, 80% { transform: translate3d(4px, -2px, 0); }
+    30%, 50%, 70% { transform: translate3d(-8px, 4px, 0); }
+    40%, 60% { transform: translate3d(8px, -4px, 0); }
+}
+
+/* --- TAMPON DRAMATIQUE (Hanko Slam) --- */
+.hanko-slam {
+    position: fixed; left: 50%; top: 50%;
+    transform: translate(-50%, -50%) scale(5) rotate(-25deg);
+    width: 100px; height: 100px;
+    border: 6px solid #b71c1c;
+    border-radius: 10px;
+    color: #b71c1c;
+    font-family: 'Ma Shan Zheng', cursive;
+    font-size: 36px; line-height: 1.1;
+    display: flex; align-items: center; justify-content: center; text-align: center;
+    z-index: 9500;
+    opacity: 0;
+    mix-blend-mode: multiply;
+    animation: hanko-slam-anim 0.8s cubic-bezier(0.2, 0, 0.2, 1.4) forwards;
+    pointer-events: none;
+}
+@keyframes hanko-slam-anim {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(5) rotate(-25deg); }
+    30% { opacity: 1; transform: translate(-50%, -50%) scale(0.9) rotate(-15deg); }
+    50% { transform: translate(-50%, -50%) scale(1.1) rotate(-13deg); }
+    100% { opacity: 0.85; transform: translate(-50%, -50%) scale(1) rotate(-15deg);
+        box-shadow: inset 0 0 15px rgba(183,28,28,0.5), 0 0 30px rgba(183,28,28,0.2); }
+}

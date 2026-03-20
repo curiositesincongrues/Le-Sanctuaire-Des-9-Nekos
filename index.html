@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#020104">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="9 Nekos">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    
+    <title>🌸 LE SANCTUAIRE DES 9 NEKOS SACRÉS 🌸</title>
+    
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
+    
+    <!-- CSS DÉCOUPÉ -->
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/cinematics.css">
+    <link rel="stylesheet" href="css/game.css">
+    
+    <script id="bg-vs" type="x-shader/x-vertex">
+        attribute vec2 aPos; varying vec2 vUv;
+        void main() { vUv = aPos * 0.5 + 0.5; gl_Position = vec4(aPos, 0.0, 1.0); }
+    </script>
+    <script id="bg-fs" type="x-shader/x-fragment">
+        #ifdef GL_FRAGMENT_PRECISION_HIGH
+        precision highp float;
+        #else
+        precision mediump float;
+        #endif
+        varying vec2 vUv; uniform vec3 uBgCol; uniform vec3 uGlowCol;
+        void main() {
+            float dist = distance(vUv, vec2(0.5, 0.35)); float glow = smoothstep(0.8, 0.0, dist);
+            float noise = fract(sin(dot(vUv, vec2(12.9898, 78.233))) * 43758.5453) * 0.04;
+            vec3 finalCol = mix(uBgCol, uGlowCol, glow) + noise; gl_FragColor = vec4(finalCol, 1.0);
+        }
+    </script>
+    <script id="petal-vs" type="x-shader/x-vertex">
+        attribute vec3 aPos; attribute vec3 aNorm; attribute vec4 aInstData1; attribute vec2 aInstData2;
+        uniform float uTime; uniform vec2 uRes; uniform float uWind; uniform float uSpdM; uniform float uGravDir;
+        varying vec3 vNorm; varying float vZ;
+        void main() {
+            vec3 offset = aInstData1.xyz; float scale = aInstData1.w;
+            float phase = aInstData2.x; float spd = aInstData2.y * uSpdM;
+            vec3 pos = aPos * scale; vec3 norm = aNorm;
+            float rx = uTime * spd + phase; float ry = uTime * spd * 0.7 + phase * 2.0; float rz = uTime * spd * 0.4 + phase * 1.5;
+            mat3 rotX = mat3(1.,0.,0., 0.,cos(rx),-sin(rx), 0.,sin(rx),cos(rx)); mat3 rotY = mat3(cos(ry),0.,sin(ry), 0.,1.,0., -sin(ry),0.,cos(ry)); mat3 rotZ = mat3(cos(rz),-sin(rz),0., sin(rz),cos(rz),0., 0.,0.,1.);
+            mat3 rot = rotZ * rotY * rotX; pos = rot * pos; vNorm = rot * norm;
+            float gY = offset.y - uGravDir * uTime * 200.0 * spd; float gX = offset.x + sin(uTime + phase) * 150.0 + uWind * uTime * 300.0;
+            gX = mod(gX + 1500., 3000.) - 1500.; gY = mod(gY + 1500., 3000.) - 1500.;
+            vec3 worldPos = vec3(gX, gY, offset.z); pos += worldPos; vZ = worldPos.z;
+            float proj = 1000.0 / (worldPos.z + 2000.0); gl_Position = vec4((pos.xy / max(uRes, 800.0)) * proj * 2.0, 0.0, 1.0);
+        }
+    </script>
+    <script id="petal-fs" type="x-shader/x-fragment">
+        #ifdef GL_FRAGMENT_PRECISION_HIGH
+        precision highp float;
+        #else
+        precision mediump float;
+        #endif
+        uniform vec3 uPetalCol; uniform vec3 uFogCol; varying vec3 vNorm; varying float vZ;
+        void main() {
+            vec3 lightDir = normalize(vec3(0.5, 1.0, 0.5)); float diff = max(dot(vNorm, lightDir), 0.0);
+            vec3 col = uPetalCol * (0.6 + diff * 0.5); float fogFactor = smoothstep(-1500.0, 500.0, vZ);
+            gl_FragColor = vec4(mix(uFogCol, col, fogFactor), 0.9);
+        }
+    </script>
+    <meta name="robots" content="noindex, nofollow">
+</head>
+<body id="main-body">
+
+<div id="sky-background" style="position:fixed; inset:0; background: linear-gradient(to bottom, #87CEEB, #e0f6ff); opacity:0; z-index:-2; transition: opacity 2s ease;"></div>
+<div class="fog" id="main-fog"></div>
+<div id="flash"></div>
+
+<!-- SVG Filter Gooey (invisible, utilisé par CSS) -->
+<svg style="display:none">
+    <defs>
+        <filter id="goo-filter">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur"/>
+            <feColorMatrix in="blur" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7" result="goo"/>
+        </filter>
+    </defs>
+</svg>
+
+<canvas id="canvas-fx"></canvas>
+
+<!-- OVERLAYS CINÉMATIQUES -->
+<div id="cinema-vignette"></div>
+<div id="cinema-grain"></div>
+<div id="ink-wash"></div>
+<div id="screen-crack"></div>
+
+<div id="skip-zone" style="display:none;">
+    <div style="font-size:12px; margin-bottom:5px; color:rgba(255,255,255,0.7); text-shadow: 0 0 5px black;">Maintenir pour passer</div>
+    <div class="skip-circle"><div class="skip-fill" id="skip-fill"></div></div>
+</div>
+
+<div id="shoji-doors">
+    <div class="shoji-door left"></div>
+    <div class="shoji-door right"></div>
+    <div id="shoji-shadow"></div>
+</div>
+
+<div id="qr-reader-container">
+    <div id="qr-reader"></div>
+    <!-- Overlay magique -->
+    <div id="scan-overlay">
+        <div class="scan-vignette"></div>
+        <div class="scan-circle">
+            <div class="scan-ring"></div>
+            <div class="scan-ring scan-ring-inner"></div>
+            <div class="scan-particles">
+                <div class="scan-particle sp-s1"></div>
+                <div class="scan-particle sp-s2"></div>
+                <div class="scan-particle sp-s3"></div>
+                <div class="scan-particle sp-s4"></div>
+                <div class="scan-particle sp-s5"></div>
+                <div class="scan-particle sp-s6"></div>
+            </div>
+        </div>
+        <p class="scan-text" id="scan-status">Approchez le miroir du sceau...</p>
+        <div class="scan-buttons">
+            <button class="scan-btn" id="btn-torch" onclick="toggleTorch()">🔦 Éclairer</button>
+            <button class="scan-btn" id="btn-manual" onclick="showManualEntry()" style="display:none;">✏️ Entrer le code</button>
+            <button class="scan-btn scan-btn-cancel" onclick="stopScan()">✕ Fermer</button>
+        </div>
+        <!-- Entrée manuelle -->
+        <div id="manual-entry" style="display:none;">
+            <p style="color:var(--sakura); font-size:14px; margin-bottom:10px;">Entrez le code inscrit sous le sceau :</p>
+            <input type="text" id="manual-code" maxlength="6" placeholder="NK01" autocomplete="off" 
+                style="width:120px; padding:12px; font-size:24px; text-align:center; border-radius:10px; border:2px solid var(--gold); background:rgba(0,0,0,0.7); color:var(--gold); font-family:'Fredoka One',cursive; letter-spacing:4px;">
+            <button class="scan-btn" onclick="submitManualCode()" style="margin-top:10px;">🌸 Valider</button>
+        </div>
+        <!-- Résultat de scan -->
+        <div id="scan-result" style="display:none;">
+            <div id="scan-result-icon" style="font-size:60px;"></div>
+            <p id="scan-result-text" style="color:var(--gold); font-size:20px; margin-top:10px;"></p>
+        </div>
+    </div>
+</div>
+
+<!-- ÉCRAN DE COMBAT BOSS -->
+<div id="oni-fight" onclick="exorcise()" style="display: none;">
+    <div class="shake-oni noface-container awake">
+        <div class="crimson-aura"></div>
+        <svg class="noface-svg" viewBox="0 0 200 400" width="160" height="320" style="overflow: visible;">
+            <defs>
+                <linearGradient id="nf-ink" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="30%" stop-color="#000000" stop-opacity="1" />
+                    <stop offset="100%" stop-color="#000000" stop-opacity="0" />
+                </linearGradient>
+            </defs>
+            <!-- CORPS RÉPARÉ : FONDU NATIF VIA LE DÉGRADÉ, SANS MASQUE CSS -->
+            <path d="M 100,20 C 150,20 170,100 170,200 C 170,350 140,400 100,400 C 60,400 30,350 30,200 C 30,100 50,20 100,20 Z" fill="url(#nf-ink)" />
+            <!-- MASQUE RÉPARÉ : SANS FILTRES QUI CRASHENT -->
+            <g class="nf-mask">
+                <path d="M 100,50 C 125,50 140,80 140,120 C 140,160 120,190 100,190 C 80,190 60,160 60,120 C 60,80 75,50 100,50 Z" fill="#ffffff"/>
+                <path d="M 85,100 Q 90,95 95,100 L 90,105 Z" fill="#000000"/>
+                <path d="M 115,100 Q 110,95 105,100 L 110,105 Z" fill="#000000"/>
+                <path d="M 85,80 L 90,85 L 85,95 L 80,85 Z" fill="#6b1a30"/>
+                <path d="M 115,80 L 110,85 L 115,95 L 120,85 Z" fill="#6b1a30"/>
+                <path d="M 85,110 L 90,140 L 85,145 L 80,140 Z" fill="#6b1a30"/>
+                <path d="M 115,110 L 110,140 L 115,145 L 120,140 Z" fill="#6b1a30"/>
+                <path d="M 90,160 Q 100,165 110,160 Q 100,170 90,160 Z" fill="#000000"/>
+            </g>
+        </svg>
+    </div>
+    <h2 style="margin:20px 0; font-size: 30px; text-shadow: 0 0 15px black;">L'ESPRIT VOUS BLOQUE !</h2>
+    <div style="font-size:24px; color:var(--gold); font-weight: bold; background: rgba(0,0,0,0.5); padding: 10px 20px; border-radius: 10px;">FRAPPES RESTANTES : <span id="oni-pv">10</span></div>
+</div>
+
+<div id="app">
+    <div id="screen-narrative" class="screen active">
+        <div class="bg-kanji">九猫</div>
+        <h1 class="game-title-3d visible" id="intro-title" style="text-shadow: 0px 8px 0px #8c7300, 0 15px 25px rgba(0,0,0,0.8);">LE SANCTUAIRE<br>DES 9 NEKOS</h1>
+        <div id="intro-eyes"><div class="intro-eye"></div><div class="intro-eye"></div></div>
+
+        <div id="cinematic-anchor" class="ken-burns">
+            
+            <div id="layer-boat" class="cinematic-layer">
+                <div class="boat-scene">
+                    <!-- Lanternes flottantes tōrō nagashi -->
+                    <div class="toro-lantern" style="left:-60px; bottom:18px; animation-delay:0s;"></div>
+                    <div class="toro-lantern" style="left:-25px; bottom:22px; animation-delay:1.5s; opacity:0.7;"></div>
+                    <div class="toro-lantern" style="right:-50px; bottom:15px; animation-delay:0.8s; opacity:0.8;"></div>
+                    <div class="toro-lantern" style="right:-90px; bottom:20px; animation-delay:2.2s; opacity:0.6;"></div>
+                    <div class="toro-lantern" style="left:30px; bottom:12px; animation-delay:3s; opacity:0.5; transform:scale(0.7);"></div>
+                    <svg viewBox="0 0 200 100" width="250" height="125" class="boat-svg">
+                        <path d="M 10,70 Q 100,100 190,70 L 170,85 Q 100,110 30,85 Z" fill="#080b14"/>
+                        <path d="M 60,70 L 60,30 L 120,30 L 120,70 Z" fill="#0c1222"/>
+                        <path d="M 50,30 L 130,30 L 110,20 L 70,20 Z" fill="#121b33"/>
+                        <circle cx="140" cy="45" r="4" fill="#ffd700" filter="drop-shadow(0 0 8px #ffd700)"/>
+                        <path d="M 150,70 L 180,10" stroke="#1a2542" stroke-width="2" stroke-linecap="round"/>
+                        <circle cx="150" cy="50" r="10" fill="#0c1222"/>
+                    </svg>
+                    <div class="water-waves">
+                        <div class="wave"></div><div class="wave wave-offset"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="layer-koi" class="cinematic-layer">
+                <div class="koi-scene">
+                    <svg viewBox="0 0 200 200" width="200" height="200" class="koi-spinner">
+                        <path d="M 100,20 C 140,50 140,100 100,130 C 80,100 80,50 100,20 Z" fill="var(--sakura)" filter="drop-shadow(0 0 15px var(--sakura))"/>
+                        <circle cx="100" cy="45" r="4" fill="#1a051d"/>
+                        <path d="M 120,60 C 140,70 140,90 120,80 Z" fill="var(--sakura)"/>
+                        <path d="M 80,60 C 60,70 60,90 80,80 Z" fill="var(--sakura)"/>
+                        <g transform="rotate(180 100 100)">
+                            <path d="M 100,20 C 140,50 140,100 100,130 C 80,100 80,50 100,20 Z" fill="var(--kusanagi)" filter="drop-shadow(0 0 15px var(--kusanagi))"/>
+                            <circle cx="100" cy="45" r="4" fill="#1a051d"/>
+                            <path d="M 120,60 C 140,70 140,90 120,80 Z" fill="var(--kusanagi)"/>
+                            <path d="M 80,60 C 60,70 60,90 80,80 Z" fill="var(--kusanagi)"/>
+                        </g>
+                    </svg>
+                    <div class="water-ripple"></div>
+                    <div class="water-ripple ripple-2"></div>
+                    <div class="water-ripple ripple-3"></div>
+                    <div class="koi-halo"></div>
+                </div>
+            </div>
+
+            <div id="layer-castle" class="cinematic-layer">
+                <div class="castle-scene">
+                    <!-- Nuages ukiyo-e -->
+                    <div class="ukiyo-cloud cloud-1"></div>
+                    <div class="ukiyo-cloud cloud-2"></div>
+                    <div class="ukiyo-cloud cloud-3"></div>
+                    <!-- LE CHÂTEAU EST DIVISÉ EN ÉTAGES POUR L'ANIMATION -->
+                    <svg viewBox="0 0 240 300" width="240" height="300" class="castle-svg">
+                        <g class="etage etage-1">
+                            <path d="M 20,280 L 220,280 L 190,200 L 50,200 Z" fill="#060913"/>
+                            <path d="M 0,200 Q 120,150 240,200 Q 120,180 0,200" fill="#121b33"/>
+                            <rect class="castle-window" x="100" y="230" width="12" height="20" fill="#ffd700" filter="drop-shadow(0 0 8px #ffd700)"/>
+                            <rect class="castle-window" x="128" y="230" width="12" height="20" fill="#ffd700" filter="drop-shadow(0 0 8px #ffd700)"/>
+                        </g>
+                        <g class="etage etage-2">
+                            <path d="M 40,200 Q 120,220 200,200 L 170,140 L 70,140 Z" fill="#0c1222"/>
+                            <path d="M 20,140 Q 120,100 220,140 Q 120,120 20,140" fill="#121b33"/>
+                            <rect class="castle-window" x="108" y="165" width="10" height="15" fill="#ffd700" filter="drop-shadow(0 0 8px #ffd700)"/>
+                            <rect class="castle-window" x="122" y="165" width="10" height="15" fill="#ffd700" filter="drop-shadow(0 0 8px #ffd700)"/>
+                        </g>
+                        <g class="etage etage-3">
+                            <path d="M 60,140 Q 120,160 180,140 L 150,80 L 90,80 Z" fill="#080b14"/>
+                            <path d="M 40,80 Q 120,40 200,80 Q 120,60 40,80" fill="#121b33"/>
+                            <rect class="castle-window" x="115" y="105" width="10" height="15" fill="#ffd700" filter="drop-shadow(0 0 8px #ffd700)"/>
+                        </g>
+                        <g class="etage etage-4">
+                            <path d="M 80,80 Q 120,100 160,80 L 130,30 L 110,30 Z" fill="#0c1222"/>
+                            <path d="M 70,30 Q 120,0 170,30 Q 120,10 70,30" fill="#121b33"/>
+                            <rect class="castle-window" x="116" y="55" width="8" height="12" fill="#ffd700" filter="drop-shadow(0 0 8px #ffd700)"/>
+                        </g>
+                    </svg>
+                    <!-- Grues japonaises qui s'envolent -->
+                    <svg class="crane crane-1" viewBox="0 0 40 30" width="25" height="18"><path d="M0,20 Q10,5 20,12 Q30,5 40,20" fill="none" stroke="rgba(200,180,210,0.4)" stroke-width="2"/></svg>
+                    <svg class="crane crane-2" viewBox="0 0 40 30" width="20" height="14"><path d="M0,20 Q10,5 20,12 Q30,5 40,20" fill="none" stroke="rgba(200,180,210,0.4)" stroke-width="2"/></svg>
+                    <svg class="crane crane-3" viewBox="0 0 40 30" width="15" height="11"><path d="M0,20 Q10,5 20,12 Q30,5 40,20" fill="none" stroke="rgba(200,180,210,0.4)" stroke-width="2"/></svg>
+                </div>
+            </div>
+
+            <div id="layer-torii" class="cinematic-layer">
+                <div class="torii-scene-svg">
+                    <div class="moon-rising"></div>
+                    <!-- Ofuda (talismans papier) -->
+                    <div class="ofuda" style="left:38%; top:22%; animation-delay:0s;"></div>
+                    <div class="ofuda" style="left:48%; top:20%; animation-delay:0.5s;"></div>
+                    <div class="ofuda" style="left:58%; top:23%; animation-delay:1.2s;"></div>
+                    <svg viewBox="0 0 200 200" width="220" height="220">
+                        <g class="torii-reflection" opacity="0.3">
+                            <path d="M 15,160 Q 100,170 185,160 L 185,152 Q 100,160 15,152 Z" fill="#080b14"/>
+                            <rect x="30" y="145" width="140" height="6" fill="#0c1222"/>
+                            <rect x="45" y="145" width="12" height="60" fill="#080b14"/>
+                            <rect x="143" y="145" width="12" height="60" fill="#080b14"/>
+                        </g>
+                        <path d="M 15,40 Q 100,30 185,40 L 185,48 Q 100,40 15,48 Z" fill="#080b14" filter="drop-shadow(0 5px 5px rgba(0,0,0,0.5))"/>
+                        <rect x="30" y="48" width="140" height="6" fill="#0c1222"/>
+                        <rect x="25" y="70" width="150" height="8" fill="#0c1222"/>
+                        <rect x="45" y="48" width="12" height="100" fill="#080b14"/>
+                        <rect x="143" y="48" width="12" height="100" fill="#080b14"/>
+                        <rect x="92" y="54" width="16" height="16" fill="#060913"/>
+                    </svg>
+                </div>
+            </div>
+            
+            <div id="layer-noface" class="cinematic-layer">
+                <div class="miyazaki-scene">
+                    <svg class="tree-branch" viewBox="0 0 1200 500" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <filter id="mega-blur" x="-50%" y="-50%" width="200%" height="200%">
+                                <feGaussianBlur stdDeviation="60" />
+                            </filter>
+                            <filter id="light-blur" x="-20%" y="-20%" width="140%" height="140%">
+                                <feGaussianBlur stdDeviation="3" />
+                            </filter>
+                        </defs>
+                        <ellipse cx="600" cy="300" rx="450" ry="160" fill="rgba(168, 213, 162, 0.12)" filter="url(#mega-blur)"/>
+                        <path d="M-100,340 C 200,300 400,280 650,350" stroke="#05070a" stroke-width="40" fill="none" stroke-linecap="round" filter="url(#light-blur)"/>
+                        <path d="M500,360 C 750,250 1000,260 1300,220" stroke="#080b14" stroke-width="45" fill="none" stroke-linecap="round" filter="url(#light-blur)"/>
+                        <path d="M-100,460 C 250,400 800,470 1300,390" stroke="rgba(12,18,34,0.8)" stroke-width="95" fill="none" stroke-linecap="round"/>
+                        <path d="M 280,430 C 310,250 180,150 100,80" stroke="rgba(12,18,34,0.8)" stroke-width="35" fill="none" stroke-linecap="round"/>
+                        <path d="M 850,440 C 900,280 1050,180 1200,100" stroke="rgba(12,18,34,0.8)" stroke-width="45" fill="none" stroke-linecap="round"/>
+                        <path d="M-100,450 C 400,410 900,440 1300,410 L1300,600 L-100,600 Z" fill="rgba(4,6,10,0.7)"/>
+                    </svg>
+
+                    <div class="firefly" style="left: 15%; bottom: 30%; width: 6px; height: 6px;"></div>
+                    <div class="firefly" style="left: 30%; bottom: 20%; width: 4px; height: 4px;"></div>
+                    <div class="firefly" style="left: 50%; bottom: 50%; width: 5px; height: 5px;"></div>
+                    <div class="firefly" style="left: 80%; bottom: 55%; width: 6px; height: 6px;"></div>
+                    <div class="firefly" style="left: 90%; bottom: 60%; width: 4px; height: 4px;"></div>
+                    <div class="firefly" style="left: 65%; bottom: 35%; width: 5px; height: 5px;"></div>
+
+                    <!-- Pollen / spores lumineux qui montent du sol -->
+                    <div class="pollen" style="left:12%; bottom:5%;"></div>
+                    <div class="pollen" style="left:28%; bottom:8%;"></div>
+                    <div class="pollen" style="left:42%; bottom:3%;"></div>
+                    <div class="pollen" style="left:55%; bottom:10%;"></div>
+                    <div class="pollen" style="left:68%; bottom:6%;"></div>
+                    <div class="pollen" style="left:82%; bottom:4%;"></div>
+                    <div class="pollen" style="left:35%; bottom:12%;"></div>
+                    <div class="pollen" style="left:75%; bottom:7%;"></div>
+
+                    <div class="kd-container kd-rhythm-1" style="left: 20%; bottom: 42%; transform: scale(0.35); z-index: 3; animation-delay: 0s;">
+                        <div class="kodama-new-head" style="animation-delay: 0s;">
+                            <div class="kodama-new-left-eye"></div>
+                            <div class="kodama-new-right-eye"></div>
+                            <div class="kodama-new-mouth"></div>
+                        </div>
+                        <div class="kodama-new-body">
+                            <div class="kodama-new-left-arm"></div>
+                            <div class="kodama-new-right-arm"></div>
+                        </div>
+                    </div>
+
+                    <div class="kd-container kd-rhythm-2" style="left: 45%; bottom: 12%; transform: scale(0.65); z-index: 10; animation-delay: 0.5s;">
+                        <div class="kodama-new-head" style="animation-delay: -2.5s;">
+                            <div class="kodama-new-left-eye"></div>
+                            <div class="kodama-new-right-eye"></div>
+                            <div class="kodama-new-mouth"></div>
+                        </div>
+                        <div class="kodama-new-body">
+                            <div class="kodama-new-left-arm"></div>
+                            <div class="kodama-new-right-arm"></div>
+                        </div>
+                    </div>
+
+                    <div class="kd-container kd-rhythm-3" style="left: 78%; bottom: 46%; transform: scale(0.40); z-index: 4; animation-delay: 1s;">
+                        <div class="kodama-new-head" style="animation-delay: -4s;">
+                            <div class="kodama-new-left-eye"></div>
+                            <div class="kodama-new-right-eye"></div>
+                            <div class="kodama-new-mouth"></div>
+                        </div>
+                        <div class="kodama-new-body">
+                            <div class="kodama-new-left-arm"></div>
+                            <div class="kodama-new-right-arm"></div>
+                        </div>
+                    </div>
+                    <!-- Brouillard au sol rampant -->
+                    <div class="ground-fog">
+                        <div class="fog-layer fog-1"></div>
+                        <div class="fog-layer fog-2"></div>
+                        <div class="fog-layer fog-3"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- L'ASSEMBLÉE DES 9 GARDIENS -->
+            <div id="neko-hero" class="neko-stage sleeping" style="display: none; opacity: 0; width: 100vw; height: 550px;">
+                <div class="neko-aura-relic" style="width: 300px; height: 120px;"></div>
+                
+                <!-- Poussière d'or sacrée -->
+                <div class="sacred-dust">
+                    <div class="gold-mote gm-1"></div>
+                    <div class="gold-mote gm-2"></div>
+                    <div class="gold-mote gm-3"></div>
+                    <div class="gold-mote gm-4"></div>
+                    <div class="gold-mote gm-5"></div>
+                    <div class="gold-mote gm-6"></div>
+                    <div class="gold-mote gm-7"></div>
+                    <div class="gold-mote gm-8"></div>
+                </div>
+                
+                <!-- Rayons divins depuis la médaille -->
+                <div class="divine-rays">
+                    <div class="ray ray-1"></div>
+                    <div class="ray ray-2"></div>
+                    <div class="ray ray-3"></div>
+                    <div class="ray ray-4"></div>
+                    <div class="ray ray-5"></div>
+                    <div class="ray ray-6"></div>
+                </div>
+                
+                <!-- Mandala rituel au sol — Shimenawa (corde sacrée) -->
+                <div class="ritual-mandala">
+                    <svg viewBox="0 0 400 400" width="400" height="400" class="mandala-svg">
+                        <!-- Shimenawa — corde sacrée ondulée -->
+                        <path d="M200,20 C240,25 270,18 290,30 C310,42 325,35 340,50 C355,65 360,85 370,110 C380,135 385,165 385,200 C385,235 380,265 370,290 C360,315 350,335 340,350 C325,365 310,358 290,370 C270,382 240,375 200,380 C160,375 130,382 110,370 C90,358 75,365 60,350 C50,335 40,315 30,290 C20,265 15,235 15,200 C15,165 20,135 30,110 C40,85 45,65 60,50 C75,35 90,42 110,30 C130,18 160,25 200,20 Z" fill="none" stroke="rgba(255,215,0,0.35)" stroke-width="4" stroke-linecap="round"/>
+                        <!-- Corde intérieure -->
+                        <path d="M200,60 C230,63 255,58 270,68 C285,78 295,72 308,85 C318,98 325,115 330,140 C338,165 340,182 340,200 C340,218 338,235 330,260 C325,285 318,302 308,315 C295,328 285,322 270,332 C255,342 230,337 200,340 C170,337 145,342 130,332 C115,322 105,328 92,315 C82,302 75,285 70,260 C62,235 60,218 60,200 C60,182 62,165 70,140 C75,115 82,98 92,85 C105,72 115,78 130,68 C145,58 170,63 200,60 Z" fill="none" stroke="rgba(255,215,0,0.2)" stroke-width="2" stroke-dasharray="6 4"/>
+                        <!-- Shide (papiers pliés) -->
+                        <g class="mandala-shide">
+                            <rect x="195" y="15" width="10" height="18" rx="1" fill="rgba(255,255,255,0.2)" transform="rotate(-5 200 24)"/>
+                            <rect x="335" y="95" width="10" height="18" rx="1" fill="rgba(255,255,255,0.2)" transform="rotate(40 340 104)"/>
+                            <rect x="335" y="285" width="10" height="18" rx="1" fill="rgba(255,255,255,0.2)" transform="rotate(-40 340 294)"/>
+                            <rect x="195" y="367" width="10" height="18" rx="1" fill="rgba(255,255,255,0.2)" transform="rotate(5 200 376)"/>
+                            <rect x="55" y="285" width="10" height="18" rx="1" fill="rgba(255,255,255,0.2)" transform="rotate(40 60 294)"/>
+                            <rect x="55" y="95" width="10" height="18" rx="1" fill="rgba(255,255,255,0.2)" transform="rotate(-40 60 104)"/>
+                        </g>
+                        <!-- Kanji central -->
+                        <text x="200" y="200" text-anchor="middle" dominant-baseline="central" font-size="24" fill="rgba(255,215,0,0.15)" font-family="Ma Shan Zheng, cursive">守護</text>
+                    </svg>
+                </div>
+                
+                <!-- Le Neko Principal (Obsidienne) -->
+                <div class="neko-scale-wrapper obsidian-mode" style="position: absolute; left: 50%; transform: translateX(-50%) scale(0.38); z-index: 10;">
+                    <div class="neko-art-container">
+                      <div class="ears"><div class="ear-left-out"></div><div class="ear-left-inner"></div><div class="ear-right-out"></div><div class="ear-right-inner"></div></div>
+                      <div class="head"><div class="eyes"><div class="eye-left"></div><div class="eye-right"></div></div><div class="face-center"><div class="mustache-left"></div><div class="mustache-left-bottom"></div><div class="mustache-right"></div><div class="mustache-right-bottom"></div><div class="nose"></div><div class="mouth"></div><div class="mouth-right"></div></div></div>
+                      <div class="necklace"><div class="bell"><div class="reflect"></div></div></div>
+                      <div class="arm-top-left-wrapper"><div class="arm-top-left"></div><div class="arm-top-left-tip"></div><div class="gold"><span class="carving">幸<br>福</span></div></div>
+                      <div class="arm-top-right"></div><div class="arm-top-right-tip"></div>
+                      <div class="back-legs"><div class="back-leg-left"></div><div class="back-leg-right"></div></div>
+                      <div class="paws"><div class="paw-left"></div><div class="paw-right"></div></div>
+                    </div>
+                </div>
+
+                <!-- Container CARRÉ centré sur le neko pour que le cercle soit rond -->
+                <div id="ghost-guardians-container" style="position:absolute; width:500px; height:500px; left:50%; top:50%; transform:translate(-50%,-50%); z-index:5; overflow:visible; pointer-events:none;">
+                    <canvas id="guardian-constellation" width="500" height="500" style="position:absolute; inset:0; pointer-events:none;"></canvas>
+                </div>
+
+                <div id="kusanagi-sword" class="kusanagi-throne" style="display:none; top: 0px;">
+                    <svg viewBox="0 0 500 50" width="450" height="45" class="kusanagi-svg">
+                        <defs>
+                            <linearGradient id="blade-glow" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stop-color="#ffffff"/>
+                                <stop offset="30%" stop-color="#c9fffe"/>
+                                <stop offset="80%" stop-color="#1a2542"/>
+                                <stop offset="100%" stop-color="#04060a"/>
+                            </linearGradient>
+                            <linearGradient id="hilt-wrap" x1="0" y1="0" x2="1" y2="0">
+                                <stop offset="0%" stop-color="#04060a"/>
+                                <stop offset="50%" stop-color="#2a3b5c"/>
+                                <stop offset="100%" stop-color="#04060a"/>
+                            </linearGradient>
+                        </defs>
+                        <path d="M120,22 Q 280,20 460,15 Q 475,14 480,20 Q 450,28 250,28 L120,28 Z" fill="url(#blade-glow)"/>
+                        <path d="M120,22 Q 280,20 460,15" stroke="#ffffff" stroke-width="1.5" fill="none" opacity="0.8"/>
+                        <path d="M110,10 L120,10 L120,38 L110,38 Z" fill="#f39c12" stroke="#4a2311" stroke-width="1"/>
+                        <rect x="30" y="19" width="80" height="10" fill="url(#hilt-wrap)"/>
+                        <path d="M30,19 L110,19 M30,29 L110,29" stroke="#f39c12" stroke-width="1.5" stroke-dasharray="5 3"/>
+                        <rect x="15" y="16" width="15" height="16" rx="2" fill="#f39c12" stroke="#4a2311" stroke-width="1"/>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- ÉCRAN CINÉMATIQUE OMBRE MILLÉNAIRE -->
+            <div id="layer-daruma" class="cinematic-layer" style="z-index: 20;">
+                <div class="dark-eclipse-overlay"></div>
+                <!-- Kanji maudits qui flashent -->
+                <div class="cursed-kanji-container">
+                    <span class="cursed-kanji ck-1">闇</span>
+                    <span class="cursed-kanji ck-2">影</span>
+                    <span class="cursed-kanji ck-3">魔</span>
+                    <span class="cursed-kanji ck-4">呪</span>
+                    <span class="cursed-kanji ck-5">滅</span>
+                </div>
+                <div id="cinematic-daruma" class="noface-container">
+                    <div class="crimson-aura"></div>
+                    
+                    <!-- ═══ L'OMBRE — Silhouette organique de fumée ═══ -->
+                    <div class="shadow-smoke">
+                        <!-- FOND — particule géante qui fond dans le WebGL -->
+                        <div class="smoke-particle sp-bg"></div>
+                        <!-- TÊTE/CAPUCHE — masse dense en haut -->
+                        <div class="smoke-particle sp-head-1"></div>
+                        <div class="smoke-particle sp-head-2"></div>
+                        <div class="smoke-particle sp-head-3"></div>
+                        <!-- ÉPAULES — descend sur les côtés -->
+                        <div class="smoke-particle sp-shoulder-l"></div>
+                        <div class="smoke-particle sp-shoulder-r"></div>
+                        <!-- TRONC — s'effile vers le bas -->
+                        <div class="smoke-particle sp-body-1"></div>
+                        <div class="smoke-particle sp-body-2"></div>
+                        <!-- PIEDS — se dissout, flotte -->
+                        <div class="smoke-particle sp-fade-1"></div>
+                        <div class="smoke-particle sp-fade-2"></div>
+                        <div class="smoke-particle sp-fade-3"></div>
+                        <!-- SANG — wisps rouges qui coulent de l'éclipse -->
+                        <div class="smoke-particle sp-blood-1"></div>
+                        <div class="smoke-particle sp-blood-2"></div>
+                        <div class="smoke-particle sp-blood-3"></div>
+                    </div>
+                    
+                    <!-- ═══ L'ÉCLIPSE — dans le tiers haut (la "tête") ═══ -->
+                    <div class="eclipse-core">
+                        <div class="eclipse-ring"></div>
+                        <div class="eclipse-void"></div>
+                        <div class="eclipse-pulse"></div>
+                        <div class="eclipse-pulse-deep"></div>
+                        <div class="eclipse-kanji dying-kanji">封</div>
+                        <!-- Braises qui tombent de l'anneau -->
+                        <div class="ember em-1"></div>
+                        <div class="ember em-2"></div>
+                        <div class="ember em-3"></div>
+                        <div class="ember em-4"></div>
+                    </div>
+                </div>
+                <div id="relics" class="relics-blast"></div>
+            </div>
+            
+            <div id="miko-circle-container"></div>
+            
+        </div> <!-- FIN DE cinematic-anchor -->
+        
+        <div id="story-text"></div>
+        <div id="act-counter"></div>
+        <button id="btn-start" class="btn-grad pulse-btn" onclick="launchExperience(event)">🌸 COMMENCER L'AVENTURE 🌸</button>
+        
+    </div>
+
+    <!-- ... Règles ... -->
+    <div id="screen-rules" class="screen">
+        <div class="frame-parchemin">
+            <div id="rule-1" class="rule-step" style="display: flex;">
+                <div class="rule-icon pulse-aura" style="width:60px; height:70px; color:var(--sakura); filter: drop-shadow(0 0 15px rgba(255,183,197,0.5));"><svg viewBox="0 0 50 60"><ellipse cx="25" cy="24" rx="16" ry="20" fill="none" stroke="currentColor" stroke-width="2.5"/><ellipse cx="25" cy="24" rx="12" ry="16" fill="none" stroke="currentColor" stroke-width="1" opacity="0.3"/><ellipse cx="20" cy="18" rx="4" ry="6" fill="currentColor" opacity="0.15"/><line x1="25" y1="44" x2="25" y2="55" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><line x1="18" y1="55" x2="32" y2="55" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></div>
+                <h2 style="color:var(--sakura); font-size: 26px;">LE MIROIR DES ESPRITS</h2>
+                <p>Ce parchemin numérique est votre seul lien avec le Sanctuaire. S'il tombe, le portail se brisera à jamais.</p>
+                <div class="rule-warning">Tenez la relique à deux mains. Ne vous l'arrachez jamais. Celui ou celle qui la tient a la garde de notre monde.</div>
+                <p id="mirror-status" style="font-size: 13px; color: rgba(255,183,197,0.6); margin-top: 8px; display: none;"></p>
+                <button class="btn-grad" onclick="activateMirrorAndNext()">🌸 ÉVEILLER LE MIROIR</button>
+            </div>
+            <div id="rule-2" class="rule-step" style="display: none;">
+                <div class="rule-icon float-icon" style="transform: scale(0.4);">
+                    <div class="kodama-new-head" style="margin:0; box-shadow: 0 0 50px #a8d5a2;">
+                        <div class="kodama-new-left-eye"></div>
+                        <div class="kodama-new-right-eye"></div>
+                        <div class="kodama-new-mouth"></div>
+                    </div>
+                </div>
+                <h2 style="color:var(--sakura); font-size: 26px;">L'ÉCOUTE DE L'OMBRE</h2>
+                <p>La Corruption se nourrit du chaos et des cris. Les esprits fuient ceux qui parlent trop fort.</p>
+                <div class="rule-warning">Ne criez pas. Parlez d'une voix calme. Si la panique s'installe, l'Esprit vous trouvera plus vite.</div>
+                <button class="btn-grad" onclick="nextRule()">🌙 NOUS RESTERONS CALMES</button>
+            </div>
+            <div id="rule-3" class="rule-step" style="display: none;">
+                <div class="rule-icon">
+                    <div class="harmony-circle"><div class="orb" style="--i:0;"></div><div class="orb" style="--i:1;"></div><div class="orb" style="--i:2;"></div><div class="orb" style="--i:3;"></div><div class="orb" style="--i:4;"></div><div class="orb" style="--i:5;"></div><div class="orb" style="--i:6;"></div><div class="orb" style="--i:7;"></div></div>
+                </div>
+                <h2 style="color:var(--sakura); font-size: 26px;">L'HARMONIE DES MIKOS</h2>
+                <p>La magie des 8 héroïnes ne fonctionne que si les cœurs battent au même rythme. La discorde nourrit les ténèbres.</p>
+                <div class="rule-warning">Ne vous disputez pas. Écoutez l'intuition de chacune avant de valider un choix d'équipe.</div>
+                <button class="btn-grad" onclick="nextRule()">✨ NOUS SOMMES UNIES</button>
+            </div>
+            <div id="rule-4" class="rule-step" style="display: none;">
+                <div class="rule-icon">
+                    <div class="destiny-wheel"><span style="--i:0;">一</span><span style="--i:1;">二</span><span style="--i:2;">三</span><span style="--i:3;">四</span><span style="--i:4;">五</span><span style="--i:5;">六</span><span style="--i:6;">七</span><span style="--i:7;">八</span></div>
+                </div>
+                <h2 style="color:var(--sakura); font-size: 26px;">LE CHEMIN DU DESTIN</h2>
+                <p>Il y a 9 Gardiens à libérer, et vous êtes 8 prêtresses. Chacune de vous devra affronter une épreuve seule.</p>
+                <div class="rule-warning">Décidez MAINTENANT de votre ordre de passage (de 1 à 8). Pour le dernier Gardien, un effort collectif tranchera !</div>
+                <button class="btn-grad pulse-btn" onclick="nextRule()">🦊 NOTRE ORDRE EST DÉCIDÉ</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-oath" class="screen">
+        <div class="frame-parchemin" style="z-index: 100; pointer-events: none;">
+            <h1 style="color:var(--sakura); margin:0; font-size: 26px;">LE SCELLÉ MAGIQUE</h1>
+            <p style="font-weight:bold; margin: 10px 0; font-size: 15px; text-shadow: 0 1px 2px black;">🐾 Posez chacune un pouce sur votre Rune et maintenez le contact !</p>
+            <div id="oath-names" style="font-size: 13px; color: var(--sakura); letter-spacing: 1px; line-height: 1.5; font-style: italic;"></div>
+            <div style="font-size: 28px; font-weight: bold; margin-top: 15px; color: var(--gold); text-shadow: 0 0 15px var(--gold);"><span id="touch-count">0</span> / 8</div>
+        </div>
+        <div id="constellation-box">
+            <canvas id="constellation-lines"></canvas>
+            <div class="rune-node" style="top: 10%; left: 5%;">🌸</div>
+            <div class="rune-node" style="top: 10%; right: 5%;">🌙</div>
+            <div class="rune-node" style="top: 40%; left: 5%;">✨</div>
+            <div class="rune-node" style="top: 40%; right: 5%;">🦊</div>
+            <div class="rune-node" style="top: 70%; left: 5%;">🎀</div>
+            <div class="rune-node" style="top: 70%; right: 5%;">🔮</div>
+            <div class="rune-node" style="bottom: 5%; left: 25%;">💫</div>
+            <div class="rune-node" style="bottom: 5%; right: 25%;">🦋</div>
+        </div>
+    </div>
+
+    <div id="screen-hub" class="screen">
+        <div id="shadow-heart" class="shadow-heart-box">🖤</div>
+        <h2 style="color:var(--sakura); margin:0; font-size: 24px; text-shadow: 0 0 10px rgba(255,183,197,0.5);">BOUSSOLE SACRÉE</h2>
+        <div class="compass-ring"><div class="compass-inner-ring"></div><div id="needle-gold"></div><div style="font-size:35px; z-index:5; filter: drop-shadow(0 0 15px var(--gold));">🌸</div></div>
+        <div class="grid-9" id="grid-nekos"></div>
+        <div style="margin-top:5px; font-size:18px; font-weight:bold; text-shadow: 0 1px 3px black;">Gardiens libérés : <span id="found-count" style="color:var(--gold)">0</span> / 9</div>
+        <div id="hub-progress-container"><div id="hub-progress-bar"></div></div>
+        <button id="btn-scan" class="btn-grad" onclick="startScan()">🔮 SONDER L'AURA</button>
+        <button id="btn-cancel-scan" class="btn-grad" style="display:none; background: #555; color:white; border-color: #777;" onclick="stopScan()">❌ ANNULER LA VISION</button>
+    </div>
+
+    <!-- CEINTURE DE MIKO (Inventaire) -->
+    <div id="miko-belt"></div>
+
+    <div id="screen-quiz" class="screen">
+        <div id="fuse-container" style="width: 100%; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; height: 20px; position: relative;">
+            <svg id="incense-svg" viewBox="0 0 300 16" width="90%" height="16" style="filter: drop-shadow(0 1px 3px rgba(0,0,0,0.5));">
+                <!-- Bâton d'encens -->
+                <rect x="0" y="6" width="300" height="4" rx="2" fill="rgba(60,40,30,0.6)"/>
+                <!-- Partie brûlée (se remplit de droite à gauche) -->
+                <rect id="fuse-bar" x="0" y="6" width="300" height="4" rx="2" fill="url(#incense-grad)" style="transition: width 0.1s linear;"/>
+                <!-- Gradient encens -->
+                <defs>
+                    <linearGradient id="incense-grad" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stop-color="#ff4d4d"/>
+                        <stop offset="50%" stop-color="#ff8c00"/>
+                        <stop offset="100%" stop-color="#ffd700"/>
+                    </linearGradient>
+                </defs>
+                <!-- Point incandescent au bout -->
+                <circle id="incense-tip" cx="300" cy="8" r="4" fill="#ff6600" opacity="0.9">
+                    <animate attributeName="r" values="3;5;3" dur="1s" repeatCount="indefinite"/>
+                    <animate attributeName="opacity" values="0.6;1;0.6" dur="1.5s" repeatCount="indefinite"/>
+                </circle>
+            </svg>
+            <!-- Fumée -->
+            <div id="incense-smoke" style="position: absolute; right: 5%; top: -8px; width: 3px; height: 12px; background: rgba(200,200,200,0.15); border-radius: 50%; filter: blur(2px); animation: smoke-rise 2s ease-out infinite;"></div>
+        </div>
+        <div id="quiz-emoji" style="width:90px; height:90px; margin: 0 auto 10px auto; color:var(--gold); filter: drop-shadow(0 0 20px rgba(255,215,0,0.4));"></div>
+        <h1 id="quiz-title" style="color:var(--sakura); margin-top:0; margin-bottom: 10px; font-family: 'Ma Shan Zheng', cursive; font-size: 32px;"></h1>
+        <p id="quiz-question" style="font-size: 19px; margin-bottom: 30px; line-height: 1.5; padding: 0 20px;"></p>
+        <div id="quiz-options" style="width: 100%; display: flex; flex-direction: column; align-items: center;"></div>
+    </div>
+
+    <div id="screen-game" class="screen">
+        <h2 id="target-name" style="color:var(--sakura); margin:0;"></h2>
+        <p id="game-instr" style="font-size: 18px; margin: 15px 0 30px 0; color:var(--gold); text-shadow: 0 0 5px rgba(0,0,0,0.5);"></p>
+        <div id="mic-gauge" style="display:none; width: 60px; height: 150px; border: 3px solid white; border-radius: 30px; margin: 0 auto 20px; position: relative; overflow: hidden; background: rgba(0,0,0,0.5);"><div id="mic-level" style="position: absolute; bottom: 0; width: 100%; height: 0%; background: linear-gradient(to top, #4fc3f7, #ffffff); transition: height 0.1s;"></div></div>
+        <div id="game-arena"></div>
+        <div id="progress-container" style="display:none; width:85%; height:18px; background:#222; border:2px solid white; border-radius:10px; overflow:hidden; margin-top:30px;"><div id="progress-bar" style="width:0%; height:100%; background:var(--gold); transition: width 0.1s;"></div></div>
+    </div>
+
+    <div id="screen-final" class="screen">
+        <h1 style="color:var(--gold); font-size: 30px; text-shadow: 0 0 20px var(--gold); margin: 0 0 10px 0; opacity: 0; transform: translateY(-20px); transition: 1s;" id="final-title">SANCTUAIRE RESTAURÉ !</h1>
+        <div id="final-circ-nekos">
+            <div id="final-daruma" class="noface-container awake" style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);"></div>
+            <div id="final-neko-hero" class="neko-stage happy" style="opacity: 0; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) scale(1.1);">
+                <div class="neko-scale-wrapper">
+                    <div class="neko-art-container">
+                        <div class="ears"><div class="ear-left-out"></div><div class="ear-left-inner"></div><div class="ear-right-out"></div><div class="ear-right-inner"></div></div>
+                        <div class="head"><div class="eyes"><div class="eye-left"></div><div class="eye-right"></div></div><div class="face-center"><div class="mustache-left"></div><div class="mustache-left-bottom"></div><div class="mustache-right"></div><div class="mustache-right-bottom"></div><div class="nose"></div><div class="mouth"></div><div class="mouth-right"></div></div></div>
+                        <div class="necklace"><div class="bell"><div class="reflect"></div></div></div>
+                        <div class="arm-top-left-wrapper"><div class="arm-top-left"></div><div class="arm-top-left-tip"></div><div class="gold"><span class="carving">幸<br>福</span></div></div>
+                        <div class="arm-top-right"></div><div class="arm-top-right-tip"></div>
+                        <div class="back-legs"><div class="back-leg-left"></div><div class="back-leg-right"></div></div>
+                        <div class="paws"><div class="paw-left"></div><div class="paw-right"></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="final-story-box"></div>
+        <div id="victory-cert" class="certificate" style="display:none; transform: scale(0); transition: 0.8s cubic-bezier(0.17, 0.89, 0.32, 1.49);">
+            <h3>Pacte Accompli 🌸</h3>
+            <div id="selfie-container" style="display:none; margin: 10px auto; width: 120px; height: 120px; border-radius: 50%; border: 4px solid var(--gold); overflow: hidden; box-shadow: 0 0 15px rgba(0,0,0,0.5);">
+                <video id="selfie-cam" autoplay playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
+            </div>
+            <p>Sanctuaire purifié en : <b id="cert-time" style="color: var(--oni)">--</b></p>
+            <div class="cert-names">Ava • Nelya • Mariam • Antinea<br>Rosa-Louise • Romane • Bahia • Fatima</div>
+        </div>
+        <button id="btn-download" class="btn-grad pulse-btn" style="display:none; transform:scale(0); transition:0.5s;" onclick="openMirror()">🪞 OUVRIR LE MIROIR DES ESPRITS</button>
+        <canvas id="polaroid-canvas" style="display:none;"></canvas>
+        
+        <!-- Scène bateau épilogue -->
+        <div id="scene-boat-final">
+            <div class="final-fog-container">
+                <div class="final-fog-layer final-fog-1"></div>
+                <div class="final-fog-layer final-fog-2"></div>
+                <div class="final-fog-layer final-fog-3"></div>
+            </div>
+            <div class="final-water-line"></div>
+            <div class="final-boat-container">
+                <div class="final-boat" id="final-boat">
+                    <div class="final-boat-cabin"></div>
+                    <div class="final-boat-pole"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MIROIR DES ESPRITS (overlay plein écran) -->
+    <div id="mirror-overlay">
+        <div class="mirror-circle">
+            <video id="mirror-cam" autoplay playsinline></video>
+            <div class="mirror-shader"></div>
+            <div class="mirror-frame"></div>
+        </div>
+        <p class="mirror-instruction">Placez vos visages dans le miroir...</p>
+        <button id="btn-capture" onclick="captureEstampe()">🌸 SCELLER LE REFLET 🌸</button>
+    </div>
+
+<!-- JS DÉCOUPÉ (ordre de dépendance) -->
+<script src="js/data.js"></script>
+<script src="js/texts.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/renderer.js"></script>
+<script src="js/cinematics.js"></script>
+<script src="js/game.js"></script>
+<script src="js/debug.js"></script>
+
+<!-- PWA : Service Worker + Device Detection -->
+<script>
+/* Service Worker Registration */
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+            .then(reg => console.log('[PWA] SW enregistré:', reg.scope))
+            .catch(err => console.log('[PWA] SW erreur:', err));
+    });
+}
+
+/* Device Detection → liteMode */
+(function() {
+    const mem = navigator.deviceMemory || 8;
+    const cores = navigator.hardwareConcurrency || 4;
+    const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+    const isLowEnd = mem < 4 || cores < 4;
+    
+    window.liteMode = isMobile && isLowEnd;
+    window.isMobileDevice = isMobile;
+    
+    if (window.liteMode) {
+        console.log('[Perf] Mode lite activé (mem:', mem, 'GB, cores:', cores, ')');
+        document.documentElement.classList.add('lite-mode');
+    }
+    if (isMobile) document.documentElement.classList.add('is-mobile');
+})();
+
+/* Audio Resume on App Switch */
+document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && typeof audioCtx !== 'undefined' && audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume().then(() => console.log('[Audio] Reprise après switch app'));
+    }
+});
+
+/* Camera Permission State Tracking */
+window.cameraPermission = 'unknown'; // 'granted', 'denied', 'unknown'
+window.cameraStream = null;
+
+/* Vérifier que html5-qrcode est chargé */
+window.addEventListener('load', () => {
+    if (typeof Html5Qrcode !== 'undefined') {
+        console.log('[QR] Librairie Html5Qrcode chargée ✓');
+    } else {
+        console.error('[QR] ERREUR: Html5Qrcode non chargé! Le scan QR ne fonctionnera pas.');
+    }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,296 @@
+{
+  "meta": {
+    "lang": "fr",
+    "version": "1.0"
+  },
+  "app": {
+    "title": "LE SANCTUAIRE<br>DES 9 NEKOS",
+    "startButton": "🌸 COMMENCER L'AVENTURE 🌸",
+    "bgKanji": "九猫"
+  },
+  "rules": {
+    "r1": {
+      "title": "LE MIROIR DES ESPRITS",
+      "text": "Ce parchemin numérique est votre seul lien avec le Sanctuaire. S'il tombe, le portail se brisera à jamais.",
+      "warning": "Tenez la relique à deux mains. Ne vous l'arrachez jamais. Celui ou celle qui la tient a la garde de notre monde.",
+      "button": "🌸 ÉVEILLER LE MIROIR"
+    },
+    "r2": {
+      "title": "L'ÉCOUTE DE L'OMBRE",
+      "text": "La Corruption se nourrit du chaos et des cris. Les esprits fuient ceux qui parlent trop fort.",
+      "warning": "Ne criez pas. Parlez d'une voix calme. Si la panique s'installe, l'Esprit vous trouvera plus vite.",
+      "button": "🌙 NOUS RESTERONS CALMES"
+    },
+    "r3": {
+      "title": "L'HARMONIE DES MIKOS",
+      "text": "La magie des 8 héroïnes ne fonctionne que si les cœurs battent au même rythme. La discorde nourrit les ténèbres.",
+      "warning": "Ne vous disputez pas. Écoutez l'intuition de chacune avant de valider un choix d'équipe.",
+      "button": "✨ NOUS SOMMES UNIES"
+    },
+    "r4": {
+      "title": "LE CHEMIN DU DESTIN",
+      "text": "Il y a 9 Gardiens à libérer, et vous êtes 8 prêtresses. Chacune de vous devra affronter une épreuve seule.",
+      "warning": "Décidez MAINTENANT de votre ordre de passage (de 1 à 8). Pour le dernier Gardien, un effort collectif tranchera !",
+      "button": "🦊 NOTRE ORDRE EST DÉCIDÉ"
+    }
+  },
+  "oath": {
+    "title": "LE SCELLÉ MAGIQUE",
+    "instruction": "🐾 Posez chacune un pouce sur votre Rune et maintenez le contact !",
+    "counter": "/ 8"
+  },
+  "hub": {
+    "title": "BOUSSOLE SACRÉE",
+    "guardiansLabel": "Gardiens libérés :",
+    "scanButton": "🔮 SONDER L'AURA",
+    "cancelButton": "❌ ANNULER LA VISION"
+  },
+  "scan": {
+    "approaching": "Approchez le miroir du sceau...",
+    "found": "{name} trouvé !",
+    "success": "✦ Sceau déchiffré ! ✦",
+    "wrongCode": "Ce n'est pas le bon sceau... Continuez de chercher !",
+    "error": "Le miroir ne s'ouvre pas...",
+    "torchHint": "Le sceau résiste... Essayez de l'éclairer.",
+    "manualHint": "Le miroir peine à lire ce sceau...",
+    "manualPrompt": "Entrez le code inscrit sous le sceau :",
+    "torchOn": "🔦 Éclairer",
+    "torchOff": "🔦 Éteindre",
+    "torchUnsupported": "🔦 Non supporté"
+  },
+  "mirror": {
+    "waking": "✦ Le Miroir s'éveille... ✦",
+    "denied": "Le Miroir reste voilé... Les sceaux devront être entrés manuellement.",
+    "unavailable": "Le Miroir ne peut s'éveiller sur cet appareil... Les sceaux devront être entrés manuellement."
+  },
+  "quiz": {
+    "guardTitle": "Garde {name}",
+    "hintWhisper": "🌿 <i>Un esprit murmure...</i>"
+  },
+  "minigames": {
+    "success": "RÉUSSI !",
+    "micDenied": "Micro refusé ! Glissez le doigt à la place !",
+    "memoryWatch": "Regarde...",
+    "memoryError": "Erreur !"
+  },
+  "guardians": [
+    {
+      "qr": "qr_mochi",
+      "name": "Mochi",
+      "emoji": "🍡",
+      "question": "Le Mochi, cette délicieuse boule sucrée japonaise, est fabriqué à base de...",
+      "answers": ["Blé", "Riz", "Soja"],
+      "correct": 1,
+      "gameType": "hold",
+      "instruction": "La Pesée de Riz : Maintiens appuyé sans relâcher !"
+    },
+    {
+      "qr": "qr_ken",
+      "name": "Ken",
+      "emoji": "⚔️",
+      "question": "Comment s'appelle la célèbre épée courbée des Samouraïs ?",
+      "answers": ["Le Katana", "Le Nunchaku", "L'Excalibur"],
+      "correct": 0,
+      "gameType": "rhythm",
+      "instruction": "Le Forgeron : Tape en rythme quand ça s'illumine !"
+    },
+    {
+      "qr": "qr_shinobi",
+      "name": "Shinobi",
+      "emoji": "🥷",
+      "question": "Quel est le vrai nom de l'étoile de lancer des Ninjas ?",
+      "answers": ["Le Kunai", "Le Batarang", "Le Shuriken"],
+      "correct": 2,
+      "gameType": "catch",
+      "instruction": "Cache-Cache : Attrape-le 5 fois vite !"
+    },
+    {
+      "qr": "qr_aiko",
+      "name": "Aiko",
+      "emoji": "💖",
+      "question": "Que signifie le célèbre mot japonais 'Kawaii' ?",
+      "answers": ["Bonjour", "Mignon", "Magique"],
+      "correct": 1,
+      "gameType": "swipe",
+      "instruction": "L'Éventail : Glisse ton doigt pour faire du vent !"
+    },
+    {
+      "qr": "qr_kitsune",
+      "name": "Kitsune",
+      "emoji": "🦊",
+      "question": "Combien de queues possède le plus puissant des renards magiques ?",
+      "answers": ["3 queues", "7 queues", "9 queues"],
+      "correct": 2,
+      "gameType": "scratch",
+      "instruction": "L'Encre Maudite : Frotte pour révéler le masque !"
+    },
+    {
+      "qr": "qr_sumo",
+      "name": "Sumo",
+      "emoji": "🍙",
+      "question": "Comment appelle-t-on les bandes dessinées japonaises ?",
+      "answers": ["Les Comics", "Les Mangas", "Les Webtoons"],
+      "correct": 1,
+      "gameType": "mash",
+      "instruction": "Le Duel : VITE ! Tape 30 fois !"
+    },
+    {
+      "qr": "qr_zennon",
+      "name": "Zennon",
+      "emoji": "🧘",
+      "question": "Quel est le nom du vêtement traditionnel japonais ?",
+      "answers": ["Le Sari", "Le Poncho", "Le Kimono"],
+      "correct": 2,
+      "gameType": "statue",
+      "instruction": "Méditation Zen : Chut... Ne touche plus l'écran."
+    },
+    {
+      "qr": "qr_taiko",
+      "name": "Taiko",
+      "emoji": "🥁",
+      "question": "Comment dit-on 'Baguettes' (pour manger) en japonais ?",
+      "answers": ["Sushi", "Hashi", "Mochi"],
+      "correct": 1,
+      "gameType": "drum",
+      "instruction": "Le Tambour : Alterne Gauche (G) et Droite (D) !"
+    },
+    {
+      "qr": "qr_shogun",
+      "name": "Shogun",
+      "emoji": "🏯",
+      "question": "L'épée divine du début s'appelle... (Indice: Kusanagi)",
+      "answers": ["Kusanagi", "Masamune", "Muramasa"],
+      "correct": 0,
+      "gameType": "memory",
+      "instruction": "Le Code Secret : Retiens et reproduis la séquence !"
+    }
+  ],
+  "cinematics": {
+    "acts": ["壱", "弐", "参", "肆", "伍"],
+    "shadows": ["守", "魂", "光", "封"],
+    "intro": {
+      "act1": [
+        {
+          "fr": "Au-delà des brumes du temps,<br>loin du monde des hommes...",
+          "jp": "Toki no kiri o koete, hito no sekai kara tōku hanarete..."
+        },
+        {
+          "fr": "Se cache un lieu où les esprits de l'eau<br>murmurent des secrets...",
+          "jp": "Mizu no seirei ga himitsu o sasayaku basho ga kakusarete iru..."
+        }
+      ],
+      "act2": [
+        {
+          "fr": "Le majestueux Sanctuaire de Neko-Jinja<br>s'élevait vers les cieux.",
+          "jp": "Sōgon na Neko-Jinja ga ten ni sobietatte ita."
+        },
+        {
+          "fr": "Un domaine imprégné<br>de magie pure.",
+          "jp": "Junsui na mahō ni mitasareta ryōiki."
+        }
+      ],
+      "act3": [
+        {
+          "fr": "Où les anciens esprits<br>veillaient en silence.",
+          "jp": "Kodai no seirei ga shizuka ni mimamotte ita."
+        },
+        {
+          "fr": "Le Neko Suprême et ses huit Gardiens<br>protégeaient l'épée sacrée Kusanagi.",
+          "jp": "Shugosha wa seinaru tsurugi, Kusanagi o mamotte imashita."
+        }
+      ],
+      "act4": [
+        {
+          "fr": "Mais l'Ombre Millénaire s'éveilla...<br><span class='line-break'>et le sceau vola en éclats.</span>",
+          "jp": "Shikashi, kage no seirei ga mezame, fūin wa kudake chitta..."
+        }
+      ],
+      "act5": [
+        {
+          "fr": "La lumière fut engloutie par la nuit.<br><span class='line-break'>Les 9 Gardiens dispersés aux quatre vents.</span>",
+          "jp": "Hikari wa yami ni nomare, kokonotsu no shugosha wa yomo ni chitta."
+        }
+      ]
+    }
+  },
+  "finale": {
+    "title": "SANCTUAIRE RESTAURÉ !",
+    "exorcism": [
+      {
+        "fr": "Les 9 Gardiens sont réunis.",
+        "jp": "Kokonotsu no shugosha ga soroita."
+      },
+      {
+        "fr": "L'Ombre se dresse une dernière fois.",
+        "jp": "Kage ga saigo ni tatsu."
+      },
+      {
+        "fr": "Mais la magie des héroïnes est plus forte !",
+        "jp": "Hiroin no chikara ga masaru!"
+      }
+    ],
+    "countdown": ["三", "二", "一"],
+    "hikari": "光",
+    "hikariSpoken": "Hikari...",
+    "victory": [
+      {
+        "fr": "<span style='color:white;'>La lumière brille à nouveau sur Neko-Jinja.</span>",
+        "jp": "Hikari ga futatabi terasu."
+      },
+      {
+        "fr": "Votre amitié a purifié l'Ombre.",
+        "jp": "Yūjō ga kage o kiyometa."
+      },
+      {
+        "fr": "Les Gardiens vous remercient pour votre courage.",
+        "jp": "Shugosha-tachi ga kansha suru."
+      },
+      {
+        "fr": "Le parchemin a scellé votre victoire.",
+        "jp": "Shōri wa fūin sareta."
+      }
+    ],
+    "sealPrompt": {
+      "fr": "<span style='font-size:24px;'>Scellez cette légende dans le Miroir.</span>",
+      "jp": "Densetsu o kagami ni fūin seyo."
+    }
+  },
+  "certificate": {
+    "title": "Pacte Accompli 🌸",
+    "timeLabel": "Sanctuaire purifié en :",
+    "timeFormat": "{mins} min et {secs} sec"
+  },
+  "mirrorOverlay": {
+    "instruction": "Placez vos visages dans le miroir...",
+    "captureButton": "🌸 SCELLER LE REFLET 🌸",
+    "openButton": "🪞 OUVRIR LE MIROIR DES ESPRITS"
+  },
+  "epilogue": {
+    "owari": "終",
+    "downloadButton": "📜 TÉLÉCHARGER L'ESTAMPE",
+    "texts": [
+      {
+        "fr": "Le voyage touche à sa fin...",
+        "jp": "Tabi wa owari ni chikadzuku..."
+      },
+      {
+        "fr": "Mais les esprits veillent toujours.",
+        "jp": "Seirei wa ima mo mimamotte iru."
+      },
+      {
+        "fr": "Et le souvenir restera gravé dans vos cœurs.",
+        "jp": "Omoide wa eien ni kokoro ni kizamareru."
+      }
+    ]
+  },
+  "mikos": {
+    "names": ["Ava", "Nelya", "Mariam", "Antinea", "Rosa-Louise", "Romane", "Bahia", "Fatima"],
+    "emojis": ["🌸", "🌙", "✨", "🦊", "🎀", "🔮", "💫", "🦋"]
+  },
+  "ui": {
+    "loading": "Chargement...",
+    "skip": "Passer",
+    "confirm": "Confirmer",
+    "cancel": "Annuler"
+  }
+}

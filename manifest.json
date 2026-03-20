@@ -1,0 +1,26 @@
+{
+    "name": "Le Sanctuaire des 9 Nekos Sacrés",
+    "short_name": "9 Nekos",
+    "description": "Escape Game mystique — Libérez les 9 Gardiens sacrés",
+    "start_url": "/index.html",
+    "display": "fullscreen",
+    "orientation": "portrait",
+    "theme_color": "#020104",
+    "background_color": "#020104",
+    "lang": "fr",
+    "categories": ["games", "entertainment"],
+    "icons": [
+        {
+            "src": "icons/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "icons/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ]
+}
