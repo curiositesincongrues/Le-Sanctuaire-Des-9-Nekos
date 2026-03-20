@@ -997,3 +997,130 @@ async function launchEpilogue() {
 }
 
 function downloadPolaroid() { openMirror(); }
+
+/* ============================================
+   THEME MANAGER — Le Sanctuaire des 9 Nekos
+   Handles dynamic background theming across
+   cinematics, screens, and mood transitions.
+   ============================================ */
+
+const ThemeManager = {
+
+  themes: {
+    sanctuary: '#5d1a4a',  // Default magenta hub
+    void:      '#1a051d',  // Dark cinematic (Act 4)
+    spirit:    '#4a1a00',  // Amber spirit world
+    ritual:    '#2e0a25',  // Deep violet (Boussole)
+    voyage:    '#0d1f3c',  // Ocean night (Act 1)
+    decouverte:'#1a2e1a',  // Forest green (Act 2)
+    sacre:     '#1a0a2e',  // Deep indigo (Act 3)
+    daruma:    '#2e0000',  // Blood red (Act 4)
+    rupture:   '#0a0a0a',  // Near black (climax)
+  },
+
+  _current: 'sanctuary',
+
+  /**
+   * Apply a theme by name or direct hex value.
+   * @param {string} nameOrHex - Key from this.themes or any valid CSS color
+   * @param {number} durationMs - Transition duration in ms (default 1200)
+   */
+  apply(nameOrHex, durationMs = 1200) {
+    const color = this.themes[nameOrHex] ?? nameOrHex;
+    const root = document.documentElement;
+
+    // Update CSS transition duration dynamically
+    root.style.setProperty(
+      '--transition-bg',
+      `background-color ${durationMs}ms cubic-bezier(0.4, 0, 0.2, 1)`
+    );
+
+    // Set the CSS variable (drives all elements using var(--bg-current))
+    root.style.setProperty('--bg-current', color);
+
+    // Direct body assignment — safety net for Android WebView under memory pressure
+    // where :root variable propagation can be skipped on repaint
+    document.body.style.backgroundColor = color;
+
+    // Also patch active screen in case it has its own bg declaration
+    const activeScreen = document.querySelector('.screen.active');
+    if (activeScreen) {
+      activeScreen.style.transition = `background-color ${durationMs}ms cubic-bezier(0.4, 0, 0.2, 1)`;
+      activeScreen.style.backgroundColor = color;
+    }
+
+    this._current = nameOrHex;
+    console.log(`[ThemeManager] → ${nameOrHex} (${color}) over ${durationMs}ms`);
+  },
+
+  /**
+   * Snap to a color instantly (no transition) — for hard cuts.
+   * @param {string} nameOrHex
+   */
+  snap(nameOrHex) {
+    this.apply(nameOrHex, 0);
+  },
+
+  /**
+   * Return to default sanctuary magenta.
+   * @param {number} durationMs
+   */
+  reset(durationMs = 800) {
+    this.apply('sanctuary', durationMs);
+  },
+
+  /**
+   * Get the current resolved hex color.
+   * @returns {string}
+   */
+  getCurrent() {
+    return this.themes[this._current] ?? this._current;
+  }
+};
+
+
+/* ============================================
+   CINEMATIC THEME TRIGGERS
+   Call these inside forceAct() or your scene
+   transition callbacks.
+   ============================================ */
+
+/**
+ * Bind themes to cinematic acts.
+ * Mirrors the forceAct() switch structure exactly.
+ * @param {number} actNumber
+ */
+function applyActTheme(actNumber) {
+  switch (actNumber) {
+    case 1:
+      ThemeManager.apply('voyage', 1500);      // Slow bleed into ocean navy
+      break;
+    case 2:
+      ThemeManager.apply('decouverte', 1200);  // Forest discovery
+      break;
+    case 3:
+      ThemeManager.apply('sacre', 1000);       // Deep indigo, sacred space
+      break;
+    case 4:
+      ThemeManager.snap('rupture');            // Hard cut to near-black
+      setTimeout(() => ThemeManager.apply('daruma', 600), 80); // Then bleed red
+      break;
+    default:
+      ThemeManager.reset();
+  }
+}
+
+/* ============================================
+   USAGE EXAMPLES
+   ============================================
+
+   // Inside forceAct():
+   applyActTheme(actNumber);
+
+   // Manual trigger anywhere:
+   ThemeManager.apply('void', 400);       // Fast snap to dark
+   ThemeManager.apply('#3d0066', 2000);   // Custom hex, slow fade
+   ThemeManager.reset(1000);             // Back to sanctuary
+   ThemeManager.snap('rupture');          // Instant, no transition
+
+   ============================================ */
