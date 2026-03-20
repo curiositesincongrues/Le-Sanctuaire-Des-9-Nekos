@@ -6,17 +6,27 @@
 const cvs = document.getElementById('canvas-fx');
 const gl = cvs.getContext('webgl', { alpha: false, premultipliedAlpha: false });
 
+// WebGL failure fallback — portrait mobile safety net
+if (!gl) {
+    console.warn("[Renderer] WebGL unavailable — CSS fallback active");
+    cvs.style.display = "none";
+    document.body.style.background = "radial-gradient(ellipse at center, #8a2570 0%, #5d1a4a 100%)";
+}
+
+// bg values are linear RGB 0-1. Target base color: #5d1a4a = [0.365, 0.102, 0.29]
+// Old INTRO bg [0.1,0.02,0.11] looked black on mobile — glow only covers the center,
+// portrait phones show mostly raw bg. All moods lifted to visible base luminance.
 const MOODS = {
-    INTRO:      { bg:[0.1,0.02,0.11], glow:[0.35,0.1,0.25], petal:[1.0,0.72,0.77], fog:[0.1,0.02,0.11], wind:0.2, speedMult:1.0, gravDir:1.0 },
-    VOYAGE:     { bg:[0.08,0.02,0.1], glow:[0.2,0.08,0.15], petal:[0.85,0.65,0.7], fog:[0.08,0.02,0.1], wind:0.3, speedMult:0.6, gravDir:1.0 },
-    DECOUVERTE: { bg:[0.1,0.03,0.12], glow:[0.3,0.12,0.22], petal:[1.0,0.75,0.8], fog:[0.1,0.03,0.12], wind:0.15, speedMult:0.8, gravDir:1.0 },
-    SACRE:      { bg:[0.12,0.04,0.14], glow:[0.4,0.18,0.3], petal:[1.0,0.8,0.85], fog:[0.12,0.04,0.14], wind:0.08, speedMult:0.4, gravDir:1.0 },
-    DARUMA:     { bg:[0.08,0.02,0.05], glow:[0.25,0.04,0.12], petal:[0.6,0.05,0.1], fog:[0.06,0.01,0.04], wind:1.5, speedMult:4.0, gravDir:1.0 },
-    RITUEL:     { bg:[0.12,0.05,0.20], glow:[0.35,0.15,0.45], petal:[0.8,0.9,1.0], fog:[0.12,0.05,0.20], wind:0.05, speedMult:0.3, gravDir:1.0 },
-    FINAL:      { bg:[0.0,0.0,0.0], glow:[0.0,0.0,0.0], petal:[1.0,0.85,0.3], fog:[0.0,0.0,0.0], wind:0.1, speedMult:0.6, gravDir:1.0 },
-    AUBE:       { bg:[0.06,0.025,0.09], glow:[0.55,0.38,0.12], petal:[1.0,0.85,0.5], fog:[0.05,0.025,0.07], wind:0.03, speedMult:0.15, gravDir:-1.0 },
-    VICTOIRE:   { bg:[0.08,0.04,0.12], glow:[0.5,0.35,0.2], petal:[1.0,0.9,0.6], fog:[0.06,0.03,0.08], wind:0.06, speedMult:0.25, gravDir:-0.5 },
-    EPILOGUE:   { bg:[0.02,0.03,0.08], glow:[0.1,0.15,0.25], petal:[0.85,0.88,0.95], fog:[0.02,0.03,0.07], wind:0.02, speedMult:0.1, gravDir:1.0 }
+    INTRO:      { bg:[0.365,0.102,0.29],  glow:[0.55,0.22,0.45],  petal:[1.0,0.72,0.77],  fog:[0.365,0.102,0.29],  wind:0.2,  speedMult:1.0,  gravDir:1.0 },
+    VOYAGE:     { bg:[0.06,0.08,0.18],    glow:[0.12,0.16,0.32],  petal:[0.85,0.65,0.7],  fog:[0.06,0.08,0.18],    wind:0.3,  speedMult:0.6,  gravDir:1.0 },
+    DECOUVERTE: { bg:[0.08,0.14,0.08],    glow:[0.18,0.28,0.14],  petal:[1.0,0.75,0.8],   fog:[0.08,0.14,0.08],    wind:0.15, speedMult:0.8,  gravDir:1.0 },
+    SACRE:      { bg:[0.1,0.04,0.18],     glow:[0.22,0.1,0.38],   petal:[1.0,0.8,0.85],   fog:[0.1,0.04,0.18],     wind:0.08, speedMult:0.4,  gravDir:1.0 },
+    DARUMA:     { bg:[0.18,0.02,0.02],    glow:[0.35,0.04,0.08],  petal:[0.6,0.05,0.1],   fog:[0.14,0.01,0.01],    wind:1.5,  speedMult:4.0,  gravDir:1.0 },
+    RITUEL:     { bg:[0.18,0.06,0.30],    glow:[0.32,0.14,0.48],  petal:[0.8,0.9,1.0],    fog:[0.18,0.06,0.30],    wind:0.05, speedMult:0.3,  gravDir:1.0 },
+    FINAL:      { bg:[0.0,0.0,0.0],       glow:[0.0,0.0,0.0],     petal:[1.0,0.85,0.3],   fog:[0.0,0.0,0.0],       wind:0.1,  speedMult:0.6,  gravDir:1.0 },
+    AUBE:       { bg:[0.12,0.06,0.16],    glow:[0.55,0.38,0.12],  petal:[1.0,0.85,0.5],   fog:[0.1,0.05,0.12],     wind:0.03, speedMult:0.15, gravDir:-1.0 },
+    VICTOIRE:   { bg:[0.16,0.06,0.20],    glow:[0.5,0.35,0.2],    petal:[1.0,0.9,0.6],    fog:[0.12,0.05,0.16],    wind:0.06, speedMult:0.25, gravDir:-0.5 },
+    EPILOGUE:   { bg:[0.04,0.05,0.14],    glow:[0.1,0.15,0.25],   petal:[0.85,0.88,0.95], fog:[0.04,0.05,0.12],    wind:0.02, speedMult:0.1,  gravDir:1.0 }
 };
 
 let sakuraMood = { ...MOODS.INTRO };
