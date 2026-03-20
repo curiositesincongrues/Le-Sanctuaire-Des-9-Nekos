@@ -43,6 +43,22 @@ window.setSakuraMood = function(moodType) {
     lerpSpeed = 0.02;
 };
 
+/**
+ * Bridge for ThemeManager → WebGL.
+ * Accepts a CSS hex color (#rrggbb) and updates bg/glow/fog uniforms
+ * without touching petal/wind/speed/gravity (those stay on current mood).
+ */
+window.setRendererBgHex = function(hex) {
+    if (!hex || hex[0] !== '#' || hex.length < 7) return;
+    const r = parseInt(hex.slice(1, 3), 16) / 255;
+    const g = parseInt(hex.slice(3, 5), 16) / 255;
+    const b = parseInt(hex.slice(5, 7), 16) / 255;
+    targetMood.bg   = [r, g, b];
+    targetMood.glow  = [Math.min(r * 1.6, 1), Math.min(g * 1.6, 1), Math.min(b * 1.6, 1)];
+    targetMood.fog   = [r, g, b];
+    lerpSpeed = 0.02;
+};
+
 if (gl) {
     const ext = gl.getExtension('ANGLE_instanced_arrays');
     function resize() { const dpr = window.devicePixelRatio || 1; cvs.width = window.innerWidth * dpr; cvs.height = window.innerHeight * dpr; gl.viewport(0, 0, cvs.width, cvs.height); }

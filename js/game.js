@@ -51,6 +51,13 @@ const ThemeManager = {
 
     this._current = nameOrHex;
     console.log(`[ThemeManager] → ${nameOrHex} (${color}) over ${durationMs}ms`);
+
+    // ── Bridge to WebGL renderer ──
+    // Push resolved hex to canvas-fx background uniform so mobile
+    // doesn't show black behind the WebGL layer.
+    if (typeof window.setRendererBgHex === 'function') {
+      window.setRendererBgHex(color);
+    }
   },
 
   /**
