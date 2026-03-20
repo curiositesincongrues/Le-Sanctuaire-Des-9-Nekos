@@ -1,21 +1,27 @@
 /* ============================================
    RENDERER.JS — WebGL Sakura Petals Engine
    Lerp transitions douces entre moods (~2s)
+   + Robust mobile fallback chain
    ============================================ */
 
 const cvs = document.getElementById('canvas-fx');
 const gl = cvs.getContext('webgl', { alpha: false, premultipliedAlpha: false });
 
-// WebGL failure fallback — portrait mobile safety net
-if (!gl) {
-    console.warn("[Renderer] WebGL unavailable — CSS fallback active");
+/* --- CSS Fallback — single function, called from multiple failure paths --- */
+function activateCSSFallback(reason) {
+    console.warn(`[Renderer] ${reason} — CSS fallback active`);
     cvs.style.display = "none";
+    // Restore body gradient so it shows through transparent screens
     document.body.style.background = "radial-gradient(ellipse at center, #8a2570 0%, #5d1a4a 100%)";
+    // Tag body so ThemeManager knows WebGL is down
+    document.body.classList.add('no-webgl');
+}
+
+if (!gl) {
+    activateCSSFallback("WebGL unavailable");
 }
 
 // bg values are linear RGB 0-1. Target base color: #5d1a4a = [0.365, 0.102, 0.29]
-// Old INTRO bg [0.1,0.02,0.11] looked black on mobile — glow only covers the center,
-// portrait phones show mostly raw bg. All moods lifted to visible base luminance.
 const MOODS = {
     INTRO:      { bg:[0.365,0.102,0.29],  glow:[0.55,0.22,0.45],  petal:[1.0,0.72,0.77],  fog:[0.365,0.102,0.29],  wind:0.2,  speedMult:1.0,  gravDir:1.0 },
     VOYAGE:     { bg:[0.06,0.08,0.18],    glow:[0.12,0.16,0.32],  petal:[0.85,0.65,0.7],  fog:[0.06,0.08,0.18],    wind:0.3,  speedMult:0.6,  gravDir:1.0 },
@@ -60,57 +66,143 @@ window.setRendererBgHex = function(hex) {
 };
 
 if (gl) {
+    /* --- Context loss handling (mobile GPUs reclaim aggressively) --- */
+    cvs.addEventListener('webglcontextlost', function(e) {
+        e.preventDefault();
+        activateCSSFallback("WebGL context lost");
+    }, false);
+
     const ext = gl.getExtension('ANGLE_instanced_arrays');
-    function resize() { const dpr = window.devicePixelRatio || 1; cvs.width = window.innerWidth * dpr; cvs.height = window.innerHeight * dpr; gl.viewport(0, 0, cvs.width, cvs.height); }
-    window.addEventListener('resize', resize); resize();
-    function compile(type, id) { const s = gl.createShader(type); gl.shaderSource(s, document.getElementById(id).text); gl.compileShader(s); return s; }
-    
-    const bgProg = gl.createProgram(); gl.attachShader(bgProg, compile(gl.VERTEX_SHADER, 'bg-vs')); gl.attachShader(bgProg, compile(gl.FRAGMENT_SHADER, 'bg-fs')); gl.linkProgram(bgProg);
-    const uBgCol = gl.getUniformLocation(bgProg, "uBgCol"); const uGlowCol = gl.getUniformLocation(bgProg, "uGlowCol");
-    const quadBuf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, quadBuf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
 
-    const petalProg = gl.createProgram(); gl.attachShader(petalProg, compile(gl.VERTEX_SHADER, 'petal-vs')); gl.attachShader(petalProg, compile(gl.FRAGMENT_SHADER, 'petal-fs')); gl.linkProgram(petalProg);
-    const pVerts = [], pNorms = []; const segs = 4;
-    for (let i = 0; i <= segs; i++) { for (let j = 0; j <= segs; j++) { let u = i / segs, v = j / segs; let w = Math.sin(u * Math.PI) * (1.0 - v * 0.6); let x = (v - 0.5) * 2.0 * w; let y = (u - 0.5) * 2.0; let z = (x*x + y*y) * 0.3; pVerts.push(x, y, z); let len = Math.sqrt(x*x + y*y + 1.0); pNorms.push(-x/len, -y/len, 1.0/len); } }
-    const pInds = []; for (let i = 0; i < segs; i++) { for (let j = 0; j < segs; j++) { let p1 = i * (segs + 1) + j, p2 = p1 + 1, p3 = (i + 1) * (segs + 1) + j, p4 = p3 + 1; pInds.push(p1, p2, p3, p2, p4, p3); } }
-    const vBuf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, vBuf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(pVerts), gl.STATIC_DRAW);
-    const nBuf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, nBuf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(pNorms), gl.STATIC_DRAW);
-    const iBuf = gl.createBuffer(); gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, iBuf); gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(pInds), gl.STATIC_DRAW);
-    const numP = 300; const instData1 = new Float32Array(numP * 4); const instData2 = new Float32Array(numP * 2); 
-    for(let p = 0; p < numP; p++) { instData1[p*4+0] = Math.random() * 3000 - 1500; instData1[p*4+1] = Math.random() * 3000 - 1500; instData1[p*4+2] = Math.random() * 2000 - 2000; instData1[p*4+3] = 10.0 + Math.random() * 15.0; instData2[p*2+0] = Math.random() * Math.PI * 2; instData2[p*2+1] = 0.5 + Math.random() * 1.0; }
-    const iBuf1 = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, iBuf1); gl.bufferData(gl.ARRAY_BUFFER, instData1, gl.STATIC_DRAW);
-    const iBuf2 = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, iBuf2); gl.bufferData(gl.ARRAY_BUFFER, instData2, gl.STATIC_DRAW);
-
-    const aPos = gl.getAttribLocation(petalProg, "aPos"); const aNorm = gl.getAttribLocation(petalProg, "aNorm"); const aInst1 = gl.getAttribLocation(petalProg, "aInstData1"); const aInst2 = gl.getAttribLocation(petalProg, "aInstData2");
-    const uTime = gl.getUniformLocation(petalProg, "uTime"); const uRes = gl.getUniformLocation(petalProg, "uRes"); const uWind = gl.getUniformLocation(petalProg, "uWind"); const uSpdM = gl.getUniformLocation(petalProg, "uSpdM"); const uPetalCol = gl.getUniformLocation(petalProg, "uPetalCol"); const uFogCol = gl.getUniformLocation(petalProg, "uFogCol"); const uGravDir = gl.getUniformLocation(petalProg, "uGravDir");
-    gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); gl.enable(gl.DEPTH_TEST);
-    let t0 = performance.now(); let simTime = 0;
-
-    function render(t) {
-        let dt = (t - t0) * 0.001; t0 = t; simTime += dt;
-        
-        // LERP — transition douce entre moods
-        if (lerpSpeed > 0) {
-            sakuraMood.bg = lerpArr(sakuraMood.bg, targetMood.bg, lerpSpeed);
-            sakuraMood.glow = lerpArr(sakuraMood.glow, targetMood.glow, lerpSpeed);
-            sakuraMood.petal = lerpArr(sakuraMood.petal, targetMood.petal, lerpSpeed);
-            sakuraMood.fog = lerpArr(sakuraMood.fog, targetMood.fog, lerpSpeed);
-            sakuraMood.wind = lerpVal(sakuraMood.wind, targetMood.wind, lerpSpeed);
-            sakuraMood.speedMult = lerpVal(sakuraMood.speedMult, targetMood.speedMult, lerpSpeed);
-            sakuraMood.gravDir = lerpVal(sakuraMood.gravDir, targetMood.gravDir, lerpSpeed);
-            const dist = Math.abs(sakuraMood.bg[0] - targetMood.bg[0]) + Math.abs(sakuraMood.petal[0] - targetMood.petal[0]);
-            if (dist < 0.001) { sakuraMood = { ...targetMood }; lerpSpeed = 0; }
+    /* --- Shader compile WITH error checking --- */
+    function compile(type, id) {
+        const src = document.getElementById(id);
+        if (!src) { console.error(`[Renderer] Shader element #${id} not found`); return null; }
+        const s = gl.createShader(type);
+        gl.shaderSource(s, src.text);
+        gl.compileShader(s);
+        if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+            console.error(`[Renderer] Shader ${id} failed:`, gl.getShaderInfoLog(s));
+            gl.deleteShader(s);
+            return null;
         }
-        
-        gl.disable(gl.DEPTH_TEST); gl.useProgram(bgProg); gl.bindBuffer(gl.ARRAY_BUFFER, quadBuf); gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
-        gl.uniform3f(uBgCol, sakuraMood.bg[0], sakuraMood.bg[1], sakuraMood.bg[2]); gl.uniform3f(uGlowCol, sakuraMood.glow[0], sakuraMood.glow[1], sakuraMood.glow[2]); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-        gl.enable(gl.DEPTH_TEST); gl.useProgram(petalProg); gl.uniform1f(uTime, simTime); 
-        gl.uniform2f(uRes, cvs.width, cvs.height); 
-        gl.uniform1f(uWind, sakuraMood.wind); gl.uniform1f(uSpdM, sakuraMood.speedMult); gl.uniform1f(uGravDir, sakuraMood.gravDir || 1.0); gl.uniform3f(uPetalCol, sakuraMood.petal[0], sakuraMood.petal[1], sakuraMood.petal[2]); gl.uniform3f(uFogCol, sakuraMood.fog[0], sakuraMood.fog[1], sakuraMood.fog[2]);
-        gl.bindBuffer(gl.ARRAY_BUFFER, vBuf); gl.enableVertexAttribArray(aPos); gl.vertexAttribPointer(aPos, 3, gl.FLOAT, false, 0, 0); gl.bindBuffer(gl.ARRAY_BUFFER, nBuf); gl.enableVertexAttribArray(aNorm); gl.vertexAttribPointer(aNorm, 3, gl.FLOAT, false, 0, 0);
-        gl.bindBuffer(gl.ARRAY_BUFFER, iBuf1); gl.enableVertexAttribArray(aInst1); gl.vertexAttribPointer(aInst1, 4, gl.FLOAT, false, 0, 0); ext.vertexAttribDivisorANGLE(aInst1, 1);
-        gl.bindBuffer(gl.ARRAY_BUFFER, iBuf2); gl.enableVertexAttribArray(aInst2); gl.vertexAttribPointer(aInst2, 2, gl.FLOAT, false, 0, 0); ext.vertexAttribDivisorANGLE(aInst2, 1);
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, iBuf); ext.drawElementsInstancedANGLE(gl.TRIANGLES, pInds.length, gl.UNSIGNED_SHORT, 0, numP);
+        return s;
+    }
+
+    /* --- Program link WITH error checking --- */
+    function linkProg(vs, fs) {
+        if (!vs || !fs) return null;
+        const p = gl.createProgram();
+        gl.attachShader(p, vs);
+        gl.attachShader(p, fs);
+        gl.linkProgram(p);
+        if (!gl.getProgramParameter(p, gl.LINK_STATUS)) {
+            console.error("[Renderer] Program link failed:", gl.getProgramInfoLog(p));
+            return null;
+        }
+        return p;
+    }
+
+    function resize() {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2); // Cap DPR — prevents GPU OOM on 3x phones
+        cvs.width = window.innerWidth * dpr;
+        cvs.height = window.innerHeight * dpr;
+        gl.viewport(0, 0, cvs.width, cvs.height);
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    /* --- Background quad program --- */
+    const bgProg = linkProg(
+        compile(gl.VERTEX_SHADER, 'bg-vs'),
+        compile(gl.FRAGMENT_SHADER, 'bg-fs')
+    );
+
+    if (!bgProg) {
+        // BG shader is critical — if this fails, fall back to CSS entirely
+        activateCSSFallback("Background shader failed to compile/link");
+    } else {
+        const uBgCol = gl.getUniformLocation(bgProg, "uBgCol");
+        const uGlowCol = gl.getUniformLocation(bgProg, "uGlowCol");
+        const quadBuf = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, quadBuf);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+
+        /* --- Petal program (OPTIONAL — degrades gracefully) --- */
+        let petalReady = false;
+        let petalProg, pInds, vBuf, nBuf, iBuf, iBuf1, iBuf2;
+        let aPos, aNorm, aInst1, aInst2, uTime, uRes, uWind, uSpdM, uPetalCol, uFogCol, uGravDir;
+
+        if (ext) {
+            petalProg = linkProg(
+                compile(gl.VERTEX_SHADER, 'petal-vs'),
+                compile(gl.FRAGMENT_SHADER, 'petal-fs')
+            );
+
+            if (petalProg) {
+                const pVerts = [], pNorms = []; const segs = 4;
+                for (let i = 0; i <= segs; i++) { for (let j = 0; j <= segs; j++) { let u = i / segs, v = j / segs; let w = Math.sin(u * Math.PI) * (1.0 - v * 0.6); let x = (v - 0.5) * 2.0 * w; let y = (u - 0.5) * 2.0; let z = (x*x + y*y) * 0.3; pVerts.push(x, y, z); let len = Math.sqrt(x*x + y*y + 1.0); pNorms.push(-x/len, -y/len, 1.0/len); } }
+                const pIndsArr = []; for (let i = 0; i < segs; i++) { for (let j = 0; j < segs; j++) { let p1 = i * (segs + 1) + j, p2 = p1 + 1, p3 = (i + 1) * (segs + 1) + j, p4 = p3 + 1; pIndsArr.push(p1, p2, p3, p2, p4, p3); } }
+                pInds = pIndsArr;
+                vBuf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, vBuf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(pVerts), gl.STATIC_DRAW);
+                nBuf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, nBuf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(pNorms), gl.STATIC_DRAW);
+                iBuf = gl.createBuffer(); gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, iBuf); gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(pInds), gl.STATIC_DRAW);
+                const numP = 300; const instData1 = new Float32Array(numP * 4); const instData2 = new Float32Array(numP * 2);
+                for(let p = 0; p < numP; p++) { instData1[p*4+0] = Math.random() * 3000 - 1500; instData1[p*4+1] = Math.random() * 3000 - 1500; instData1[p*4+2] = Math.random() * 2000 - 2000; instData1[p*4+3] = 10.0 + Math.random() * 15.0; instData2[p*2+0] = Math.random() * Math.PI * 2; instData2[p*2+1] = 0.5 + Math.random() * 1.0; }
+                iBuf1 = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, iBuf1); gl.bufferData(gl.ARRAY_BUFFER, instData1, gl.STATIC_DRAW);
+                iBuf2 = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, iBuf2); gl.bufferData(gl.ARRAY_BUFFER, instData2, gl.STATIC_DRAW);
+                aPos = gl.getAttribLocation(petalProg, "aPos"); aNorm = gl.getAttribLocation(petalProg, "aNorm"); aInst1 = gl.getAttribLocation(petalProg, "aInstData1"); aInst2 = gl.getAttribLocation(petalProg, "aInstData2");
+                uTime = gl.getUniformLocation(petalProg, "uTime"); uRes = gl.getUniformLocation(petalProg, "uRes"); uWind = gl.getUniformLocation(petalProg, "uWind"); uSpdM = gl.getUniformLocation(petalProg, "uSpdM"); uPetalCol = gl.getUniformLocation(petalProg, "uPetalCol"); uFogCol = gl.getUniformLocation(petalProg, "uFogCol"); uGravDir = gl.getUniformLocation(petalProg, "uGravDir");
+                petalReady = true;
+            } else {
+                console.warn("[Renderer] Petal shader failed — bg-only mode");
+            }
+        } else {
+            console.warn("[Renderer] ANGLE_instanced_arrays unavailable — bg-only mode (no petals)");
+        }
+
+        gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); gl.enable(gl.DEPTH_TEST);
+        // Safety net: if bg quad ever fails to draw, clear color is theme, not black
+        gl.clearColor(0.365, 0.102, 0.29, 1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        let t0 = performance.now(); let simTime = 0;
+
+        function render(t) {
+            // Bail if context was lost between frames
+            if (gl.isContextLost()) return;
+
+            let dt = (t - t0) * 0.001; t0 = t; simTime += dt;
+
+            // LERP — transition douce entre moods
+            if (lerpSpeed > 0) {
+                sakuraMood.bg = lerpArr(sakuraMood.bg, targetMood.bg, lerpSpeed);
+                sakuraMood.glow = lerpArr(sakuraMood.glow, targetMood.glow, lerpSpeed);
+                sakuraMood.petal = lerpArr(sakuraMood.petal, targetMood.petal, lerpSpeed);
+                sakuraMood.fog = lerpArr(sakuraMood.fog, targetMood.fog, lerpSpeed);
+                sakuraMood.wind = lerpVal(sakuraMood.wind, targetMood.wind, lerpSpeed);
+                sakuraMood.speedMult = lerpVal(sakuraMood.speedMult, targetMood.speedMult, lerpSpeed);
+                sakuraMood.gravDir = lerpVal(sakuraMood.gravDir, targetMood.gravDir, lerpSpeed);
+                const dist = Math.abs(sakuraMood.bg[0] - targetMood.bg[0]) + Math.abs(sakuraMood.petal[0] - targetMood.petal[0]);
+                if (dist < 0.001) { sakuraMood = { ...targetMood }; lerpSpeed = 0; }
+            }
+
+            /* --- Background quad (always drawn) --- */
+            gl.disable(gl.DEPTH_TEST); gl.useProgram(bgProg); gl.bindBuffer(gl.ARRAY_BUFFER, quadBuf); gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+            gl.uniform3f(uBgCol, sakuraMood.bg[0], sakuraMood.bg[1], sakuraMood.bg[2]); gl.uniform3f(uGlowCol, sakuraMood.glow[0], sakuraMood.glow[1], sakuraMood.glow[2]); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+            /* --- Petals (only if extension + shader succeeded) --- */
+            if (petalReady) {
+                gl.enable(gl.DEPTH_TEST); gl.useProgram(petalProg); gl.uniform1f(uTime, simTime);
+                gl.uniform2f(uRes, cvs.width, cvs.height);
+                gl.uniform1f(uWind, sakuraMood.wind); gl.uniform1f(uSpdM, sakuraMood.speedMult); gl.uniform1f(uGravDir, sakuraMood.gravDir || 1.0); gl.uniform3f(uPetalCol, sakuraMood.petal[0], sakuraMood.petal[1], sakuraMood.petal[2]); gl.uniform3f(uFogCol, sakuraMood.fog[0], sakuraMood.fog[1], sakuraMood.fog[2]);
+                gl.bindBuffer(gl.ARRAY_BUFFER, vBuf); gl.enableVertexAttribArray(aPos); gl.vertexAttribPointer(aPos, 3, gl.FLOAT, false, 0, 0); gl.bindBuffer(gl.ARRAY_BUFFER, nBuf); gl.enableVertexAttribArray(aNorm); gl.vertexAttribPointer(aNorm, 3, gl.FLOAT, false, 0, 0);
+                gl.bindBuffer(gl.ARRAY_BUFFER, iBuf1); gl.enableVertexAttribArray(aInst1); gl.vertexAttribPointer(aInst1, 4, gl.FLOAT, false, 0, 0); ext.vertexAttribDivisorANGLE(aInst1, 1);
+                gl.bindBuffer(gl.ARRAY_BUFFER, iBuf2); gl.enableVertexAttribArray(aInst2); gl.vertexAttribPointer(aInst2, 2, gl.FLOAT, false, 0, 0); ext.vertexAttribDivisorANGLE(aInst2, 1);
+                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, iBuf); ext.drawElementsInstancedANGLE(gl.TRIANGLES, pInds.length, gl.UNSIGNED_SHORT, 0, 300);
+            }
+
+            requestAnimationFrame(render);
+        }
         requestAnimationFrame(render);
-    } requestAnimationFrame(render);
+    }
 }
