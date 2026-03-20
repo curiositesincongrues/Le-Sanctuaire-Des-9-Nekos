@@ -7,7 +7,7 @@
 
 body { margin: 0; background: var(--bg-current); height: 100dvh; width: 100vw; overflow: hidden; color: white; transition: background 1.5s ease-in-out; overscroll-behavior: none; user-select: none; -webkit-user-select: none; font-family: 'Fredoka One', cursive;}
 
-#canvas-fx { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+#canvas-fx { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
 #flash { position: fixed; inset: 0; background: transparent; opacity: 0; z-index: 9000; pointer-events: none; transition: opacity 0.1s, background 0.1s; }
 
 /* --- OVERLAYS CINÉMATIQUES --- */

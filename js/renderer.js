@@ -1,24 +1,38 @@
 /* ============================================
    RENDERER.JS — WebGL Sakura Petals Engine
    Lerp transitions douces entre moods (~2s)
-   + Robust mobile fallback chain
+   
+   MOBILE FIX: canvas uses alpha:true on mobile
+   so CSS body background bleeds through if the
+   GPU silently fails to render. On desktop,
+   alpha:false for max performance.
    ============================================ */
 
 const cvs = document.getElementById('canvas-fx');
-const gl = cvs.getContext('webgl', { alpha: false, premultipliedAlpha: false });
+const _isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
 
-/* --- CSS Fallback — single function, called from multiple failure paths --- */
+// ── KEY ARCHITECTURAL FIX ──
+// alpha:false = opaque canvas = CSS behind it is INVISIBLE
+// If GPU fails silently → black wall, no fallback possible
+// alpha:true  = transparent canvas = CSS bleeds through if GPU doesn't draw
+const gl = cvs.getContext('webgl', {
+    alpha: _isMobile,            // mobile: transparent safety net / desktop: opaque perf
+    premultipliedAlpha: false,
+    antialias: false,            // save GPU on mobile
+    preserveDrawingBuffer: false
+});
+
+/* --- CSS Fallback — hides canvas, restores CSS backgrounds --- */
 function activateCSSFallback(reason) {
+    if (document.body.classList.contains('no-webgl')) return; // already fired
     console.warn(`[Renderer] ${reason} — CSS fallback active`);
     cvs.style.display = "none";
-    // Restore body gradient so it shows through transparent screens
     document.body.style.background = "radial-gradient(ellipse at center, #8a2570 0%, #5d1a4a 100%)";
-    // Tag body so ThemeManager knows WebGL is down
     document.body.classList.add('no-webgl');
 }
 
 if (!gl) {
-    activateCSSFallback("WebGL unavailable");
+    activateCSSFallback("WebGL context unavailable");
 }
 
 // bg values are linear RGB 0-1. Target base color: #5d1a4a = [0.365, 0.102, 0.29]
@@ -38,6 +52,7 @@ const MOODS = {
 let sakuraMood = { ...MOODS.INTRO };
 let targetMood = { ...MOODS.INTRO };
 let lerpSpeed = 0;
+let _renderFrameCount = 0; // for watchdog
 
 function lerpVal(a, b, t) { return a + (b - a) * t; }
 function lerpArr(a, b, t) { return a.map((v, i) => lerpVal(v, b[i], t)); }
@@ -66,7 +81,7 @@ window.setRendererBgHex = function(hex) {
 };
 
 if (gl) {
-    /* --- Context loss handling (mobile GPUs reclaim aggressively) --- */
+    /* --- Context loss handling --- */
     cvs.addEventListener('webglcontextlost', function(e) {
         e.preventDefault();
         activateCSSFallback("WebGL context lost");
@@ -104,7 +119,7 @@ if (gl) {
     }
 
     function resize() {
-        const dpr = Math.min(window.devicePixelRatio || 1, 2); // Cap DPR — prevents GPU OOM on 3x phones
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
         cvs.width = window.innerWidth * dpr;
         cvs.height = window.innerHeight * dpr;
         gl.viewport(0, 0, cvs.width, cvs.height);
@@ -119,7 +134,6 @@ if (gl) {
     );
 
     if (!bgProg) {
-        // BG shader is critical — if this fails, fall back to CSS entirely
         activateCSSFallback("Background shader failed to compile/link");
     } else {
         const uBgCol = gl.getUniformLocation(bgProg, "uBgCol");
@@ -158,18 +172,18 @@ if (gl) {
                 console.warn("[Renderer] Petal shader failed — bg-only mode");
             }
         } else {
-            console.warn("[Renderer] ANGLE_instanced_arrays unavailable — bg-only mode (no petals)");
+            console.warn("[Renderer] ANGLE_instanced_arrays unavailable — bg-only mode");
         }
 
         gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); gl.enable(gl.DEPTH_TEST);
-        // Safety net: if bg quad ever fails to draw, clear color is theme, not black
+        // Initial clear to theme color (not black)
         gl.clearColor(0.365, 0.102, 0.29, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         let t0 = performance.now(); let simTime = 0;
 
         function render(t) {
-            // Bail if context was lost between frames
             if (gl.isContextLost()) return;
+            _renderFrameCount++;
 
             let dt = (t - t0) * 0.001; t0 = t; simTime += dt;
 
@@ -186,11 +200,11 @@ if (gl) {
                 if (dist < 0.001) { sakuraMood = { ...targetMood }; lerpSpeed = 0; }
             }
 
-            /* --- Background quad (always drawn) --- */
+            /* --- Background quad --- */
             gl.disable(gl.DEPTH_TEST); gl.useProgram(bgProg); gl.bindBuffer(gl.ARRAY_BUFFER, quadBuf); gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
             gl.uniform3f(uBgCol, sakuraMood.bg[0], sakuraMood.bg[1], sakuraMood.bg[2]); gl.uniform3f(uGlowCol, sakuraMood.glow[0], sakuraMood.glow[1], sakuraMood.glow[2]); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
-            /* --- Petals (only if extension + shader succeeded) --- */
+            /* --- Petals --- */
             if (petalReady) {
                 gl.enable(gl.DEPTH_TEST); gl.useProgram(petalProg); gl.uniform1f(uTime, simTime);
                 gl.uniform2f(uRes, cvs.width, cvs.height);
@@ -204,5 +218,36 @@ if (gl) {
             requestAnimationFrame(render);
         }
         requestAnimationFrame(render);
+
+        /* ── WATCHDOG — detect silent GPU failure on mobile ──
+           After 1.5s, read center pixel. If RGBA is all zeros,
+           the GPU passed all API checks but never actually drew.
+           With alpha:true the user already sees CSS (not black),
+           but we also hide the canvas and flag no-webgl for
+           ThemeManager to stop bridging to a dead context. */
+        if (_isMobile) {
+            setTimeout(function() {
+                if (gl.isContextLost() || document.body.classList.contains('no-webgl')) return;
+                if (_renderFrameCount < 5) {
+                    activateCSSFallback("Render loop stalled (" + _renderFrameCount + " frames in 1.5s)");
+                    return;
+                }
+                try {
+                    const px = new Uint8Array(4);
+                    gl.readPixels(
+                        Math.floor(cvs.width / 2), Math.floor(cvs.height / 2),
+                        1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px
+                    );
+                    const brightness = px[0] + px[1] + px[2] + px[3];
+                    if (brightness === 0) {
+                        activateCSSFallback("GPU silent failure (watchdog pixel = 0,0,0,0)");
+                    } else {
+                        console.log("[Renderer] Watchdog OK — pixel:", px[0], px[1], px[2], px[3]);
+                    }
+                } catch(e) {
+                    activateCSSFallback("Watchdog readPixels error: " + e.message);
+                }
+            }, 1500);
+        }
     }
 }
