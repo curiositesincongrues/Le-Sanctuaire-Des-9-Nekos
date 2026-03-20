@@ -38,23 +38,27 @@ const ThemeManager = {
     // Set the CSS variable (drives all elements using var(--bg-current))
     root.style.setProperty('--bg-current', color);
 
-    // Direct body assignment — safety net for Android WebView under memory pressure
-    // where :root variable propagation can be skipped on repaint
-    document.body.style.backgroundColor = color;
+    // Direct body assignment — safety net for Android WebView under memory pressure.
+    // On mobile, the CSS gradient (driven by --bg-glow/--bg-edge) handles body bg.
+    if (!window.isMobileDevice) {
+      document.body.style.backgroundColor = color;
+    }
 
-    // Also patch active screen in case it has its own bg declaration
-    const activeScreen = document.querySelector('.screen.active');
-    if (activeScreen) {
-      activeScreen.style.transition = `background-color ${durationMs}ms cubic-bezier(0.4, 0, 0.2, 1)`;
-      activeScreen.style.backgroundColor = color;
+    // On desktop, patch active screen inline for reliable transitions.
+    // On mobile, CSS custom properties (--bg-glow/--bg-edge) + .is-mobile body rule
+    // handle the radial gradient automatically — inline override would flatten it.
+    if (!window.isMobileDevice) {
+      const activeScreen = document.querySelector('.screen.active');
+      if (activeScreen) {
+        activeScreen.style.transition = `background-color ${durationMs}ms cubic-bezier(0.4, 0, 0.2, 1)`;
+        activeScreen.style.backgroundColor = color;
+      }
     }
 
     this._current = nameOrHex;
     console.log(`[ThemeManager] → ${nameOrHex} (${color}) over ${durationMs}ms`);
 
-    // ── Bridge to WebGL renderer ──
-    // Push resolved hex to canvas-fx background uniform so mobile
-    // doesn't show black behind the WebGL layer.
+    // ── Bridge to WebGL renderer + CSS gradient vars ──
     if (typeof window.setRendererBgHex === 'function') {
       window.setRendererBgHex(color);
     }

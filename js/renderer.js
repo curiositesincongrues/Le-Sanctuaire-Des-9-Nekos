@@ -27,7 +27,11 @@ function activateCSSFallback(reason) {
     if (document.body.classList.contains('no-webgl')) return; // already fired
     console.warn(`[Renderer] ${reason} — CSS fallback active`);
     cvs.style.display = "none";
-    document.body.style.background = "radial-gradient(ellipse at center, #8a2570 0%, #5d1a4a 100%)";
+    // On desktop (alpha:false), body bg was invisible behind opaque canvas — restore it.
+    // On mobile (alpha:true), body gradient is already visible via CSS vars — no inline override needed.
+    if (!_isMobile) {
+        document.body.style.background = "radial-gradient(ellipse at center, #8a2570 0%, #5d1a4a 100%)";
+    }
     document.body.classList.add('no-webgl');
 }
 
@@ -66,17 +70,17 @@ function rgbToHex(rgb) {
 }
 
 /* Push a mood's bg color to CSS — the REVERSE bridge (WebGL → CSS).
-   This ensures mobile CSS fallback matches the WebGL mood. */
+   Sets CSS custom properties that drive both body and screen backgrounds.
+   On mobile, --bg-glow + --bg-edge enable a radial gradient in CSS
+   matching the WebGL shader: smoothstep glow centered at (50%, 35%). */
 function syncMoodToCSS(moodObj) {
-    const hex = rgbToHex(moodObj.bg);
-    document.documentElement.style.setProperty('--bg-current', hex);
-    document.body.style.backgroundColor = hex;
-    // On mobile, also patch active screen directly (Android WebView safety).
-    // Do NOT do this on desktop — screens must stay transparent for petal visibility.
-    if (_isMobile) {
-        const active = document.querySelector('.screen.active');
-        if (active) active.style.backgroundColor = hex;
-    }
+    const root = document.documentElement;
+    const bgHex = rgbToHex(moodObj.bg);
+    const glowHex = rgbToHex(moodObj.glow);
+
+    root.style.setProperty('--bg-current', bgHex);
+    root.style.setProperty('--bg-glow', glowHex);
+    root.style.setProperty('--bg-edge', bgHex);
 }
 
 window.setSakuraMood = function(moodType) {
@@ -102,6 +106,8 @@ window.setRendererBgHex = function(hex) {
     targetMood.glow  = [Math.min(r * 1.6, 1), Math.min(g * 1.6, 1), Math.min(b * 1.6, 1)];
     targetMood.fog   = [r, g, b];
     lerpSpeed = 0.02;
+    // Also sync CSS gradient vars for mobile
+    syncMoodToCSS({ bg: [r,g,b], glow: targetMood.glow });
 };
 
 if (gl) {
