@@ -2,10 +2,10 @@
    BASE.CSS — Variables, Reset, Body, Global UI
    ============================================ */
 
-:root { --sakura: #ffb7c5; --gold: #ffd700; --deep: #1a051d; --white: #ffffff; --oni: #ff4d4d; --kusanagi: #4fc3f7; --bg-lightness: 10%;}
+:root { --sakura: #ffb7c5; --gold: #ffd700; --deep: #1a051d; --white: #ffffff; --oni: #ff4d4d; --kusanagi: #4fc3f7; --bg-lightness: 10%;--bg-current: #5d1a4a; color-scheme: light only; }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
-body { margin: 0; background: var(--deep); height: 100dvh; width: 100vw; overflow: hidden; color: white; transition: background 1.5s ease-in-out; overscroll-behavior: none; user-select: none; -webkit-user-select: none; font-family: 'Fredoka One', cursive;}
+body { margin: 0; background: var(--bg-current); height: 100dvh; width: 100vw; overflow: hidden; color: white; transition: background 1.5s ease-in-out; overscroll-behavior: none; user-select: none; -webkit-user-select: none; font-family: 'Fredoka One', cursive;}
 
 #canvas-fx { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
 #flash { position: fixed; inset: 0; background: transparent; opacity: 0; z-index: 9000; pointer-events: none; transition: opacity 0.1s, background 0.1s; }
