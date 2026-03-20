@@ -57,11 +57,35 @@ let _renderFrameCount = 0; // for watchdog
 function lerpVal(a, b, t) { return a + (b - a) * t; }
 function lerpArr(a, b, t) { return a.map((v, i) => lerpVal(v, b[i], t)); }
 
+/* Convert linear RGB [0-1] to CSS hex */
+function rgbToHex(rgb) {
+    const r = Math.round(Math.min(1, Math.max(0, rgb[0])) * 255);
+    const g = Math.round(Math.min(1, Math.max(0, rgb[1])) * 255);
+    const b = Math.round(Math.min(1, Math.max(0, rgb[2])) * 255);
+    return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+}
+
+/* Push a mood's bg color to CSS — the REVERSE bridge (WebGL → CSS).
+   This ensures mobile CSS fallback matches the WebGL mood. */
+function syncMoodToCSS(moodObj) {
+    const hex = rgbToHex(moodObj.bg);
+    document.documentElement.style.setProperty('--bg-current', hex);
+    document.body.style.backgroundColor = hex;
+    // On mobile, also patch active screen directly (Android WebView safety).
+    // Do NOT do this on desktop — screens must stay transparent for petal visibility.
+    if (_isMobile) {
+        const active = document.querySelector('.screen.active');
+        if (active) active.style.backgroundColor = hex;
+    }
+}
+
 window.setSakuraMood = function(moodType) {
     const m = MOODS[moodType];
     if (!m) return;
     targetMood = { ...m };
     lerpSpeed = 0.02;
+    // ── Reverse bridge: sync to CSS so mobile fallback has correct color ──
+    syncMoodToCSS(m);
 };
 
 /**
