@@ -10,28 +10,31 @@
 
 const cvs = document.getElementById('canvas-fx');
 const _isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+const _renderProfile = window.renderProfile || (_isMobile ? 'balanced' : 'desktop');
+const _isPremiumMobile = _renderProfile === 'premium';
+const _isSafeMobile = _renderProfile === 'safe';
 
-// ── KEY ARCHITECTURAL FIX ──
-// alpha:false = opaque canvas = CSS behind it is INVISIBLE
-// If GPU fails silently → black wall, no fallback possible
-// alpha:true  = transparent canvas = CSS bleeds through if GPU doesn't draw
+// Premium (Pixel 9a target) uses the desktop-like opaque canvas path for richer contrast.
+// Balanced/safe mobile keep transparency so CSS can rescue the screen if the GPU flakes out.
 const gl = cvs.getContext('webgl', {
-    alpha: _isMobile,            // mobile: transparent safety net / desktop: opaque perf
+    alpha: _isMobile ? !_isPremiumMobile : false,
     premultipliedAlpha: false,
-    antialias: false,            // save GPU on mobile
+    antialias: !_isSafeMobile,
     preserveDrawingBuffer: false
 });
+
+console.log('[Renderer] Render profile:', _renderProfile, '| mobile:', _isMobile, '| premiumMobile:', _isPremiumMobile, '| safeMobile:', _isSafeMobile);
 
 /* --- CSS Fallback — hides canvas, restores CSS backgrounds --- */
 function activateCSSFallback(reason) {
     if (document.body.classList.contains('no-webgl')) return; // already fired
     console.warn(`[Renderer] ${reason} — CSS fallback active`);
     cvs.style.display = "none";
-    // On desktop (alpha:false), body bg was invisible behind opaque canvas — restore it.
-    // On mobile (alpha:true), body gradient is already visible via CSS vars — no inline override needed.
-    if (!_isMobile) {
-        document.body.style.background = "radial-gradient(ellipse at center, #8a2570 0%, #5d1a4a 100%)";
+    // Opaque paths (desktop + premium mobile) need a real CSS background restored.
+    if (!_isMobile || _isPremiumMobile) {
+        document.body.style.background = "radial-gradient(ellipse at center, var(--bg-glow) 0%, var(--bg-edge) 72%)";
     }
+    document.documentElement.classList.add('no-webgl');
     document.body.classList.add('no-webgl');
 }
 
@@ -163,7 +166,8 @@ if (gl) {
     }
 
     function resize() {
-        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const dprCap = _renderProfile === 'premium' ? 2.5 : (_renderProfile === 'balanced' ? 2 : 1.5);
+        const dpr = Math.min(window.devicePixelRatio || 1, dprCap);
         cvs.width = window.innerWidth * dpr;
         cvs.height = window.innerHeight * dpr;
         gl.viewport(0, 0, cvs.width, cvs.height);
@@ -256,7 +260,8 @@ if (gl) {
                 gl.bindBuffer(gl.ARRAY_BUFFER, vBuf); gl.enableVertexAttribArray(aPos); gl.vertexAttribPointer(aPos, 3, gl.FLOAT, false, 0, 0); gl.bindBuffer(gl.ARRAY_BUFFER, nBuf); gl.enableVertexAttribArray(aNorm); gl.vertexAttribPointer(aNorm, 3, gl.FLOAT, false, 0, 0);
                 gl.bindBuffer(gl.ARRAY_BUFFER, iBuf1); gl.enableVertexAttribArray(aInst1); gl.vertexAttribPointer(aInst1, 4, gl.FLOAT, false, 0, 0); ext.vertexAttribDivisorANGLE(aInst1, 1);
                 gl.bindBuffer(gl.ARRAY_BUFFER, iBuf2); gl.enableVertexAttribArray(aInst2); gl.vertexAttribPointer(aInst2, 2, gl.FLOAT, false, 0, 0); ext.vertexAttribDivisorANGLE(aInst2, 1);
-                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, iBuf); ext.drawElementsInstancedANGLE(gl.TRIANGLES, pInds.length, gl.UNSIGNED_SHORT, 0, 300);
+                const petalCount = _renderProfile === 'premium' ? 300 : (_renderProfile === 'balanced' ? 220 : 140);
+                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, iBuf); ext.drawElementsInstancedANGLE(gl.TRIANGLES, pInds.length, gl.UNSIGNED_SHORT, 0, petalCount);
             }
 
             requestAnimationFrame(render);
@@ -269,7 +274,7 @@ if (gl) {
            With alpha:true the user already sees CSS (not black),
            but we also hide the canvas and flag no-webgl for
            ThemeManager to stop bridging to a dead context. */
-        if (_isMobile) {
+        if (_isMobile && !_isPremiumMobile) {
             setTimeout(function() {
                 if (gl.isContextLost() || document.body.classList.contains('no-webgl')) return;
                 if (_renderFrameCount < 5) {

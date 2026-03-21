@@ -1590,3 +1590,144 @@
     80% { opacity: 0.8; }
     100% { width: 250vw; height: 250vw; opacity: 0; }
 }
+
+/* =======================================================
+   PASS 4 — Recomposition portrait scène par scène
+   Mobile only, sans toucher visiblement le desktop.
+   ======================================================= */
+@media (max-width: 900px) and (orientation: portrait) {
+  .is-mobile #cinematic-anchor {
+    min-height: 52dvh;
+    margin-top: clamp(18px, 3.2dvh, 32px);
+    margin-bottom: 2px;
+    align-items: flex-start;
+  }
+
+  .is-mobile #act-counter {
+    top: calc(12px + env(safe-area-inset-top));
+    font-size: clamp(22px, 4.7vw, 28px);
+    letter-spacing: 6px;
+  }
+
+  .is-mobile .cinematic-layer {
+    top: 46.5%;
+  }
+
+  /* Scène 1 — bateau */
+  .is-mobile #layer-boat { top: 45.5%; }
+  .is-mobile .boat-scene {
+    width: min(74vw, 350px);
+    height: min(29vh, 210px);
+  }
+  .is-mobile .boat-svg {
+    width: min(70vw, 320px);
+    height: auto;
+    filter: drop-shadow(0 18px 14px rgba(0,0,0,0.85));
+  }
+  .is-mobile .boat-scene::after {
+    width: min(76vw, 340px);
+    height: 140px;
+    bottom: -12px;
+    opacity: 0.5;
+  }
+  .is-mobile .water-waves {
+    bottom: 6px;
+    height: 24px;
+    opacity: 0.62;
+  }
+  .is-mobile .toro-lantern {
+    width: 18px;
+    height: 24px;
+    box-shadow: 0 0 12px rgba(255,215,0,0.8), 0 0 28px rgba(255,165,0,0.42);
+  }
+
+  /* Scène 2 — koi */
+  .is-mobile #layer-koi { top: 44.5%; }
+  .is-mobile .koi-scene {
+    width: min(56vw, 230px);
+    height: min(56vw, 230px);
+  }
+  .is-mobile .koi-halo {
+    width: min(42vw, 165px);
+    height: min(42vw, 165px);
+    opacity: 0.95;
+  }
+  .is-mobile .water-ripple {
+    border-color: rgba(255,255,255,0.24);
+  }
+
+  /* Scène 3 — château */
+  .is-mobile #layer-castle { top: 43%; }
+  .is-mobile .castle-scene {
+    width: min(72vw, 340px);
+    height: min(43vh, 430px);
+    filter: drop-shadow(0 0 34px rgba(255, 183, 197, 0.34));
+  }
+  .is-mobile .castle-scene .castle-svg {
+    width: 100%;
+    height: 100%;
+  }
+  .is-mobile .ukiyo-cloud {
+    opacity: 0.85;
+  }
+
+  /* Scène 4 — torii */
+  .is-mobile #layer-torii { top: 42.2%; }
+  .is-mobile .torii-scene-svg {
+    width: min(72vw, 320px);
+    height: min(42vh, 320px);
+    margin-bottom: 0;
+  }
+  .is-mobile .torii-scene-svg svg {
+    width: min(68vw, 285px);
+    height: auto;
+  }
+  .is-mobile .moon-rising {
+    top: 94px;
+    width: 118px;
+    height: 118px;
+    box-shadow: 0 0 36px #fff9c4, 0 0 72px rgba(255,249,196,0.8), 0 0 110px rgba(255,183,197,0.22);
+  }
+
+  /* Scène 5 — esprits */
+  .is-mobile #layer-noface { top: 47%; }
+  .is-mobile .miyazaki-scene {
+    width: 112vw;
+    height: 360px;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 10%, black 88%, transparent 100%) !important;
+    mask-image: linear-gradient(to bottom, transparent 0%, black 10%, black 88%, transparent 100%) !important;
+  }
+  .is-mobile .tree-branch {
+    opacity: 0.88;
+    filter: drop-shadow(0 10px 14px rgba(0,0,0,0.82)) brightness(0.95);
+  }
+  .is-mobile .ground-fog {
+    height: 34%;
+    opacity: 0.82;
+  }
+
+  /* Scène 6 — neko suprême */
+  .is-mobile #neko-hero {
+    height: 510px !important;
+  }
+  .is-mobile #miko-circle-container {
+    width: 320px;
+    height: 320px;
+    margin-left: -160px;
+    margin-top: -160px;
+  }
+
+  /* Scène 7 — ombre millénaire */
+  .is-mobile #layer-daruma { top: 46%; }
+  .is-mobile .dark-eclipse-overlay {
+    background: radial-gradient(ellipse at center, rgba(10,5,8,0.44) 0%, rgba(2,1,4,0.36) 58%, transparent 100%);
+  }
+  .is-mobile .noface-container {
+    width: min(78vw, 390px);
+    height: min(52vh, 480px);
+  }
+  .is-mobile .crimson-aura {
+    width: min(105vw, 560px);
+    height: min(95vw, 560px);
+  }
+}

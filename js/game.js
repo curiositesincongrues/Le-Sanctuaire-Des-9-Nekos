@@ -34,16 +34,21 @@ const ThemeManager = {
     // Set the CSS variable (drives all elements using var(--bg-current))
     root.style.setProperty('--bg-current', color);
 
-    // Direct body assignment — safety net for Android WebView under memory pressure.
-    // On mobile, the CSS gradient (driven by --bg-glow/--bg-edge) handles body bg.
-    if (!window.isMobileDevice) {
+    const isPremiumLike = !window.isMobileDevice || window.renderProfile === 'premium';
+
+    // Premium-like profiles (desktop + Pixel 9a) get the direct solid background path
+    // so mobile can visually match desktop as closely as possible.
+    if (isPremiumLike) {
       document.body.style.backgroundColor = color;
+      document.body.style.backgroundImage = 'none';
+    } else {
+      // Balanced/safe keep CSS-managed gradients.
+      document.body.style.backgroundColor = '';
+      document.body.style.backgroundImage = '';
     }
 
-    // On desktop, patch active screen inline for reliable transitions.
-    // On mobile, CSS custom properties (--bg-glow/--bg-edge) + .is-mobile body rule
-    // handle the radial gradient automatically — inline override would flatten it.
-    if (!window.isMobileDevice) {
+    // Premium-like profiles also patch active screen inline for the same reason.
+    if (isPremiumLike) {
       const activeScreen = document.querySelector('.screen.active');
       if (activeScreen) {
         activeScreen.style.transition = `background-color ${durationMs}ms cubic-bezier(0.4, 0, 0.2, 1)`;
@@ -155,9 +160,6 @@ function nextRule() {
     document.getElementById(`rule-${currentRule}`).style.display = 'none';
     currentRule++;
     if(currentRule > 4) {
-        // --- C'EST ICI QU'ON AJOUTE L'APPEL ---
-        initGummyPaws(); 
-        
         transitionScreen('screen-oath', "✨");
         document.getElementById('oath-names').innerText = mikoNames.join(" • ");
         resizeConstellationCanvas();
@@ -166,159 +168,85 @@ function nextRule() {
     }
 }
 
-/* --- CONSTELLATION / SERMENT : GUMMY PAWS & LASERS --- */
-let lockedPaws = []; 
-const pawColors = [
-    "#ff69b4", "#00ffff", "#ffff00", "#98fb98", 
-    "#e6e6fa", "#ffdab9", "#ff4500", "#191970"
-];
+/* --- CONSTELLATION / SERMENT --- */
+const runes = document.querySelectorAll('.rune-node');
+let activeRunes = new Set();
+const canvasLines = document.getElementById('constellation-lines');
+const ctxLines = canvasLines ? canvasLines.getContext('2d') : null;
 
-function initGummyPaws() {
-    const cBox = document.getElementById('constellation-box');
-    if (!cBox) return; // Sécurité anti-crash
+function resizeConstellationCanvas() {
+    if(canvasLines) { canvasLines.width = document.getElementById('constellation-box').offsetWidth; canvasLines.height = document.getElementById('constellation-box').offsetHeight; }
+}
+window.addEventListener('resize', resizeConstellationCanvas);
+
+function drawConstellation() {
+    if(!ctxLines) return;
+    ctxLines.clearRect(0, 0, canvasLines.width, canvasLines.height);
+    if(activeRunes.size < 2) return;
     
-    cBox.innerHTML = ''; // Nettoyage total de la zone
-    lockedPaws = [];
-    const touchCountEl = document.getElementById('touch-count');
-    if(touchCountEl) touchCountEl.innerText = "0";
-
-    pawColors.forEach((color, index) => {
-        const paw = document.createElement('div');
-        paw.className = 'gummy-paw';
-        paw.style.backgroundColor = color;
-        paw.style.setProperty('--paw-color', color);
-        paw.style.animationDelay = `${Math.random() * 2}s`;
-        
-        // Les coussinets en SVG par-dessus la couleur
-        paw.innerHTML = `
-            <svg viewBox="0 0 100 100" width="100%" height="100%" style="position:absolute; top:0; left:0; z-index:2; opacity:0.8; pointer-events:none;">
-                <circle cx="50" cy="65" r="20" fill="rgba(0,0,0,0.15)"/>
-                <circle cx="25" cy="35" r="10" fill="rgba(0,0,0,0.15)"/>
-                <circle cx="45" cy="20" r="10" fill="rgba(0,0,0,0.15)"/>
-                <circle cx="75" cy="35" r="10" fill="rgba(0,0,0,0.15)"/>
-            </svg>
-            <div class="paw-charge-ring"></div>
-        `;
-
-        const angle = (index / 8) * Math.PI * 2;
-        const radius = 250;
-        paw.style.position = 'absolute';
-        paw.style.left = `calc(50% + ${Math.cos(angle) * radius}px - 30px)`;
-        paw.style.top = `calc(50% + ${Math.sin(angle) * radius}px - 30px)`;
-        paw.style.zIndex = "200";
-        let holdTimer = null;
-        let isLocked = false;
-
-        const startHold = (e) => {
-            if (e.cancelable) e.preventDefault();
-            if (isLocked) return;
-
-            paw.classList.add('holding');
-            if(navigator.vibrate) navigator.vibrate(15);
-            playGameSFX('beep', 440 + (index * 50)); 
-
-            holdTimer = setTimeout(() => {
-                isLocked = true;
-                paw.classList.remove('holding');
-                paw.classList.add('locked');
-                
-                playGameSFX('chime_portal'); 
-                if(navigator.vibrate) navigator.vibrate([50, 30, 50]);
-
-                lockedPaws.push(paw);
-                if (touchCountEl) touchCountEl.innerText = lockedPaws.length;
-                
-                if (lockedPaws.length > 1) {
-                    drawLaser(lockedPaws[lockedPaws.length - 2], paw);
-                }
-
-                if (lockedPaws.length >= 8 || (TEST_MODE && lockedPaws.length >= 1)) {
-                    triggerSupernova();
-                }
-            }, 2000);
-        };
-
-        const cancelHold = (e) => {
-            if (e.cancelable) e.preventDefault();
-            if (isLocked) return; 
-            clearTimeout(holdTimer);
-            paw.classList.remove('holding');
-        };
-
-        paw.addEventListener('pointerdown', startHold);
-        paw.addEventListener('pointerup', cancelHold);
-        paw.addEventListener('pointercancel', cancelHold);
-        paw.addEventListener('pointerleave', cancelHold);
-
-        cBox.appendChild(paw);
+    ctxLines.beginPath(); ctxLines.strokeStyle = "rgba(255, 215, 0, 0.8)"; ctxLines.lineWidth = 4;
+    let first = true;
+    activeRunes.forEach(rune => {
+        const boxRect = document.getElementById('constellation-box').getBoundingClientRect();
+        const rect = rune.getBoundingClientRect();
+        const x = rect.left - boxRect.left + rect.width / 2;
+        const y = rect.top - boxRect.top + rect.height / 2;
+        if(first) { ctxLines.moveTo(x, y); first = false; } else { ctxLines.lineTo(x, y); }
     });
+    ctxLines.closePath(); ctxLines.stroke(); ctxLines.fillStyle = "rgba(255, 183, 197, 0.3)"; ctxLines.fill();
 }
 
-function drawLaser(pawA, pawB) {
-    const cBox = document.getElementById('constellation-box');
-    const rectA = pawA.getBoundingClientRect();
-    const rectB = pawB.getBoundingClientRect();
-    const boxRect = cBox.getBoundingClientRect();
-
-    const x1 = rectA.left - boxRect.left + rectA.width / 2;
-    const y1 = rectA.top - boxRect.top + rectA.height / 2;
-    const x2 = rectB.left - boxRect.left + rectB.width / 2;
-    const y2 = rectB.top - boxRect.top + rectB.height / 2;
-
-    const length = Math.hypot(x2 - x1, y2 - y1);
-    const angle = Math.atan2(y2 - y1, x2 - x1);
-
-    const laser = document.createElement('div');
-    laser.className = 'laser-beam';
-    laser.style.left = `${x1}px`;
-    laser.style.top = `${y1}px`;
-    laser.style.width = '0px'; 
-    laser.style.transform = `translateY(-50%) rotate(${angle}rad)`;
-    laser.style.setProperty('--length', `${length}px`);
-
-    cBox.appendChild(laser);
-}
-
-function triggerSupernova() {
-    document.querySelectorAll('.gummy-paw').forEach(p => p.style.pointerEvents = 'none');
-    document.querySelectorAll('.laser-beam').forEach(l => l.classList.add('super-blast'));
+runes.forEach((rune) => {
+    const handlePointerDown = (e) => {
+        e.preventDefault();
+        if(!activeRunes.has(rune)) {
+            activeRunes.add(rune); 
+            rune.style.transform = "translate(-50%, -50%) scale(1.5)"; 
+            rune.style.filter = "drop-shadow(0 0 20px var(--gold))";
+            if(navigator.vibrate) navigator.vibrate(15); 
+            playGameSFX('beep', 880 + (activeRunes.size * 50));
+            document.getElementById('touch-count').innerText = activeRunes.size; 
+            drawConstellation();
+            
+            if(activeRunes.size >= 8 || (TEST_MODE && activeRunes.size >= 1)) {
+                runes.forEach(r => r.style.pointerEvents = 'none'); setTimeout(() => validateOath(), 500);
+            }
+        }
+    };
     
-    const wave = document.createElement('div');
-    wave.className = 'supernova-wave';
-    const cBox = document.getElementById('constellation-box');
-    if (cBox) cBox.appendChild(wave);
+    const handlePointerUp = (e) => {
+        e.preventDefault(); 
+        if (e.pointerType === 'mouse') return;
 
-    playGameSFX('sword'); 
-    if(navigator.vibrate) navigator.vibrate([100, 50, 200, 100, 300]);
+        activeRunes.delete(rune); 
+        rune.style.transform = "translate(-50%, -50%) scale(1)"; 
+        rune.style.filter = "none";
+        document.getElementById('touch-count').innerText = activeRunes.size; 
+        drawConstellation();
+    };
 
-    confetti({ 
-        particleCount: 200, spread: 360, startVelocity: 40,
-        colors: pawColors, origin: { x: 0.5, y: 0.5 } 
-    });
+    rune.addEventListener('pointerdown', handlePointerDown); 
+    rune.addEventListener('pointerup', handlePointerUp); 
+    rune.addEventListener('pointercancel', handlePointerUp); 
+    rune.addEventListener('pointerleave', handlePointerUp);
+});
 
-    setTimeout(() => { 
-        gameStartTime = Date.now(); 
-        enterHub(); 
-    }, 2000);
+function validateOath() {
+    playGameSFX('chime_portal'); confetti({ particleCount: 150, colors: ['#ffd700', '#ffb7c5', '#ffffff', '#c9fffe'] });
+    setTimeout(() => { gameStartTime = Date.now(); enterHub(); }, 1500);
 }
+
 /* --- HUB --- */
 function updateHeartBeat() {
     hubTimer++;
     const heart = document.getElementById('shadow-heart');
-    if (!heart) return;
-    
     const beatSpeed = Math.max(0.2, 1 - (hubTimer / 60)); 
     const scale = 1 + (hubTimer / 100);
     heart.style.animation = `pulse-core ${beatSpeed}s infinite alternate`;
     heart.style.transform = `scale(${scale})`;
     
     document.documentElement.style.setProperty('--darkness', 0); 
-    
-    // On ne joue le son que si nécessaire, et on évite de saturer le vibreur
-    if(hubTimer % Math.ceil(beatSpeed*2) === 0) {
-        playGameSFX('heartbeat'); 
-        // Note: Si ça vibre encore, c'est dans audio.js qu'il faut couper !
-    }
+    if(hubTimer % Math.ceil(beatSpeed*2) === 0) playGameSFX('heartbeat');
 }
 
 function enterHub() {
@@ -677,14 +605,15 @@ function playMinigame() {
             score = Math.floor((transparent / totalSamples) * 100);
             updateP(score, 70); 
             
-if(score >= 70) {
-    scratchFinished = true;
-    scratchCvs.style.pointerEvents = 'none'; 
-    scratchCvs.style.transition = 'opacity 0.4s ease';
-    scratchCvs.style.opacity = '0';
-    if(navigator.vibrate) navigator.vibrate(30);
-    playGameSFX('pop');
-} else {
+            if(score >= 70) {
+                scratchFinished = true;
+                scratchCvs.style.pointerEvents = 'none'; // LIBÉRATION DU CLIC
+                scratchCvs.style.transition = 'opacity 0.4s ease';
+                scratchCvs.style.opacity = '0';
+                if(navigator.vibrate) navigator.vibrate(30);
+                playGameSFX('pop');
+                setTimeout(() => winGame(), 600); // LANCEMENT DE LA SUITE
+            } else {
                 if(navigator.vibrate) navigator.vibrate(10);
             }
         };
@@ -741,35 +670,15 @@ if(score >= 70) {
 }
 
 /* --- WIN / SOUL ANIMATION --- */
-let isWinning = false; // Verrou de sécurité global
-
 function winGame() {
-    if (isWinning) return; // Si on est déjà en train de gagner, on ignore les autres appels
-    isWinning = true;
-
-    const wonIndex = currentFound; 
-    currentFound++; 
+    const wonIndex = currentFound; currentFound++; 
+    window.ondevicemotion = null; document.body.ontouchstart = null; window.speechSynthesis.cancel();
     
-    // Nettoyage des événements globaux
-    window.ondevicemotion = null; 
-    document.body.ontouchstart = null; 
-    window.speechSynthesis.cancel();
-    
-    if(micStream) { 
-        micStream.getTracks().forEach(t => t.stop()); 
-        cancelAnimationFrame(micLoop); 
-        document.getElementById('mic-gauge').style.display = 'none'; 
-    }
+    if(micStream) { micStream.getTracks().forEach(t => t.stop()); cancelAnimationFrame(micLoop); document.getElementById('mic-gauge').style.display = 'none'; }
     
     const arena = document.getElementById('game-arena');
-    arena.innerHTML = `<div class="win-relic-icon">${getRelicSVG(wonIndex)}</div>`; 
-    document.getElementById('game-instr').innerText = "RÉUSSI !";
-
-    setTimeout(() => { 
-        isWinning = false; // On libère le verrou pour le prochain jeu
-        if(currentFound >= 9) launchFinalCinematic(); 
-        else animateSoulToHub(wonIndex); 
-    }, 1500);
+    arena.innerHTML = `<div class="win-relic-icon">${getRelicSVG(wonIndex)}</div>`; document.getElementById('game-instr').innerText = "RÉUSSI !";
+    setTimeout(() => { if(currentFound >= 9) launchFinalCinematic(); else animateSoulToHub(wonIndex); }, 1500);
 }
 
 function animateSoulToHub(idx) {
@@ -1011,21 +920,7 @@ function openMirror() {
     overlay.classList.add('active');
 }
 
-/* roundRect polyfill for older mobile browsers */
-if (!CanvasRenderingContext2D.prototype.roundRect) {
-    CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
-        if (typeof r === 'number') r = [r, r, r, r];
-        const [tl, tr, br, bl] = r;
-        this.moveTo(x + tl, y);
-        this.lineTo(x + w - tr, y); this.arcTo(x + w, y, x + w, y + tr, tr);
-        this.lineTo(x + w, y + h - br); this.arcTo(x + w, y + h, x + w - br, y + h, br);
-        this.lineTo(x + bl, y + h); this.arcTo(x, y + h, x, y + h - bl, bl);
-        this.lineTo(x, y + tl); this.arcTo(x, y, x + tl, y, tl);
-        this.closePath(); return this;
-    };
-}
-
-/* --- CAPTURE ESTAMPE — Purikura Souvenir PNG --- */
+/* --- CAPTURE ESTAMPE --- */
 function captureEstampe() {
     document.getElementById('flash').style.background = 'white'; 
     document.getElementById('flash').style.opacity = 1;
@@ -1036,214 +931,54 @@ function captureEstampe() {
     const video = document.getElementById('mirror-cam');
     const canvas = document.getElementById('polaroid-canvas');
     const ctx = canvas.getContext('2d');
-    const W = 1200, H = 1600;
-    canvas.width = W; canvas.height = H;
+    canvas.width = 1200; canvas.height = 1600;
     
-    /* --- Layer 0: Purikura gradient background + polka dots --- */
-    const bgGrad = ctx.createRadialGradient(W/2, H*0.38, 100, W/2, H*0.38, W);
-    bgGrad.addColorStop(0, '#ffe0f0');
-    bgGrad.addColorStop(0.5, '#ffc0e0');
-    bgGrad.addColorStop(1, '#d060a0');
-    ctx.fillStyle = bgGrad;
-    ctx.fillRect(0, 0, W, H);
-    // Polka dots
-    ctx.globalAlpha = 0.08;
-    for(let y = 0; y < H; y += 40) {
-        for(let x = (y % 80 === 0 ? 0 : 20); x < W; x += 40) {
-            ctx.beginPath(); ctx.arc(x, y, 8, 0, Math.PI * 2);
-            ctx.fillStyle = '#fff'; ctx.fill();
-        }
-    }
-    ctx.globalAlpha = 1.0;
-    // Scatter sparkles
-    for(let i = 0; i < 80; i++) {
-        const sx = Math.random() * W, sy = Math.random() * H;
-        const sr = Math.random() * 4 + 1;
-        ctx.fillStyle = `rgba(255,255,255,${0.3 + Math.random() * 0.5})`;
-        ctx.beginPath(); ctx.arc(sx, sy, sr, 0, Math.PI * 2); ctx.fill();
-    }
-    
-    /* --- Layer 1: GIANT SQUARE photo — 75% canvas width --- */
-    const photoSize = Math.round(W * 0.75); // 900px
-    const photoX = (W - photoSize) / 2;     // 150px
-    const photoY = 100;
-    const borderW = 10;
-    
-    // Outer neon pink glow
-    ctx.save();
-    ctx.shadowColor = '#ff69b4'; ctx.shadowBlur = 40;
-    ctx.fillStyle = '#fff';
-    ctx.beginPath();
-    ctx.roundRect(photoX - borderW, photoY - borderW, photoSize + borderW*2, photoSize + borderW*2, 16);
-    ctx.fill();
-    ctx.restore();
-    
-    // White border (drawn as background behind clipped photo)
-    ctx.save();
-    ctx.fillStyle = '#fff';
-    ctx.beginPath();
-    ctx.roundRect(photoX - borderW, photoY - borderW, photoSize + borderW*2, photoSize + borderW*2, 16);
-    ctx.fill();
-    
-    // Clip to photo area and draw mirrored video
-    ctx.beginPath();
-    ctx.roundRect(photoX, photoY, photoSize, photoSize, 10);
-    ctx.clip();
+    if(washiCanvas) { ctx.drawImage(washiCanvas, 0, 0); } 
+    else { ctx.fillStyle = "#EAE4D3"; ctx.fillRect(0, 0, 1200, 1600); }
     
     if(video && video.videoWidth > 0) {
         const s = Math.min(video.videoWidth, video.videoHeight);
-        ctx.filter = "brightness(1.12) contrast(1.05) saturate(1.25)";
-        ctx.translate(photoX + photoSize, 0);
-        ctx.scale(-1, 1);
-        ctx.drawImage(video, 
-            (video.videoWidth - s) / 2, (video.videoHeight - s) / 2, s, s, 
-            0, photoY, photoSize, photoSize);
-    } else {
-        // Fallback if no camera: gradient placeholder
-        const fallGrad = ctx.createLinearGradient(photoX, photoY, photoX + photoSize, photoY + photoSize);
-        fallGrad.addColorStop(0, '#8c3873'); fallGrad.addColorStop(1, '#5d1a4a');
-        ctx.fillStyle = fallGrad;
-        ctx.fillRect(photoX, photoY, photoSize, photoSize);
+        ctx.save();
+        ctx.beginPath(); ctx.arc(600, 620, 380, 0, Math.PI * 2); ctx.clip();
+        ctx.filter = "sepia(0.7) hue-rotate(190deg) contrast(1.4) brightness(0.85) saturate(1.3)";
+        ctx.translate(1200, 0); ctx.scale(-1, 1);
+        ctx.drawImage(video, (video.videoWidth - s) / 2, (video.videoHeight - s) / 2, s, s, 220, 240, 760, 760);
+        ctx.restore();
     }
+    
+    ctx.save(); ctx.strokeStyle = "rgba(15,10,10,0.85)";
+    for(let pass = 0; pass < 3; pass++) {
+        ctx.lineWidth = 8 + pass * 5 + Math.random() * 4; ctx.globalAlpha = 0.5 + pass * 0.2;
+        ctx.beginPath();
+        for(let i = 0; i <= Math.PI * 2; i += 0.08) { let rad = 390 + Math.random() * 15 - pass * 3; let x = 600 + Math.cos(i) * rad; let y = 620 + Math.sin(i) * rad; if(i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y); }
+        ctx.closePath(); ctx.stroke();
+    }
+    for(let i = 0; i < 40; i++) { ctx.fillStyle = "rgba(10,5,5,0.6)"; ctx.beginPath(); ctx.arc(600 + (Math.random()-0.5)*900, 620 + (Math.random()-0.5)*900, Math.random()*3+0.5, 0, Math.PI*2); ctx.fill(); }
     ctx.restore();
     
-    /* --- Layer 2: 9 SVG relics around the photo edges --- */
-    const relicSize = 70;
-    const relicPositions = [];
-    for(let i = 0; i < 9; i++) {
-        // Distribute: 3 top, 3 bottom, 1 left-mid, 1 right-mid, 1 top-center offset
-        let rx, ry;
-        if(i < 3) { // Top row
-            rx = photoX + (i + 0.5) * (photoSize / 3) - relicSize/2;
-            ry = photoY - relicSize - 15;
-        } else if(i < 6) { // Bottom row
-            rx = photoX + ((i - 3) + 0.5) * (photoSize / 3) - relicSize/2;
-            ry = photoY + photoSize + 15;
-        } else if(i === 6) { // Left
-            rx = photoX - relicSize - 15;
-            ry = photoY + photoSize * 0.3;
-        } else if(i === 7) { // Right
-            rx = photoX + photoSize + 15;
-            ry = photoY + photoSize * 0.5;
-        } else { // Right-lower
-            rx = photoX + photoSize + 15;
-            ry = photoY + photoSize * 0.15;
-        }
-        relicPositions.push({ x: rx, y: ry });
-    }
+    for(let i = 0; i < 55; i++) { ctx.fillStyle = `rgba(212,175,55,${0.3+Math.random()*0.5})`; ctx.beginPath(); ctx.arc(Math.random()*1200, Math.random()*1600, Math.random()*6+1, 0, Math.PI*2); ctx.fill(); }
     
-    // Render SVGs to canvas via Image + data URL
-    let relicsDrawn = 0;
-    const totalRelics = 9;
+    const relicKanji = ["団","剣","忍","愛","狐","握","禅","鼓","城"];
+    ctx.font = "36px 'Ma Shan Zheng', cursive"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillStyle = "rgba(107,26,26,0.6)";
+    relicKanji.forEach((r, i) => { let a = (i/9)*Math.PI*2 - Math.PI/2; ctx.fillText(r, 600+Math.cos(a)*470, 620+Math.sin(a)*470); });
     
-    function drawRelicAt(index, rx, ry) {
-        const svgStr = getRelicSVG(index, relicSize);
-        if(!svgStr) { relicsDrawn++; return; }
-        // Fix SVG: inject width/height and xmlns
-        const sized = svgStr.replace('<svg ', `<svg xmlns="http://www.w3.org/2000/svg" width="${relicSize}" height="${relicSize}" `);
-        const img = new Image();
-        img.onload = function() {
-            // Gummy drop shadow
-            ctx.save();
-            ctx.shadowColor = 'rgba(255,105,180,0.6)'; ctx.shadowBlur = 12;
-            ctx.drawImage(img, rx, ry, relicSize, relicSize);
-            ctx.restore();
-            relicsDrawn++;
-            if(relicsDrawn >= totalRelics) finishEstampe();
-        };
-        img.onerror = function() { relicsDrawn++; if(relicsDrawn >= totalRelics) finishEstampe(); };
-        img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(sized);
-    }
+    ctx.fillStyle = "#6B1A1A"; ctx.font = "bold 85px 'Ma Shan Zheng', cursive"; ctx.textAlign = "center";
+    ctx.fillText("PACTE ACCOMPLI", 600, 1200);
+    let elapsedMs = Date.now() - gameStartTime; let mins = Math.floor(elapsedMs/60000); let secs = Math.floor((elapsedMs%60000)/1000);
+    ctx.fillStyle = "#3d2f2d"; ctx.font = "32px 'Fredoka One', cursive"; ctx.fillText(`Sanctuaire purifié en ${mins} min et ${secs} sec`, 600, 1290);
+    ctx.fillStyle = "#5a4b48"; ctx.font = "26px sans-serif"; ctx.fillText(mikoNames.join(" • "), 600, 1370);
     
-    relicPositions.forEach((pos, i) => drawRelicAt(i, pos.x, pos.y));
+    ctx.save(); ctx.translate(950, 1420); ctx.rotate(-15*Math.PI/180);
+    ctx.globalCompositeOperation = "multiply"; ctx.strokeStyle = "#b71c1c"; ctx.lineWidth = 8; ctx.filter = "blur(0.5px)";
+    ctx.strokeRect(-60,-60,120,120); ctx.fillStyle = "#b71c1c"; ctx.font = "bold 55px 'Ma Shan Zheng'"; ctx.textAlign = "center";
+    ctx.fillText("九", 0, -8); ctx.fillText("猫", 0, 48); ctx.restore();
     
-    // Safety timeout — if SVGs fail to load, finish anyway
-    setTimeout(() => { if(relicsDrawn < totalRelics) { relicsDrawn = totalRelics; finishEstampe(); } }, 2000);
+    const stamp = document.createElement('div'); stamp.className = 'hanko-slam'; stamp.innerHTML = '九<br>猫';
+    document.getElementById('mirror-overlay').appendChild(stamp);
+    playGameSFX('thud'); if(navigator.vibrate) navigator.vibrate([200, 50, 300]);
     
-    function finishEstampe() {
-        /* --- Layer 3: Title + Names --- */
-        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        
-        // Title: "PACTE ACCOMPLI" with gummy shadow
-        ctx.save();
-        ctx.font = "bold 72px 'Fredoka One', cursive";
-        ctx.shadowColor = 'rgba(255,105,180,0.7)'; ctx.shadowBlur = 20;
-        ctx.fillStyle = '#fff';
-        ctx.fillText("PACTE ACCOMPLI", W/2, photoY + photoSize + relicSize + 70);
-        ctx.restore();
-        
-        // Time — read from DOM to avoid desync
-        const timeEl = document.getElementById('cert-time');
-        const timeStr = timeEl ? timeEl.innerText : '';
-        if(timeStr && timeStr !== '--') {
-            ctx.font = "28px 'Fredoka One', cursive";
-            ctx.fillStyle = 'rgba(255,255,255,0.8)';
-            ctx.fillText(`Sanctuaire purifié en ${timeStr}`, W/2, photoY + photoSize + relicSize + 120);
-        }
-        
-        // Player names with golden star separators
-        ctx.save();
-        ctx.font = "bold 26px 'Fredoka One', cursive";
-        ctx.shadowColor = 'rgba(255,215,0,0.5)'; ctx.shadowBlur = 10;
-        ctx.fillStyle = '#ffd700';
-        const nameStr = mikoNames.join(' ✨ ');
-        ctx.fillText(nameStr, W/2, photoY + photoSize + relicSize + 175);
-        ctx.restore();
-        
-        /* --- Layer 4: Neko Hanko (tilted red rounded square + cat silhouette) --- */
-        ctx.save();
-        ctx.translate(W - 140, H - 160);
-        ctx.rotate(-12 * Math.PI / 180);
-        
-        // Red stamp background with gummy shadow
-        ctx.shadowColor = 'rgba(183,28,28,0.5)'; ctx.shadowBlur = 15;
-        ctx.fillStyle = '#c62828';
-        ctx.beginPath(); ctx.roundRect(-55, -55, 110, 110, 12); ctx.fill();
-        ctx.shadowBlur = 0;
-        
-        // Inner border
-        ctx.strokeStyle = 'rgba(255,255,255,0.3)'; ctx.lineWidth = 2;
-        ctx.beginPath(); ctx.roundRect(-48, -48, 96, 96, 8); ctx.stroke();
-        
-        // Cat silhouette (simplified maneki-neko shape — white on red)
-        ctx.fillStyle = '#fff';
-        ctx.beginPath();
-        // Head
-        ctx.ellipse(0, -12, 22, 20, 0, 0, Math.PI * 2); ctx.fill();
-        // Left ear
-        ctx.beginPath(); ctx.moveTo(-18, -26); ctx.lineTo(-26, -44); ctx.lineTo(-8, -30); ctx.fill();
-        // Right ear
-        ctx.beginPath(); ctx.moveTo(18, -26); ctx.lineTo(26, -44); ctx.lineTo(8, -30); ctx.fill();
-        // Body
-        ctx.beginPath(); ctx.ellipse(0, 18, 18, 22, 0, 0, Math.PI * 2); ctx.fill();
-        // Eyes (red on white)
-        ctx.fillStyle = '#c62828';
-        ctx.beginPath(); ctx.ellipse(-8, -14, 3, 2, 0, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.ellipse(8, -14, 3, 2, 0, 0, Math.PI * 2); ctx.fill();
-        // Nose
-        ctx.beginPath(); ctx.moveTo(0, -8); ctx.lineTo(-3, -5); ctx.lineTo(3, -5); ctx.closePath(); ctx.fill();
-        
-        ctx.restore();
-        
-        // Hanko slam animation on screen
-        const stamp = document.createElement('div'); stamp.className = 'hanko-slam'; stamp.innerHTML = '🐱';
-        document.getElementById('mirror-overlay').appendChild(stamp);
-        playGameSFX('thud'); if(navigator.vibrate) navigator.vibrate([200, 50, 300]);
-        
-        // Download
-        setTimeout(() => { 
-            const link = document.createElement('a'); 
-            link.download = 'Estampe-des-Kami.png'; 
-            link.href = canvas.toDataURL('image/png'); 
-            link.click(); 
-            playGameSFX('pop'); 
-            stamp.remove(); 
-        }, 800);
-        setTimeout(() => { 
-            document.getElementById('mirror-overlay').classList.remove('active'); 
-            setTimeout(() => launchEpilogue(), 1500); 
-        }, 2500);
-    }
+    setTimeout(() => { const link = document.createElement('a'); link.download = 'Estampe-des-Kami.png'; link.href = canvas.toDataURL('image/png'); link.click(); playGameSFX('pop'); stamp.remove(); }, 800);
+    setTimeout(() => { document.getElementById('mirror-overlay').classList.remove('active'); setTimeout(() => launchEpilogue(), 1500); }, 2500);
 }
 
 /* --- ACTE VI — ÉPILOGUE : LE BATEAU DES LANTERNES --- */
