@@ -62,7 +62,7 @@ function initSfx() {
     wetGain.connect(templeReverb); templeReverb.connect(audioCtx.destination);
     wetGain.connect(templeDelay); templeDelay.connect(templeDelayGain); templeDelayGain.connect(wetGain);
 
-    /* === LAYER 1 : VENT MODULÉ (souffle qui va et vient) === */
+    /* === LAYER 1 : VENT MODULÉ === */
     audioLayers.wind = audioCtx.createGain(); audioLayers.wind.gain.value = 0; audioLayers.wind.connect(masterGain);
     const bufSize = audioCtx.sampleRate * 2; const noiseBuf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
     const noiseOut = noiseBuf.getChannelData(0); for (let i = 0; i < bufSize; i++) noiseOut[i] = Math.random() * 2 - 1;
@@ -74,23 +74,23 @@ function initSfx() {
     windNode.connect(windFilter); windFilter.connect(audioLayers.wind);
     windNode.start(); windLFO.start();
     
-    /* === LAYER 2 : PAD JAPONAIS (accord désaccordé chorus) === */
+    /* === LAYER 2 : PAD JAPONAIS === */
     audioLayers.pad = audioCtx.createGain(); audioLayers.pad.gain.value = 0; audioLayers.pad.connect(masterGain);
     padGain = audioCtx.createGain(); padGain.gain.value = 0.12; padGain.connect(audioLayers.pad);
     createPadChord([130.81, 196.00, 174.61]);
     
-    /* === LAYER 3 : CHIMES (gamme pentatonique, pattern mélodique) === */
+    /* === LAYER 3 : CHIMES === */
     audioLayers.chime = audioCtx.createGain(); audioLayers.chime.gain.value = 0; audioLayers.chime.connect(masterGain);
     chimeGain = audioCtx.createGain(); chimeGain.gain.value = 0.08; chimeGain.connect(audioLayers.chime);
     
-    /* === LAYER 4 : MÉLODIE SHAKUHACHI (flûte lente) === */
+    /* === LAYER 4 : MÉLODIE SHAKUHACHI === */
     audioLayers.melody = audioCtx.createGain(); audioLayers.melody.gain.value = 0; audioLayers.melody.connect(masterGain);
     melodyGain = audioCtx.createGain(); melodyGain.gain.value = 0.1; melodyGain.connect(audioLayers.melody);
     
-    /* === LAYER 5 : TAIKO (battement grave rituel) === */
+    /* === LAYER 5 : TAIKO === */
     taikoGain = audioCtx.createGain(); taikoGain.gain.value = 0; taikoGain.connect(masterGain);
     
-    /* === LAYER 6 : SUB DRONE (basse menaçante pour l'Ombre) === */
+    /* === LAYER 6 : SUB DRONE === */
     subDroneGain = audioCtx.createGain(); subDroneGain.gain.value = 0; subDroneGain.connect(masterGain);
     subDrone = audioCtx.createOscillator(); subDrone.type = 'sine'; subDrone.frequency.value = 40;
     const subFilter = audioCtx.createBiquadFilter(); subFilter.type = 'lowpass'; subFilter.frequency.value = 80;
@@ -104,7 +104,6 @@ function initSfx() {
     });
 }
 
-/* --- PAD : crée un accord avec chorus --- */
 function createPadChord(freqs) {
     padOscs.forEach(o => { try { o.stop(); } catch(e){} });
     padOscs = [];
@@ -119,7 +118,6 @@ function createPadChord(freqs) {
     });
 }
 
-/* --- CHIME : joue une note du pattern --- */
 let chimePatternIdx = 0;
 function playChimeNote() {
     if (!audioCtx || !chimeGain) return;
@@ -136,7 +134,6 @@ function playChimeNote() {
     osc.connect(g); g.connect(chimeGain); osc.start(now); osc.stop(now + 4);
 }
 
-/* --- MÉLODIE SHAKUHACHI : notes lentes avec pitch bend + vibrato --- */
 function playMelodyNote() {
     if (!audioCtx || !melodyGain || currentMelodyNotes.length === 0) return;
     const freq = currentMelodyNotes[melodyIndex % currentMelodyNotes.length];
@@ -158,7 +155,6 @@ function playMelodyNote() {
     vib.start(now); vib.stop(now + 3.5);
 }
 
-/* --- TAIKO : battement grave rituel --- */
 function playTaikoHit() {
     if (!audioCtx) return;
     const now = audioCtx.currentTime;
@@ -178,12 +174,10 @@ function playTaikoHit() {
     osc.connect(g); g.connect(taikoGain);
     noise.connect(nFilter); nFilter.connect(nGain); nGain.connect(taikoGain);
     osc.start(now); osc.stop(now + 0.5); noise.start(now);
-    // Pulse visuelle sur la clochette du neko en synchro
     const nekoStage = document.querySelector('#neko-hero .neko-scale-wrapper:not(.ghost-neko)');
     if (nekoStage) { nekoStage.classList.add('bell-pulse'); setTimeout(() => nekoStage.classList.remove('bell-pulse'), 350); }
 }
 
-/* --- setMusicMood(scene) — Synchronise la musique avec le scénario --- */
 let currentMusicMood = null;
 
 function setMusicMood(scene) {
@@ -201,7 +195,6 @@ function setMusicMood(scene) {
     }
     
     if (scene === 'VOYAGE') {
-        /* Acte 1 — Bateau & Koi : brume sur l'océan */
         ramp(audioLayers.wind.gain, 0.25);
         ramp(audioLayers.pad.gain, 0.03);
         ramp(audioLayers.chime.gain, 0);
@@ -215,7 +208,6 @@ function setMusicMood(scene) {
         chimeInterval = setInterval(playChimeNote, 6000);
         
     } else if (scene === 'DECOUVERTE') {
-        /* Acte 2 — Château & Torii : le temple se révèle */
         ramp(audioLayers.wind.gain, 0.18);
         ramp(audioLayers.pad.gain, 0.08);
         ramp(audioLayers.chime.gain, 0.06);
@@ -229,7 +221,6 @@ function setMusicMood(scene) {
         chimeInterval = setInterval(playChimeNote, 3500);
         
     } else if (scene === 'SACRE') {
-        /* Acte 3 — Kodamas & Neko & Kusanagi : sérénité maximale */
         ramp(audioLayers.wind.gain, 0.12);
         ramp(audioLayers.pad.gain, 0.12);
         ramp(audioLayers.chime.gain, 0.08);
@@ -247,7 +238,6 @@ function setMusicMood(scene) {
         taikoInterval = setInterval(playTaikoHit, 5000);
         
     } else if (scene === 'RUPTURE') {
-        /* Acte 4 — L'Ombre arrive : tout bascule */
         ramp(audioLayers.wind.gain, 0.35);
         ramp(audioLayers.pad.gain, 0);
         ramp(audioLayers.chime.gain, 0.04);
@@ -263,7 +253,6 @@ function setMusicMood(scene) {
         subDrone.frequency.linearRampToValueAtTime(55, now + 6);
         
     } else if (scene === 'CHUTE') {
-        /* Acte 5 — Gardiens dispersés : silence et désolation */
         ramp(audioLayers.wind.gain, 0.08, 4);
         ramp(audioLayers.pad.gain, 0, 3);
         ramp(audioLayers.chime.gain, 0, 3);
@@ -275,7 +264,6 @@ function setMusicMood(scene) {
         subDrone.frequency.linearRampToValueAtTime(30, now + 5);
         
     } else if (scene === 'VICTOIRE') {
-        /* Victoire — Gamme Yo joyeuse, chimes rapides, lumineux */
         ramp(audioLayers.wind.gain, 0.05);
         ramp(audioLayers.pad.gain, 0.15);
         ramp(audioLayers.chime.gain, 0.12);
@@ -284,7 +272,7 @@ function setMusicMood(scene) {
         ramp(subDroneGain.gain, 0);
         windLFO.frequency.value = 0.06;
         windFilter.frequency.value = 500;
-        createPadChord([261.63, 329.63, 392.00, 523.25]); // Do-Mi-Sol-Do (majeur lumineux)
+        createPadChord([261.63, 329.63, 392.00, 523.25]);
         currentChimeScale = YO_SCALE;
         currentMelodyNotes = [523.25, 587.33, 698.46, 587.33, 523.25, 440, 523.25, 698.46];
         melodyIndex = 0;
@@ -292,7 +280,6 @@ function setMusicMood(scene) {
         melodyInterval = setInterval(playMelodyNote, 2500);
         
     } else if (scene === 'EPILOGUE') {
-        /* Épilogue — Koto solo mélancolique, notes isolées, tout s'apaise */
         ramp(audioLayers.wind.gain, 0.1);
         ramp(audioLayers.pad.gain, 0.04);
         ramp(audioLayers.chime.gain, 0.06);
@@ -301,7 +288,7 @@ function setMusicMood(scene) {
         ramp(subDroneGain.gain, 0.02);
         windLFO.frequency.value = 0.04;
         windFilter.frequency.value = 200;
-        createPadChord([130.81, 196.00]); // Do-Sol grave (minimaliste)
+        createPadChord([130.81, 196.00]);
         currentChimeScale = YO_SCALE;
         currentMelodyNotes = [440, 392, 349.23, 293.66, 261.63];
         melodyIndex = 0;
@@ -309,11 +296,9 @@ function setMusicMood(scene) {
         melodyInterval = setInterval(playMelodyNote, 5000);
         subDrone.frequency.linearRampToValueAtTime(40, now + 4);
     }
-    
     console.log('[Music Mood]', scene);
 }
 
-/* --- Temple mode pour la voix du sage --- */
 function enterTempleMode() {
     if (!audioCtx || !templeFilter) return;
     const now = audioCtx.currentTime;
@@ -336,7 +321,6 @@ function exitTempleMode() {
     wetGain.gain.linearRampToValueAtTime(0.0, now + 2.0);
 }
 
-/* --- Musique Hub --- */
 function updateDynamicMusic() {
     if(!audioCtx) return;
     setMusicMood('SACRE');
@@ -345,18 +329,24 @@ function updateDynamicMusic() {
     if(currentFound < 6) audioLayers.melody.gain.linearRampToValueAtTime(0, now + 1);
 }
 
-/* --- Transition audio sombre (rétrocompat) --- */
 function transitionToDarkAudio() {
     if(!audioCtx) return;
     setMusicMood('RUPTURE');
 }
 
-/* --- SFX — Inchangés --- */
-
 function playGameSFX(type, freq=440) {
     if(!audioCtx) return; const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
     osc.connect(gain); gain.connect(audioCtx.destination); const now = audioCtx.currentTime;
-    if(type === 'heartbeat') { osc.type = 'sine'; osc.frequency.setValueAtTime(60, now); osc.frequency.exponentialRampToValueAtTime(30, now+0.3); gain.gain.setValueAtTime(0.7, now); gain.gain.exponentialRampToValueAtTime(0.01, now+0.3); osc.start(now); osc.stop(now+0.3); }
+    
+    if(type === 'heartbeat') { 
+        osc.type = 'sine'; 
+        osc.frequency.setValueAtTime(60, now); 
+        osc.frequency.exponentialRampToValueAtTime(30, now+0.3); 
+        gain.gain.setValueAtTime(0.4, now); // Réduction du volume (calme)
+        gain.gain.exponentialRampToValueAtTime(0.01, now+0.3); 
+        osc.start(now); osc.stop(now+0.3); 
+        // AUCUNE VIBRATION POUR LE CŒUR (Économie batterie)
+    }
     else if(type === 'drum_g') { osc.type = 'sine'; osc.frequency.setValueAtTime(150, now); osc.frequency.exponentialRampToValueAtTime(50, now+0.2); gain.gain.setValueAtTime(0.8, now); gain.gain.exponentialRampToValueAtTime(0.01, now+0.2); osc.start(now); osc.stop(now+0.2); } 
     else if(type === 'sword') { osc.type = 'triangle'; osc.frequency.setValueAtTime(1200, now); gain.gain.setValueAtTime(0.4, now); gain.gain.exponentialRampToValueAtTime(0.01, now+0.1); osc.start(now); osc.stop(now+0.1); } 
     else if(type === 'thud') { osc.type = 'square'; osc.frequency.setValueAtTime(80, now); osc.frequency.exponentialRampToValueAtTime(20, now+0.2); gain.gain.setValueAtTime(0.6, now); gain.gain.exponentialRampToValueAtTime(0.01, now+0.2); osc.start(now); osc.stop(now+0.2); } 
@@ -416,8 +406,6 @@ function playEvilLaugh() {
     });
 }
 
-/* --- VOIX DU SAGE — Sélection avec fallback JP → FR → défaut --- */
-
 let sageVoice = null, sageVoiceSearched = false;
 
 function findSageVoice() {
@@ -425,22 +413,16 @@ function findSageVoice() {
     sageVoiceSearched = true;
     const voices = window.speechSynthesis.getVoices();
     if (!voices.length) return null;
-
-    // Prefer masculine-sounding voice via name heuristics
     const femaleRx = /female|woman|femme|kyoko|haruka|nanami|o-ren|mizuki|mei|sakura|hana|yui|aoi|amelie|chloe|marie|audrey|virginie/i;
     const maleRx = /male|man|homme|takumi|ichiro|kenta|kenji|otoko|ryo|daichi|hiro|kenichi|daisuke|thomas|nicolas|philippe/i;
-
     function pickBestFrom(pool) {
         if (!pool.length) return null;
         const notFemale = pool.filter(v => !femaleRx.test(v.name));
         const male = (notFemale.length ? notFemale : pool).find(v => maleRx.test(v.name));
         return male || notFemale[0] || pool[0];
     }
-
-    // Priority: Japanese → French → any voice
     const jpVoices = voices.filter(v => v.lang.startsWith('ja'));
     const frVoices = voices.filter(v => v.lang.startsWith('fr'));
-
     sageVoice = pickBestFrom(jpVoices) || pickBestFrom(frVoices) || voices[0];
     console.log('[Sage Voice]', sageVoice ? `${sageVoice.name} (${sageVoice.lang})` : 'aucune voix');
     return sageVoice;
@@ -450,43 +432,27 @@ if (window.speechSynthesis.onvoiceschanged !== undefined) {
     window.speechSynthesis.onvoiceschanged = () => { sageVoiceSearched = false; findSageVoice(); };
 }
 
-/**
- * speakDucked — Unified TTS with music ducking.
- * Replaces all scattered speechSynthesis.speak() calls in game.js.
- * Cancels current speech, ducks music, speaks, restores music.
- * @param {string} text    — Text to speak
- * @param {object} opts    — { lang, rate, pitch, volume, maxMs }
- * @returns {Promise} resolves when speech ends or times out
- */
 function speakDucked(text, opts = {}) {
     const lang    = opts.lang    || 'ja-JP';
     const rate    = opts.rate    || 0.9;
     const pitch   = opts.pitch   || 0.5;
     const volume  = opts.volume  || 0.85;
     const maxMs   = opts.maxMs   || 8000;
-
     return new Promise(resolve => {
         window.speechSynthesis.cancel();
         enterTempleMode();
-
         const u = new SpeechSynthesisUtterance(text);
         u.lang = lang; u.rate = rate; u.pitch = pitch; u.volume = volume;
-        const voice = findSageVoice();
-        if (voice) u.voice = voice;
-
+        const voice = findSageVoice(); if (voice) u.voice = voice;
         let done = false;
         const finish = () => { if (done) return; done = true; clearTimeout(timeout); exitTempleMode(); resolve(); };
         const timeout = setTimeout(() => { window.speechSynthesis.cancel(); finish(); }, maxMs);
-        u.onend = finish;
-        u.onerror = finish;
+        u.onend = finish; u.onerror = finish;
         window.speechSynthesis.speak(u);
     });
 }
 
-/** Quick fire-and-forget speech with ducking (no await needed) */
-function speakDuckedFire(text, opts = {}) {
-    speakDucked(text, opts);
-}
+function speakDuckedFire(text, opts = {}) { speakDucked(text, opts); }
 
 function talkSync(txt, lang, rate=0.7) {
     if(introSkipped) return Promise.resolve();
@@ -495,8 +461,7 @@ function talkSync(txt, lang, rate=0.7) {
         const sageTxt = txt.replace(/、/g, '、...').replace(/。/g, '。...');
         const u = new SpeechSynthesisUtterance(sageTxt);
         u.lang = lang; u.rate = rate; u.pitch = 0.5; u.volume = 0.85;
-        const voice = findSageVoice();
-        if (voice) u.voice = voice;
+        const voice = findSageVoice(); if (voice) u.voice = voice;
         const finish = () => { exitTempleMode(); r(); };
         let timeout = setTimeout(() => { window.speechSynthesis.cancel(); finish(); }, 12000);
         u.onend = () => { clearTimeout(timeout); finish(); };

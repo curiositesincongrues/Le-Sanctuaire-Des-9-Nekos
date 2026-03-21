@@ -158,15 +158,15 @@ function getRelicSVG(index, size = 40) {
 }
 
 const guardianData = [
-    { qr: "qr_mochi", n: "Mochi", e: "🍡", q: "Le Mochi, cette délicieuse boule sucrée japonaise, est fabriqué à base de...", a: ["Blé", "Riz", "Soja"], r: 1, type: "hold", instr: "La Pesée de Riz : Maintiens appuyé sans relâcher !" },
-    { qr: "qr_ken", n: "Ken", e: "⚔️", q: "Comment s'appelle la célèbre épée courbée des Samouraïs ?", a: ["Le Katana", "Le Nunchaku", "L'Excalibur"], r: 0, type: "rhythm", instr: "Le Forgeron : Tape en rythme quand ça s'illumine !" },
-    { qr: "qr_shinobi", n: "Shinobi", e: "🥷", q: "Quel est le vrai nom de l'étoile de lancer des Ninjas ?", a: ["Le Kunai", "Le Batarang", "Le Shuriken"], r: 2, type: "catch", instr: "Cache-Cache : Attrape-le 5 fois vite !" },
-    { qr: "qr_aiko", n: "Aiko", e: "💖", q: "Que signifie le célèbre mot japonais 'Kawaii' ?", a: ["Bonjour", "Mignon", "Magique"], r: 1, type: "swipe", instr: "L'Éventail : Glisse ton doigt pour faire du vent !" },
-    { qr: "qr_kitsune", n: "Kitsune", e: "🦊", q: "Combien de queues possède le plus puissant des renards magiques ?", a: ["3 queues", "7 queues", "9 queues"], r: 2, type: "scratch", instr: "L'Encre Maudite : Frotte pour révéler le masque !" },
-    { qr: "qr_sumo", n: "Sumo", e: "🍙", q: "Comment appelle-t-on les bandes dessinées japonaises ?", a: ["Les Comics", "Les Mangas", "Les Webtoons"], r: 1, type: "mash", instr: "Le Duel : VITE ! Tape 30 fois !" },
-    { qr: "qr_zennon", n: "Zennon", e: "🧘", q: "Quel est le nom du vêtement traditionnel japonais ?", a: ["Le Sari", "Le Poncho", "Le Kimono"], r: 2, type: "statue", instr: "Méditation Zen : Chut... Ne touche plus l'écran." },
-    { qr: "qr_taiko", n: "Taiko", e: "🥁", q: "Comment dit-on 'Baguettes' (pour manger) en japonais ?", a: ["Sushi", "Hashi", "Mochi"], r: 1, type: "drum", instr: "Le Tambour : Alterne Gauche (G) et Droite (D) !" },
-    { qr: "qr_shogun", n: "Shogun", e: "🏯", q: "L'épée divine du début s'appelle... (Indice: Kusanagi)", a: ["Kusanagi", "Masamune", "Muramasa"], r: 0, type: "memory", instr: "Le Code Secret : Retiens et reproduis la séquence !" }
+    { qr: "qr_mochi", n: "", e: "🍡", q: "", a: [], r: 1, type: "hold", instr: "" },
+    { qr: "qr_ken", n: "", e: "⚔️", q: "", a: [], r: 0, type: "rhythm", instr: "" },
+    { qr: "qr_shinobi", n: "", e: "🥷", q: "", a: [], r: 2, type: "catch", instr: "" },
+    { qr: "qr_aiko", n: "", e: "💖", q: "", a: [], r: 1, type: "swipe", instr: "" },
+    { qr: "qr_kitsune", n: "", e: "🦊", q: "", a: [], r: 2, type: "scratch", instr: "" },
+    { qr: "qr_sumo", n: "", e: "🍙", q: "", a: [], r: 1, type: "mash", instr: "" },
+    { qr: "qr_zennon", n: "", e: "🧘", q: "", a: [], r: 1, type: "statue", instr: "" },
+    { qr: "qr_taiko", n: "", e: "🥁", q: "", a: [], r: 1, type: "drum", instr: "" },
+    { qr: "qr_shogun", n: "", e: "🏯", q: "", a: [], r: 0, type: "memory", instr: "" }
 ];
 
 let currentFound = 0; let hpOni = 0; let audioCtx, masterGain;

@@ -856,10 +856,10 @@
 	    100% { box-shadow: 0 0 30px rgba(243,156,18,0.9), 0 0 70px rgba(255,180,0,0.6), 0 0 120px rgba(255,150,0,0.3); }
 	}
 
-	/* --- PHASE 3 : MIROIR DES ESPRITS (plein écran) --- */
+	/* --- PHASE 3 : MIROIR DES ESPRITS — Purikura Mode --- */
 	#mirror-overlay {
 	    position: fixed; inset: 0;
-	    background: rgba(5,0,10,0.92);
+	    background: radial-gradient(ellipse at 50% 40%, rgba(80,10,60,0.94) 0%, rgba(15,0,20,0.97) 100%);
 	    z-index: 9000; display: none;
 	    flex-direction: column; align-items: center; justify-content: center;
 	    opacity: 0; transition: opacity 1.5s ease;
@@ -868,41 +868,41 @@
 
 	.mirror-circle {
 	    width: 75vmin; height: 75vmin; max-width: 500px; max-height: 500px;
-	    border-radius: 50%; overflow: hidden;
+	    border-radius: 16px; overflow: hidden;
 	    position: relative;
-	    border: 4px solid rgba(20,10,10,0.6);
-	    box-shadow: 0 0 40px rgba(161,196,253,0.3), 0 0 80px rgba(161,196,253,0.1), inset 0 0 60px rgba(0,0,0,0.8);
+	    border: 6px solid #fff;
+	    box-shadow: 0 0 30px rgba(255,105,180,0.5), 0 0 60px rgba(255,105,180,0.2), 0 0 100px rgba(255,183,197,0.15);
 	}
 	.mirror-circle video {
 	    width: 100%; height: 100%; object-fit: cover;
-	    filter: sepia(0.5) hue-rotate(190deg) brightness(0.85) contrast(1.2) saturate(1.3);
+	    filter: brightness(1.12) contrast(1.05) saturate(1.25);
 	    transform: scaleX(-1);
 	}
 	.mirror-shader {
 	    position: absolute; inset: 0;
-	    background: linear-gradient(135deg, rgba(255,255,255,0) 0%, rgba(161,196,253,0.15) 40%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0) 60%);
+	    background: linear-gradient(135deg, rgba(255,255,255,0) 0%, rgba(255,183,197,0.12) 40%, rgba(255,255,255,0.25) 50%, rgba(255,255,255,0) 60%);
 	    background-size: 200% 200%; animation: mirror-ripple 5s infinite linear;
-	    pointer-events: none; mix-blend-mode: overlay; border-radius: 50%;
+	    pointer-events: none; mix-blend-mode: overlay; border-radius: 14px;
 	}
 	@keyframes mirror-ripple { 0% { background-position: 100% 100%; } 100% { background-position: 0% 0%; } }
 
 	.mirror-frame {
-	    position: absolute; inset: -8px; border-radius: 50%;
-	    border: 3px solid rgba(15,10,10,0.7);
-	    box-shadow: 0 0 15px rgba(0,0,0,0.5);
+	    position: absolute; inset: -8px; border-radius: 18px;
+	    border: 3px solid rgba(255,183,197,0.4);
+	    box-shadow: 0 0 20px rgba(255,105,180,0.3);
 	    pointer-events: none;
 	}
 
 	.mirror-instruction {
-	    margin-top: 25px; font-size: 18px; color: rgba(161,196,253,0.8);
-	    text-shadow: 0 0 15px rgba(161,196,253,0.4);
-	    font-family: 'Ma Shan Zheng', cursive; letter-spacing: 2px;
+	    margin-top: 25px; font-size: 18px; color: rgba(255,183,197,0.9);
+	    text-shadow: 0 0 15px rgba(255,105,180,0.4);
+	    font-family: 'Fredoka One', cursive; letter-spacing: 2px;
 	}
 
 	#btn-capture {
 	    margin-top: 20px; padding: 16px 40px; border-radius: 50px;
-	    border: 2px solid rgba(255,215,0,0.4); color: #ffd700;
-	    font-weight: 900; background: rgba(0,0,0,0.6); font-size: 18px;
+	    border: 3px solid rgba(255,183,197,0.6); color: #fff;
+	    font-weight: 900; background: linear-gradient(90deg, #ff69b4 0%, #ff1493 100%); font-size: 18px;
 	    font-family: 'Fredoka One', cursive;
 	    box-shadow: 0 0 25px rgba(255,215,0,0.15);
 	    cursor: pointer; text-transform: uppercase; letter-spacing: 2px;
@@ -1365,30 +1365,29 @@
     75% { transform: translateX(15px) rotate(300deg); opacity: 0.6; }
     100% { top: 65vh; transform: translateX(5px) rotate(380deg); opacity: 0; }
 }
-
 /* ═══════════════════════════════════════════
    OPTIMISATIONS KAWAII — Cinématique de fin
    ═══════════════════════════════════════════ */
 
 /* --- 1. COUCOU DU NEKO (Maneki-neko qui agite la patte) --- */
 .divine-rise .arm-top-right {
-    animation: neko-coucou 0.8s ease-in-out infinite !important;
+    animation: maneki-wave 0.8s ease-in-out infinite !important;
     transform-origin: top center;
 }
 .divine-rise .arm-top-right-tip {
-    animation: neko-coucou-tip 0.8s ease-in-out infinite !important;
+    animation: maneki-wave-tip 0.8s ease-in-out infinite !important;
 }
-@keyframes neko-coucou {
+@keyframes maneki-wave {
     0%, 100% { transform: rotate(35deg); }
     50% { transform: rotate(-5deg); }
 }
-@keyframes neko-coucou-tip {
+@keyframes maneki-wave-tip {
     0%, 100% { top: 175px; }
     50% { top: 130px; }
 }
 
-/* --- 3. PLUIE D'ÉTOILES DORÉES --- */
-.golden-star {
+/* --- 2. PLUIE D'ÉTOILES DORÉES --- */
+.golden-star, .victory-star {
     position: fixed; pointer-events: none; z-index: 400;
     color: #ffd700; font-size: 14px;
     text-shadow: 0 0 8px rgba(255,215,0,0.6);
@@ -1396,32 +1395,32 @@
     opacity: 0;
 }
 @keyframes star-rain-fall {
-    0% { opacity: 0; transform: translateY(0) rotate(0deg) scale(0.5); }
+    0% { opacity: 0; transform: translateY(-20px) rotate(0deg) scale(0.5); }
     10% { opacity: 0.8; }
     80% { opacity: 0.5; }
     100% { opacity: 0; transform: translateY(80vh) rotate(360deg) scale(0.3); }
 }
 
-/* --- 4. TEXTES SLIDE-UP (panache) --- */
+/* --- 3. TEXTES SLIDE-UP (panache) --- */
 #final-story-box {
     transition: opacity 0.5s ease, transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
 }
-#screen-final #final-story-box {
-    transform: translateY(0);
+#screen-final #final-story-box, #final-story-box.text-enter {
+    opacity: 1 !important;
+    transform: translateY(0) scale(1) !important;
 }
 
-/* --- 6. CERTIFICAT KAWAII --- */
+/* --- 4. CERTIFICAT KAWAII GLOW --- */
 .certificate {
     position: relative;
     overflow: visible !important;
     box-shadow: 0 10px 40px rgba(0,0,0,0.8), 0 0 30px rgba(255,183,197,0.15) !important;
     animation: cert-glow-pulse 3s ease-in-out infinite alternate;
 }
-/* @keyframes cert-glow-pulse: deduped — kept later definition */
-
+@keyframes cert-glow-pulse {
+    0% { box-shadow: 0 10px 40px rgba(0,0,0,0.8), 0 0 20px rgba(255,183,197,0.1); }
     100% { box-shadow: 0 10px 40px rgba(0,0,0,0.8), 0 0 40px rgba(255,183,197,0.25), 0 0 80px rgba(255,215,0,0.08); }
 }
-/* Pétales décoratifs aux coins */
 .certificate::before {
     content: '🌸'; position: absolute; top: -12px; left: -12px;
     font-size: 22px; filter: drop-shadow(0 0 5px rgba(255,183,197,0.5));
@@ -1438,7 +1437,7 @@
     100% { transform: rotate(360deg) scale(1); }
 }
 
-/* --- 8. BOUTON MIROIR SCINTILLANT --- */
+/* --- 5. BOUTON MIROIR SCINTILLANT --- */
 #btn-download {
     position: relative; overflow: visible;
 }
@@ -1456,185 +1455,138 @@
     top: 50%; right: -5px;
     animation-delay: -1.5s;
 }
-/* @keyframes orbit-sparkle: deduped — kept later definition */
-
-    25% { transform: translate(15px, 0) scale(1.2); opacity: 0.9; }
-    50% { transform: translate(0, 20px) scale(0.8); opacity: 0.3; }
-    75% { transform: translate(-15px, 0) scale(1.2); opacity: 0.9; }
-    100% { transform: translate(0, -20px) scale(0.8); opacity: 0.3; }
-}
-
-/* --- NEKO FAIT COUCOU (Maneki-neko wave) --- */
-.divine-rise .arm-top-right {
-    animation: maneki-wave 0.8s ease-in-out infinite !important;
-    transform-origin: bottom center;
-}
-.divine-rise .arm-top-right-tip {
-    animation: maneki-wave-tip 0.8s ease-in-out infinite !important;
-}
-/* @keyframes maneki-wave: deduped — kept later definition */
-
-    50% { transform: rotate(-5deg); }
-}
-/* @keyframes maneki-wave-tip: deduped — kept later definition */
-
-    50% { top: 130px; }
-}
-
-/* --- TEXTES SLIDE-UP PANACHE --- */
-#final-story-box {
-    transition: opacity 0.4s ease, transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
-}
-#final-story-box.text-enter {
-    opacity: 1 !important;
-    transform: translateY(0) scale(1) !important;
-}
-
-/* --- PLUIE D'ÉTOILES DORÉES --- */
-.victory-star {
-    position: fixed;
-    color: #ffd700;
-    font-size: 14px;
-    z-index: 100;
-    pointer-events: none;
-    opacity: 0;
-    animation: star-rain 3s ease-in forwards;
-    text-shadow: 0 0 6px rgba(255,215,0,0.6);
-}
-/* @keyframes star-rain: deduped — kept later definition */
-
-    15% { opacity: 0.8; }
-    100% { opacity: 0; transform: translateY(80vh) rotate(180deg); }
-}
-
-/* --- CERTIFICAT KAWAII --- */
-.certificate {
-    position: relative;
-    overflow: visible !important;
-}
-.certificate::before {
-    content: ''; position: absolute; inset: -4px;
-    border-radius: 18px;
-    background: linear-gradient(45deg, #ffb7c5, #ffd700, #ffb7c5, #ffd700);
-    background-size: 300% 300%;
-    animation: cert-shimmer 4s ease infinite;
-    z-index: -1;
-    filter: blur(3px);
-    opacity: 0.6;
-}
-@keyframes cert-shimmer {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
-
-/* --- BOUTON MIROIR SCINTILLANT --- */
-#btn-download {
-    position: relative;
-    overflow: visible;
-}
-#btn-download::before,
-#btn-download::after {
-    content: '✦'; position: absolute;
-    font-size: 10px; color: #ffd700;
-    pointer-events: none;
-    animation: orbit-btn 3s linear infinite;
-    filter: drop-shadow(0 0 3px #ffd700);
-}
-#btn-download::before {
-    top: -8px; left: 50%;
-}
-#btn-download::after {
-    bottom: -8px; right: 20%;
-    animation-delay: -1.5s;
-    animation-direction: reverse;
-}
-@keyframes orbit-btn {
-    0% { transform: rotate(0deg) translateX(50px) rotate(0deg); opacity: 0.4; }
-    50% { opacity: 1; }
-    100% { transform: rotate(360deg) translateX(50px) rotate(-360deg); opacity: 0.4; }
-}
-
-/* --- COUCOU MANEKI-NEKO (bras qui agite) --- */
-.divine-rise .arm-top-right {
-    animation: maneki-wave 0.8s ease-in-out infinite !important;
-    transform-origin: top center;
-}
-.divine-rise .arm-top-right-tip {
-    animation: maneki-wave-tip 0.8s ease-in-out infinite !important;
-}
-@keyframes maneki-wave {
-    0%, 100% { transform: rotate(35deg); }
-    50% { transform: rotate(-5deg); }
-}
-@keyframes maneki-wave-tip {
-    0%, 100% { top: 175px; }
-    50% { top: 140px; }
-}
-
-/* --- PLUIE D'ÉTOILES DORÉES --- */
-.golden-star {
-    position: fixed; pointer-events: none; z-index: 400;
-    color: #ffd700; font-size: 14px;
-    text-shadow: 0 0 6px rgba(255,215,0,0.6);
-    opacity: 0;
-    animation: star-rain 3s ease-in forwards;
-}
-@keyframes star-rain {
-    0% { opacity: 0; transform: translateY(-20px) rotate(0deg) scale(0.5); }
-    15% { opacity: 0.9; }
-    80% { opacity: 0.4; }
-    100% { opacity: 0; transform: translateY(80vh) rotate(180deg) scale(0.3); }
-}
-
-/* --- TEXTE SLIDE-UP PANACHE --- */
-#final-story-box {
-    transition: opacity 0.4s ease, transform 0.5s ease !important;
-}
-#final-story-box.text-enter {
-    opacity: 1 !important;
-    transform: translateY(0) scale(1) !important;
-}
-
-/* --- CERTIFICAT KAWAII GLOW --- */
-.certificate {
-    position: relative;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.8), 0 0 30px rgba(255,183,197,0.15) !important;
-    animation: cert-glow-pulse 3s ease-in-out infinite alternate;
-}
-@keyframes cert-glow-pulse {
-    0% { box-shadow: 0 10px 40px rgba(0,0,0,0.8), 0 0 20px rgba(255,183,197,0.1); }
-    100% { box-shadow: 0 10px 40px rgba(0,0,0,0.8), 0 0 40px rgba(255,183,197,0.25), 0 0 80px rgba(255,215,0,0.1); }
-}
-.certificate::before {
-    content: '🌸'; position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
-    font-size: 24px; filter: drop-shadow(0 0 8px rgba(255,183,197,0.5));
-    animation: cert-sakura-bob 2s ease-in-out infinite alternate;
-}
-@keyframes cert-sakura-bob {
-    0% { transform: translateX(-50%) translateY(0) rotate(0deg); }
-    100% { transform: translateX(-50%) translateY(-5px) rotate(10deg); }
-}
-
-/* --- BOUTON MIROIR SCINTILLANT --- */
-#btn-download {
-    position: relative; overflow: visible;
-}
-#btn-download::before, #btn-download::after {
-    content: '✦'; position: absolute; font-size: 10px; color: #ffd700;
-    pointer-events: none; opacity: 0.7;
-}
-#btn-download::before {
-    animation: orbit-sparkle 3s linear infinite;
-    top: 50%; left: 50%;
-}
-#btn-download::after {
-    animation: orbit-sparkle 3s linear infinite reverse;
-    animation-delay: -1.5s;
-    top: 50%; left: 50%;
-}
 @keyframes orbit-sparkle {
     0% { transform: translate(-50%, -50%) rotate(0deg) translateX(70px) rotate(0deg); opacity: 0.4; }
     50% { opacity: 1; }
     100% { transform: translate(-50%, -50%) rotate(360deg) translateX(70px) rotate(-360deg); opacity: 0.4; }
+}
+/* =========================================
+   LE SERMENT DES MIKOS : GUMMY PAWS & LASERS
+   ========================================= */
+
+/* --- Les Pattes en Gélatine (Gummy Paws) --- */
+.gummy-paw {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    box-shadow: inset -5px -5px 15px rgba(0,0,0,0.2), inset 5px 5px 15px rgba(255,255,255,0.6), 0 5px 10px rgba(0,0,0,0.3);
+    transition: transform 0.2s ease, filter 0.3s ease;
+    animation: float-paw 3s ease-in-out infinite alternate;
+    cursor: pointer;
+    
+    /* LES LIGNES CRUCIALES ICI : */
+    z-index: 200 !important;
+    pointer-events: auto !important; 
+    touch-action: none !important;
+}
+
+/* Le reflet blanc brillant (Glossy effect) pour le volume */
+.gummy-paw::before {
+    content: '';
+    position: absolute;
+    top: 5px;
+    left: 10px;
+    width: 40px;
+    height: 15px;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 50%;
+    transform: rotate(-15deg);
+    pointer-events: none;
+}
+
+/* Animation de flottaison (État de repos) */
+@keyframes float-paw {
+    0% { transform: translateY(0) scale(1); }
+    100% { transform: translateY(-8px) scale(1.05); }
+}
+
+/* État "En cours de maintien" (Squish) */
+.gummy-paw.holding {
+    animation: none;
+    transform: scale(0.9) translateY(4px); /* S'enfonce */
+    /* Le gros glow externe de la couleur de la patte */
+    filter: drop-shadow(0 0 20px var(--paw-color));
+}
+
+/* --- L'Anneau de Chargement (2 secondes) --- */
+.paw-charge-ring {
+    position: absolute;
+    top: -10px; left: -10px; right: -10px; bottom: -10px;
+    border-radius: 50%;
+    border: 4px solid transparent;
+    border-top-color: rgba(255,255,255,0.8);
+    opacity: 0;
+    pointer-events: none;
+}
+
+.gummy-paw.holding .paw-charge-ring {
+    opacity: 1;
+    /* Animation qui fait un tour complet en 2 secondes (le temps requis) */
+    animation: charge-spin 2s linear forwards;
+}
+
+@keyframes charge-spin {
+    0% { transform: rotate(0deg); border-width: 4px; }
+    90% { border-width: 8px; border-color: rgba(255,255,255,0.9); }
+    100% { transform: rotate(360deg); border-width: 12px; border-color: #fff; }
+}
+
+/* --- État "Verrouillé / Cristallisé" --- */
+.gummy-paw.locked {
+    animation: none;
+    transform: scale(1.1);
+    /* Blanc aveuglant avec gros glow au centre */
+    background: #fff !important; 
+    box-shadow: 0 0 30px var(--paw-color), 0 0 60px var(--paw-color), inset 0 0 20px var(--paw-color);
+}
+.gummy-paw.locked::before { display: none; } /* Plus besoin du reflet sur un bloc de lumière */
+.gummy-paw.locked .paw-charge-ring { display: none; }
+
+/* --- Les Faisceaux Laser (Les Lignes de Connexion) --- */
+.laser-beam {
+    position: absolute;
+    height: 6px;
+    background: linear-gradient(90deg, transparent, #fff 20%, #fff 80%, transparent);
+    /* Glow rose/doré autour du faisceau blanc */
+    box-shadow: 0 0 10px rgba(255, 183, 197, 0.8), 0 0 20px rgba(255, 215, 0, 0.5);
+    border-radius: 3px;
+    transform-origin: left center;
+    z-index: 10;
+    opacity: 0; /* Invisible au début */
+    pointer-events: none;
+    animation: laser-fire 0.4s ease-out forwards;
+}
+
+@keyframes laser-fire {
+    0% { width: 0; opacity: 0; }
+    100% { width: var(--length); opacity: 1; }
+}
+
+/* L'éclat de tous les lasers à la fin (quand la 8ème patte se verrouille) */
+.laser-beam.super-blast {
+    animation: beam-blast 0.5s ease-in forwards;
+}
+@keyframes beam-blast {
+    0% { height: 6px; filter: brightness(1); }
+    100% { height: 30px; filter: brightness(3); box-shadow: 0 0 50px #fff; }
+}
+
+/* --- La Supernova Finale --- */
+.supernova-wave {
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 0; height: 0;
+    background: radial-gradient(circle, rgba(255,255,255,0.9) 0%, transparent 70%);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 50;
+    pointer-events: none;
+    animation: nova-expand 1.5s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+}
+
+@keyframes nova-expand {
+    0% { width: 0; height: 0; opacity: 1; }
+    80% { opacity: 0.8; }
+    100% { width: 250vw; height: 250vw; opacity: 0; }
 }

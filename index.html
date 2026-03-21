@@ -21,9 +21,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
     
     <!-- CSS DÉCOUPÉ -->
-    <link rel="stylesheet" href="css/base.css?v=8">
-    <link rel="stylesheet" href="css/cinematics.css?v=8">
-    <link rel="stylesheet" href="css/game.css?v=8">
+    <link rel="stylesheet" href="css/base.css?v=111811">
+    <link rel="stylesheet" href="css/cinematics.css?v=811113">
+    <link rel="stylesheet" href="css/game.css?v=11181">
     
     <script id="bg-vs" type="x-shader/x-vertex">
         attribute vec2 aPos; varying vec2 vUv;
@@ -571,24 +571,17 @@
         </div>
     </div>
 
-    <div id="screen-oath" class="screen">
+<div id="screen-oath" class="screen">
         <div class="frame-parchemin" style="z-index: 100; pointer-events: none;">
             <h1 style="color:var(--sakura); margin:0; font-size: 26px;">LE SCELLÉ MAGIQUE</h1>
-            <p style="font-weight:bold; margin: 10px 0; font-size: 15px; text-shadow: 0 1px 2px black;">🐾 Posez chacune un pouce sur votre Rune et maintenez le contact !</p>
+            <p style="font-weight:bold; margin: 10px 0; font-size: 15px; text-shadow: 0 1px 2px black;" id="oath-instruction">🐾 Maintenez chacune un pouce sur une patte jusqu'à ce qu'elle se cristallise !</p>
             <div id="oath-names" style="font-size: 13px; color: var(--sakura); letter-spacing: 1px; line-height: 1.5; font-style: italic;"></div>
             <div style="font-size: 28px; font-weight: bold; margin-top: 15px; color: var(--gold); text-shadow: 0 0 15px var(--gold);"><span id="touch-count">0</span> / 8</div>
         </div>
-        <div id="constellation-box">
-            <canvas id="constellation-lines"></canvas>
-            <div class="rune-node" style="top: 10%; left: 5%;">🌸</div>
-            <div class="rune-node" style="top: 10%; right: 5%;">🌙</div>
-            <div class="rune-node" style="top: 40%; left: 5%;">✨</div>
-            <div class="rune-node" style="top: 40%; right: 5%;">🦊</div>
-            <div class="rune-node" style="top: 70%; left: 5%;">🎀</div>
-            <div class="rune-node" style="top: 70%; right: 5%;">🔮</div>
-            <div class="rune-node" style="bottom: 5%; left: 25%;">💫</div>
-            <div class="rune-node" style="bottom: 5%; right: 25%;">🦋</div>
-        </div>
+        <!-- LA BOÎTE EST TOTALEMENT VIDE, LE JS VA INJECTER LES GUMMY PAWS ICI -->
+        <div id="constellation-box"></div>
+    </div>
+    </div>
     </div>
 
     <div id="screen-hub" class="screen">
@@ -702,13 +695,13 @@
     </div>
 
 <!-- JS DÉCOUPÉ (ordre de dépendance) -->
-<script src="js/data.js?v=8"></script>
-<script src="js/texts.js?v=8"></script>
-<script src="js/audio.js?v8"></script>
-<script src="js/renderer.js?v=8"></script>
-<script src="js/cinematics.js?v=8"></script>
-<script src="js/game.js?v=8"></script>
-<script src="js/debug.js?v=8"></script>
+<script src="js/data.js?v=100000"></script>
+<script src="js/texts.js?v=113"></script>
+<script src="js/audio.js?v=1900"></script>
+<script src="js/renderer.js?v=111900"></script>
+<script src="js/cinematics.js?v=111901"></script>
+<script src="js/game.js?v=1119100"></script>
+<script src="js/debug.js?v=11111113"></script>
 
 <!-- PWA : Service Worker + Device Detection -->
 <script>

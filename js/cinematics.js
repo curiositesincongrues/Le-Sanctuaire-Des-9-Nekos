@@ -123,19 +123,30 @@ async function showStoryText(htmlStr, spokenText, lang="ja-JP", rate=0.7) {
 async function transitionScreen(targetId, shadowEmoji = null) {
     const doors = document.getElementById('shoji-doors');
     const shadow = document.getElementById('shoji-shadow');
-    
+    const target = document.getElementById(targetId); // On vérifie si l'écran existe
+
+    if(!doors) { console.error("ID 'shoji-doors' manquant"); return; }
+
     if(shadow) {
         if(shadowEmoji) { shadow.innerText = shadowEmoji; } 
         else { const randomShadows = ["守", "魂", "光", "封"]; shadow.innerText = randomShadows[Math.floor(Math.random() * randomShadows.length)]; }
     }
     
-    doors.classList.add('closed'); playGameSFX('thud'); 
+    doors.classList.add('closed'); 
+    if (typeof playGameSFX === 'function') playGameSFX('thud'); 
+    
     await new Promise(r => setTimeout(r, 600)); 
     
+    // SÉCURITÉ : Si l'écran cible n'existe pas, on ouvre les portes et on arrête
+    if (!target) {
+        console.error(`L'écran avec l'ID '${targetId}' est introuvable dans le HTML !`);
+        doors.classList.remove('closed');
+        return;
+    }
+
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    document.getElementById(targetId).classList.add('active');
+    target.classList.add('active'); // Utilise la variable target vérifiée
     
-    // Ceinture de miko visible seulement sur le hub
     const belt = document.getElementById('miko-belt');
     if (belt) { if (targetId === 'screen-hub') belt.classList.add('visible'); else belt.classList.remove('visible'); }
     

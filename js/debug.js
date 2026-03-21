@@ -24,7 +24,7 @@
         }
         #debug-btn:hover { transform: scale(1.1); box-shadow: 0 6px 20px rgba(233,69,96,0.6); }
         #debug-btn.active { background: #e94560; }
-        
+
         #debug-overlay {
             position: fixed; top: 60px; right: 10px; z-index: 9998;
             background: rgba(10,10,20,0.95); border: 1px solid #e94560;
@@ -35,11 +35,11 @@
             max-height: 80vh; overflow-y: auto;
         }
         #debug-overlay.show { display: flex; }
-        
+
         #debug-overlay h3 { margin: 0 0 5px; color: #e94560; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #333; padding-bottom: 5px; }
-        
+
         .debug-section { display: flex; flex-direction: column; gap: 4px; }
-        
+
         .debug-link {
             background: rgba(255,255,255,0.05); border: 1px solid #333;
             border-radius: 6px; padding: 8px 12px; color: #fff;
@@ -47,7 +47,7 @@
             font-size: 11px;
         }
         .debug-link:hover { background: rgba(233,69,96,0.2); border-color: #e94560; }
-        
+
         #debug-pause-btn {
             background: linear-gradient(135deg, #00b894, #00cec9);
             border: none; border-radius: 8px; padding: 12px;
@@ -57,7 +57,7 @@
         }
         #debug-pause-btn:hover { transform: scale(1.02); filter: brightness(1.1); }
         #debug-pause-btn.paused { background: linear-gradient(135deg, #e94560, #ff6b6b); }
-        
+
         #debug-freeze-style * {
             animation-play-state: paused !important;
             transition: none !important;
@@ -87,24 +87,24 @@
             <button class="debug-link" data-action="scene" data-index="6">6. Neko & Épée (Sacré)</button>
             <button class="debug-link" data-action="scene" data-index="7">7. Ombre Millénaire</button>
         </div>
-        
+
         <h3>🌙 Screens</h3>
         <div class="debug-section">
             <button class="debug-link" data-action="rules">Règles</button>
             <button class="debug-link" data-action="oath">Serment (Oath)</button>
             <button class="debug-link" data-action="hub">Hub</button>
         </div>
-        
+
         <h3>🎮 Guardians (1-9)</h3>
         <div class="debug-section" id="debug-guardians"></div>
-        
+
         <h3>🌸 Outro</h3>
         <div class="debug-section">
             <button class="debug-link" data-action="outro" data-type="final">1. Cinématique Finale</button>
             <button class="debug-link" data-action="outro" data-type="cert">2. Certificat & Sceau</button>
             <button class="debug-link" data-action="outro" data-type="epilogue">3. Épilogue (Bateau)</button>
         </div>
-        
+
         <button id="debug-pause-btn">⏸️ SUPER PAUSE</button>
         <div style="font-size:10px; color:#666; margin-top:8px; text-align:center;">
             RAF: <span id="debug-raf-status">●</span> |
@@ -114,22 +114,32 @@
     `;
     document.body.appendChild(overlay);
 
-    /* Populate guardians list */
-    const guardianBox = document.getElementById('debug-guardians');
-    for (let i = 0; i < 9; i++) {
-        const b = document.createElement('button');
-        b.className = 'debug-link';
-        b.dataset.action = 'game';
-        b.dataset.index = i;
-        const g = typeof guardianData !== 'undefined' ? guardianData[i] : null;
-        b.textContent = g ? `${i+1}. ${g.e} ${g.n}` : `${i+1}. Guardian ${i+1}`;
-        guardianBox.appendChild(b);
+    function populateGuardianButtons() {
+        const guardianBox = document.getElementById('debug-guardians');
+        if (!guardianBox) return;
+
+        guardianBox.innerHTML = '';
+        for (let i = 0; i < 9; i++) {
+            const b = document.createElement('button');
+            b.className = 'debug-link';
+            b.dataset.action = 'game';
+            b.dataset.index = i;
+            const g = typeof guardianData !== 'undefined' ? guardianData[i] : null;
+            b.textContent = g
+                ? `${i + 1}. ${g.e || '✨'} ${g.n || `Guardian ${i + 1}`}`
+                : `${i + 1}. Guardian ${i + 1}`;
+            guardianBox.appendChild(b);
+        }
     }
+
+    populateGuardianButtons();
+    window.addEventListener('texts:ready', populateGuardianButtons);
 
     /* Toggle overlay visibility */
     btn.addEventListener('click', () => {
         btn.classList.toggle('active');
         overlay.classList.toggle('show');
+        if (overlay.classList.contains('show')) populateGuardianButtons();
     });
 
     /* ============================================
@@ -137,95 +147,82 @@
        ============================================ */
 
     function forceScene(sceneIndex) {
-        // Kill everything running
         introSkipped = true;
         if(window.speechSynthesis) window.speechSynthesis.cancel();
         if(typeof heartInterval !== 'undefined') clearInterval(heartInterval);
         if(typeof quizInterval !== 'undefined') clearInterval(quizInterval);
 
-        // Hide ALL screens, only show narrative
         document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
         const narrative = document.getElementById('screen-narrative');
         if (narrative) narrative.classList.add('active');
 
-        // Clear UI text and intro elements
         const storyText = document.getElementById('story-text');
         if (storyText) {
             storyText.innerHTML = `[DEBUG] Scène ${sceneIndex} forcée...`;
             storyText.classList.remove('text-fade-out');
         }
-        
+
         ['btn-start', 'intro-title'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.style.display = 'none';
         });
         document.querySelectorAll('.bg-kanji, #intro-eyes').forEach(el => el.style.display = 'none');
 
-        // Hide ALL cinematic layers
         document.querySelectorAll('.cinematic-layer').forEach(el => el.classList.remove('show-layer'));
 
-        // Reset entities
         const nekoHero = document.getElementById('neko-hero');
         if (nekoHero) { nekoHero.style.display = 'none'; nekoHero.style.opacity = '0'; }
         const daruma = document.getElementById('cinematic-daruma');
         if (daruma) daruma.classList.remove('awake');
         const sword = document.getElementById('kusanagi-sword');
         if(sword) { sword.classList.remove('kusanagi-break'); sword.style.display = 'none'; }
-        
-        // Hide UI items like miko belt
+
         const belt = document.getElementById('miko-belt');
         if(belt) belt.classList.remove('visible');
 
-        sceneIndex = parseInt(sceneIndex);
+        sceneIndex = parseInt(sceneIndex, 10);
 
-        // Execute specific Scene state
         switch (sceneIndex) {
-            case 1: // Bateau
-                const layer1 = document.getElementById('layer-boat');
-                if (layer1) layer1.classList.add('show-layer');
+            case 1:
+                document.getElementById('layer-boat')?.classList.add('show-layer');
                 if (typeof setSakuraMood === 'function') setSakuraMood('VOYAGE');
                 if (typeof setMusicMood === 'function') setMusicMood('VOYAGE');
                 if (typeof setKenBurns === 'function') setKenBurns('voyage');
                 if (typeof setCinemaEffects === 'function') setCinemaEffects({ vignette: 0.45, grain: 0.05 });
                 break;
-            case 2: // Koi
-                const layer2 = document.getElementById('layer-koi');
-                if (layer2) layer2.classList.add('show-layer');
+            case 2:
+                document.getElementById('layer-koi')?.classList.add('show-layer');
                 if (typeof setSakuraMood === 'function') setSakuraMood('VOYAGE');
                 if (typeof setMusicMood === 'function') setMusicMood('VOYAGE');
                 if (typeof setKenBurns === 'function') setKenBurns('voyage');
                 break;
-            case 3: // Château
-                const layer3 = document.getElementById('layer-castle');
-                if (layer3) layer3.classList.add('show-layer');
+            case 3:
+                document.getElementById('layer-castle')?.classList.add('show-layer');
                 if (typeof setSakuraMood === 'function') setSakuraMood('DECOUVERTE');
                 if (typeof setMusicMood === 'function') setMusicMood('DECOUVERTE');
                 if (typeof setKenBurns === 'function') setKenBurns('decouverte');
                 break;
-            case 4: // Torii
-                const layer4 = document.getElementById('layer-torii');
-                if (layer4) layer4.classList.add('show-layer');
+            case 4:
+                document.getElementById('layer-torii')?.classList.add('show-layer');
                 if (typeof setSakuraMood === 'function') setSakuraMood('DECOUVERTE');
                 if (typeof setMusicMood === 'function') setMusicMood('DECOUVERTE');
                 if (typeof setKenBurns === 'function') setKenBurns('decouverte');
                 break;
-            case 5: // Kodamas
-                const layer5 = document.getElementById('layer-noface');
-                if (layer5) layer5.classList.add('show-layer');
+            case 5:
+                document.getElementById('layer-noface')?.classList.add('show-layer');
                 if (typeof setSakuraMood === 'function') setSakuraMood('SACRE');
                 if (typeof setMusicMood === 'function') setMusicMood('SACRE');
                 if (typeof setKenBurns === 'function') setKenBurns('sacre');
                 break;
-            case 6: // Neko et Kusanagi
+            case 6:
                 if (nekoHero) { nekoHero.style.display = 'flex'; nekoHero.style.opacity = '1'; }
                 if (sword) sword.style.display = 'block';
                 if (typeof setSakuraMood === 'function') setSakuraMood('SACRE');
                 if (typeof setMusicMood === 'function') setMusicMood('SACRE');
                 if (typeof setKenBurns === 'function') setKenBurns('neko');
                 break;
-            case 7: // L'Ombre
-                const layer7 = document.getElementById('layer-daruma');
-                if (layer7) layer7.classList.add('show-layer');
+            case 7:
+                document.getElementById('layer-daruma')?.classList.add('show-layer');
                 if (daruma) daruma.classList.add('awake');
                 if (typeof setSakuraMood === 'function') setSakuraMood('DARUMA');
                 if (typeof setMusicMood === 'function') setMusicMood('RUPTURE');
@@ -235,13 +232,29 @@
         }
     }
 
-    function forceQuiz(index) {
+    async function forceQuiz(index) {
         if(window.speechSynthesis) window.speechSynthesis.cancel();
         if(typeof heartInterval !== 'undefined') clearInterval(heartInterval);
-        
-        // Modifie directement la variable globale locale sans "window."
-        currentFound = parseInt(index); 
-        
+
+        currentFound = parseInt(index, 10);
+
+        let tries = 0;
+        while (
+            (!window.textsReady ||
+            !guardianData?.[currentFound]?.q ||
+            !Array.isArray(guardianData?.[currentFound]?.a) ||
+            guardianData[currentFound].a.length === 0) &&
+            tries < 50
+        ) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            tries++;
+        }
+
+        if (!guardianData?.[currentFound]?.q || !guardianData?.[currentFound]?.a?.length) {
+            console.error('[DEBUG] Quiz data still unavailable for guardian', currentFound);
+            return;
+        }
+
         if (typeof setupQuiz === 'function') {
             setupQuiz();
             if(typeof quizFuseTime !== 'undefined') quizFuseTime = 100;
@@ -256,63 +269,60 @@
 
         document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
         document.querySelectorAll('.cinematic-layer').forEach(el => el.classList.remove('show-layer'));
-        
+
         const belt = document.getElementById('miko-belt');
         if(belt) belt.classList.remove('visible');
 
-        // On force la progression à 9 (tous les gardiens trouvés)
         currentFound = 9;
 
         if (type === 'final') {
             const finalScreen = document.getElementById('screen-final');
             if(finalScreen) finalScreen.classList.add('active');
             if (typeof launchFinalCinematic === 'function') launchFinalCinematic();
-        } 
+        }
         else if (type === 'cert') {
             const finalScreen = document.getElementById('screen-final');
             if(finalScreen) finalScreen.classList.add('active');
-            
+
             const cert = document.getElementById('victory-cert');
             if(cert) {
                 cert.style.display = 'block';
                 cert.style.transform = 'scale(1)';
                 cert.style.opacity = '1';
             }
-            
+
             const btnDl = document.getElementById('btn-download');
             if (btnDl) {
                 btnDl.style.display = 'block';
                 btnDl.style.transform = 'scale(1)';
             }
-            
+
             if (typeof setSakuraMood === 'function') setSakuraMood('AUBE');
-        } 
+        }
         else if (type === 'epilogue') {
             const finalScreen = document.getElementById('screen-final');
             if(finalScreen) finalScreen.classList.add('active');
-            
+
             if (typeof launchEpilogue === 'function') launchEpilogue();
         }
     }
 
-    /* Click Router */
     overlay.addEventListener('click', (e) => {
         const link = e.target.closest('.debug-link');
         if (!link) return;
-        
+
         const action = link.dataset.action;
         const index = link.dataset.index;
         const type = link.dataset.type;
         console.log('[DEBUG] Action fired:', action, index || type);
-        
-        // Try to resume Audio Context
+
         if(typeof audioCtx !== 'undefined' && audioCtx.state === 'suspended') {
             audioCtx.resume();
         }
 
         switch(action) {
-            case 'scene': 
-                forceScene(index); 
+            case 'scene':
+                forceScene(index);
                 break;
             case 'rules':
                 if (typeof transitionScreen === 'function') transitionScreen('screen-rules', '📜');
@@ -321,7 +331,7 @@
                 if (typeof transitionScreen === 'function') transitionScreen('screen-oath', '✨');
                 break;
             case 'hub':
-                currentFound = index !== undefined ? parseInt(index) : (typeof currentFound !== 'undefined' ? currentFound : 0);
+                currentFound = index !== undefined ? parseInt(index, 10) : (typeof currentFound !== 'undefined' ? currentFound : 0);
                 if (typeof enterHub === 'function') enterHub();
                 break;
             case 'game':
@@ -333,10 +343,6 @@
         }
     });
 
-    /* ============================================
-       SUPER PAUSE / RESUME LOGIC (WebGL/Audio/GSAP)
-       ============================================ */
-    
     let isPaused = false;
     let freezeStyle = null;
     let originalRAF = window.requestAnimationFrame;
@@ -367,29 +373,25 @@
     }
 
     const pauseBtn = document.getElementById('debug-pause-btn');
-    
+
     function superPause() {
         isPaused = true;
         pauseBtn.classList.add('paused');
         pauseBtn.innerHTML = '▶️ RESUME ALL';
 
-        /* CSS freeze */
         freezeStyle = document.createElement('style');
         freezeStyle.id = 'debug-freeze-style';
         freezeStyle.textContent = '*, *::before, *::after { animation-play-state: paused !important; transition: none !important; }';
         document.head.appendChild(freezeStyle);
 
-        /* GSAP */
         if (typeof gsap !== 'undefined' && gsap.globalTimeline) {
             gsap.globalTimeline.pause();
             const s = document.getElementById('debug-gsap-status');
             if(s) s.style.color = '#e94560';
         }
 
-        /* WebGL RAF */
         pauseRAF();
 
-        /* WebAudio & TTS */
         if (typeof audioCtx !== 'undefined' && audioCtx && audioCtx.state === 'running') {
             audioCtx.suspend();
             const s = document.getElementById('debug-audio-status');
@@ -397,7 +399,6 @@
         }
         if(window.speechSynthesis) window.speechSynthesis.pause();
 
-        /* Videos */
         document.querySelectorAll('video').forEach(v => v.pause());
     }
 
@@ -406,23 +407,19 @@
         pauseBtn.classList.remove('paused');
         pauseBtn.innerHTML = '⏸️ SUPER PAUSE';
 
-        /* CSS unfreeze */
         if (freezeStyle) {
             freezeStyle.remove();
             freezeStyle = null;
         }
 
-        /* GSAP */
         if (typeof gsap !== 'undefined' && gsap.globalTimeline) {
             gsap.globalTimeline.resume();
             const s = document.getElementById('debug-gsap-status');
             if(s) s.style.color = '#00b894';
         }
 
-        /* WebGL RAF */
         resumeRAF();
 
-        /* WebAudio & TTS */
         if (typeof audioCtx !== 'undefined' && audioCtx && audioCtx.state === 'suspended') {
             audioCtx.resume();
             const s = document.getElementById('debug-audio-status');
@@ -430,7 +427,6 @@
         }
         if(window.speechSynthesis) window.speechSynthesis.resume();
 
-        /* Videos */
         document.querySelectorAll('video').forEach(v => v.play().catch(() => {}));
     }
 
@@ -451,7 +447,7 @@
         const sr = document.getElementById('debug-raf-status');
         const sa = document.getElementById('debug-audio-status');
         const sg = document.getElementById('debug-gsap-status');
-        
+
         if(sr) sr.style.color = '#00b894';
         if(sa) sa.style.color = typeof audioCtx !== 'undefined' ? '#00b894' : '#666';
         if(sg) sg.style.color = typeof gsap !== 'undefined' ? '#00b894' : '#666';

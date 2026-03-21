@@ -1,7 +1,7 @@
 {
   "meta": {
     "lang": "fr",
-    "version": "1.0"
+    "version": "1.3"
   },
   "app": {
     "title": "LE SANCTUAIRE<br>DES 9 NEKOS",
@@ -36,7 +36,7 @@
   },
   "oath": {
     "title": "LE SCELLÉ MAGIQUE",
-    "instruction": "🐾 Posez chacune un pouce sur votre Rune et maintenez le contact !",
+    "instruction": "🐾 Maintenez chacune un pouce sur une patte jusqu'à ce qu'elle se cristallise !",
     "counter": "/ 8"
   },
   "hub": {
@@ -76,91 +76,91 @@
   "guardians": [
     {
       "qr": "qr_mochi",
-      "name": "Mochi",
+      "name": "SATO",
       "emoji": "🍡",
-      "question": "Le Mochi, cette délicieuse boule sucrée japonaise, est fabriqué à base de...",
-      "answers": ["Blé", "Riz", "Soja"],
+      "question": "Au Japon, la pâte sucrée traditionnelle cachée à l'intérieur des Mochis est faite à base de...",
+      "answers": ["Chocolat", "Haricots rouges", "Crème de sésame"],
       "correct": 1,
       "gameType": "hold",
       "instruction": "La Pesée de Riz : Maintiens appuyé sans relâcher !"
     },
     {
       "qr": "qr_ken",
-      "name": "Ken",
+      "name": "KENSHIN",
       "emoji": "⚔️",
-      "question": "Comment s'appelle la célèbre épée courbée des Samouraïs ?",
-      "answers": ["Le Katana", "Le Nunchaku", "L'Excalibur"],
+      "question": "Selon la croyance japonaise, si tu plies 1000 origamis de cet oiseau, ton vœu se réalisera :",
+      "answers": ["La Grue", "Le Corbeau", "Le Cygne"],
       "correct": 0,
       "gameType": "rhythm",
       "instruction": "Le Forgeron : Tape en rythme quand ça s'illumine !"
     },
     {
       "qr": "qr_shinobi",
-      "name": "Shinobi",
+      "name": "HAYATE",
       "emoji": "🥷",
-      "question": "Quel est le vrai nom de l'étoile de lancer des Ninjas ?",
-      "answers": ["Le Kunai", "Le Batarang", "Le Shuriken"],
-      "correct": 2,
+      "question": "Dans les légendes japonaises, comment appelle-t-on les mystérieux esprits de la nature et les fantômes ?",
+      "answers": ["Les Yokais", "Les Ninjas", "Les Pokémons"],
+      "correct": 0,
       "gameType": "catch",
       "instruction": "Cache-Cache : Attrape-le 5 fois vite !"
     },
     {
       "qr": "qr_aiko",
-      "name": "Aiko",
+      "name": "SAYURI",
       "emoji": "💖",
-      "question": "Que signifie le célèbre mot japonais 'Kawaii' ?",
-      "answers": ["Bonjour", "Mignon", "Magique"],
+      "question": "Au printemps, les Japonais célèbrent le 'Hanami'. Mais que regardent-ils pendant cette fête ?",
+      "answers": ["Les étoiles filantes", "Les fleurs de cerisier", "La neige fondre"],
       "correct": 1,
       "gameType": "swipe",
       "instruction": "L'Éventail : Glisse ton doigt pour faire du vent !"
     },
     {
       "qr": "qr_kitsune",
-      "name": "Kitsune",
+      "name": "INARI",
       "emoji": "🦊",
-      "question": "Combien de queues possède le plus puissant des renards magiques ?",
-      "answers": ["3 queues", "7 queues", "9 queues"],
+      "question": "Le Maneki-Neko, ce célèbre chat porte-bonheur, tient toujours un objet dans sa patte. Lequel ?",
+      "answers": ["Une clochette", "Un poisson", "Une pièce d'or"],
       "correct": 2,
       "gameType": "scratch",
       "instruction": "L'Encre Maudite : Frotte pour révéler le masque !"
     },
     {
       "qr": "qr_sumo",
-      "name": "Sumo",
+      "name": "RIKI",
       "emoji": "🍙",
-      "question": "Comment appelle-t-on les bandes dessinées japonaises ?",
-      "answers": ["Les Comics", "Les Mangas", "Les Webtoons"],
+      "question": "Quel célèbre studio d'animation japonais a créé Mon Voisin Totoro et Le Voyage de Chihiro ?",
+      "answers": ["Studio Disney", "Studio Ghibli", "Studio Nintendo"],
       "correct": 1,
       "gameType": "mash",
       "instruction": "Le Duel : VITE ! Tape 30 fois !"
     },
     {
       "qr": "qr_zennon",
-      "name": "Zennon",
+      "name": "ENZO",
       "emoji": "🧘",
-      "question": "Quel est le nom du vêtement traditionnel japonais ?",
-      "answers": ["Le Sari", "Le Poncho", "Le Kimono"],
-      "correct": 2,
+      "question": "Dans la philosophie Zen, que représente le cercle sacré tracé d'un seul trait (Enso) ?",
+      "answers": ["La répétition", "L'infini ou l'absolu", "Le temps"],
+      "correct": 1,
       "gameType": "statue",
       "instruction": "Méditation Zen : Chut... Ne touche plus l'écran."
     },
     {
       "qr": "qr_taiko",
-      "name": "Taiko",
+      "name": "RAIDEN",
       "emoji": "🥁",
-      "question": "Comment dit-on 'Baguettes' (pour manger) en japonais ?",
-      "answers": ["Sushi", "Hashi", "Mochi"],
+      "question": "Comment nomme-t-on les baguettes de bois utilisées pour frapper le tambour Taiko ?",
+      "answers": ["Les Hashi", "Les Bachi", "Les Katanas"],
       "correct": 1,
       "gameType": "drum",
       "instruction": "Le Tambour : Alterne Gauche (G) et Droite (D) !"
     },
     {
       "qr": "qr_shogun",
-      "name": "Shogun",
+      "name": "NOBORU",
       "emoji": "🏯",
-      "question": "L'épée divine du début s'appelle... (Indice: Kusanagi)",
-      "answers": ["Kusanagi", "Masamune", "Muramasa"],
-      "correct": 0,
+      "question": "Selon la légende, la véritable épée sacrée Kusanagi a été découverte dans...",
+      "answers": ["La gueule d'un tigre", "La queue d'un dragon", "Le cœur d'un volcan"],
+      "correct": 1,
       "gameType": "memory",
       "instruction": "Le Code Secret : Retiens et reproduis la séquence !"
     }
