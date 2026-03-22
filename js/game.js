@@ -587,7 +587,7 @@ function startScan() {
     const circle = overlay.querySelector('.scan-circle');
     circle.classList.remove('scan-success', 'scan-wrong');
     circle.classList.add('scan-active');
-    document.getElementById('scan-status').textContent = 'Le miroir cherche les sceaux cachés...';
+    document.getElementById('scan-status').textContent = '';
     document.getElementById('manual-entry').style.display = 'none';
     document.getElementById('scan-result').style.display = 'none';
     document.getElementById('btn-manual').style.display = 'none';
@@ -626,7 +626,7 @@ function startScan() {
                     playGameSFX('pop'); playMikoChime(currentFound);
                     if(navigator.vibrate) navigator.vibrate([50, 30, 100]);
                     
-                    document.getElementById('scan-status').textContent = '✦ Sceau déchiffré ! ✦';
+                    const stOk = document.getElementById('scan-status'); stOk.style.color='rgba(255,215,0,0.9)'; stOk.textContent = '✦ Sceau déchiffré ✦';
                     // Joie des kodamas + convergence kanji
                     const ovSuccess = document.getElementById('scan-overlay');
                     const fkSuccess = document.getElementById('scan-feedback-kanji');
@@ -647,7 +647,7 @@ function startScan() {
                     if (fk) { fk.textContent = '禁'; fk.style.color = '#ff4444'; fk.style.opacity = '1'; setTimeout(() => { fk.style.opacity = '0'; }, 800); }
                     if (overlay) { overlay.classList.add('scan-overlay-wrong'); setTimeout(() => overlay.classList.remove('scan-overlay-wrong'), 500); }
                     playWrong(); if(navigator.vibrate) navigator.vibrate([100, 50, 100]);
-                    document.getElementById('scan-status').textContent = 'Ce n\'est pas le bon sceau... Continuez de chercher !';
+                    const st = document.getElementById('scan-status'); st.style.color='rgba(255,100,100,0.8)'; st.textContent = 'Ce sceau n\'est pas le bon...'; setTimeout(() => { st.textContent = ''; }, 2000);
                 }
             }
         ).then(() => {
@@ -663,7 +663,7 @@ function startScan() {
     }
     
     scanTimeout = setTimeout(() => {
-        document.getElementById('scan-status').textContent = 'Le sceau résiste... Essayez de l\'éclairer.';
+        const stBtn = document.getElementById('btn-manual'); if(stBtn) stBtn.style.display='block';
         document.getElementById('btn-torch').style.display = 'inline-block';
     }, 15000);
     
@@ -726,7 +726,7 @@ function submitManualCode() {
         setTimeout(() => { flash.style.opacity = 0; flash.style.background = 'transparent'; }, 400);
         
         document.getElementById('manual-entry').style.display = 'none';
-        document.getElementById('scan-status').textContent = '✦ Sceau déchiffré ! ✦';
+        const stOk = document.getElementById('scan-status'); stOk.style.color='rgba(255,215,0,0.9)'; stOk.textContent = '✦ Sceau déchiffré ✦';
         
         setTimeout(() => { stopScan(); clearInterval(heartInterval); setupQuiz(); }, 1000);
     } else {

@@ -27,7 +27,7 @@ body.cinema-glitch #cinema-grain { opacity: 0.3 !important; animation: grain-fli
 
 /* --- QR / AR MODE --- */
 #qr-reader-container { display: none; }
-body.ar-mode #qr-reader-container { display: block; position: fixed; inset: 0; z-index: 500; background: black; }
+body.ar-mode #qr-reader-container { display: block; position: fixed; inset: 0; z-index: 506; background: transparent; }
 body.ar-mode #qr-reader { width: 100% !important; height: 100vh !important; object-fit: cover; border: none !important; }
 body.ar-mode #qr-reader video { object-fit: cover !important; width: 100% !important; height: 100vh !important; }
 body.ar-mode #qr-reader img { display: none !important; } /* Hide html5-qrcode default UI */
@@ -39,12 +39,14 @@ body.ar-mode #screen-hub { background: transparent !important; }
    ══════════════════════════════════════ */
 
 #scan-overlay {
-    position: fixed; inset: 0; z-index: 510;
+    position: fixed; inset: 0; z-index: 511;
     display: flex; flex-direction: column;
     align-items: center; justify-content: space-between;
     pointer-events: none; padding: 0;
+    background: transparent;
 }
-#scan-overlay > * { pointer-events: auto; }
+#scan-overlay > * { pointer-events: none; }
+#scan-overlay button, #scan-overlay input, #scan-overlay .scan-manual-link { pointer-events: auto; }
 
 /* Kanji flottants des 9 gardiens */
 .scan-kanji-float {
@@ -161,19 +163,20 @@ body.ar-mode #screen-hub { background: transparent !important; }
 /* Kodamas row */
 .scan-kodamas-row {
     display: flex; align-items: flex-end; justify-content: center;
-    gap: 8px; padding-bottom: 28px; z-index: 3; width: 100%;
+    gap: 4px; padding-bottom: 20px; padding-left: 8px; padding-right: 8px;
+    z-index: 3; width: 100%; overflow: hidden; pointer-events: none;
 }
 .scan-kd-wrap { position: relative; display: flex; flex-direction: column; align-items: center; }
-.skw-1 .kd-container { transform: scale(0.17); transform-origin: bottom center; }
-.skw-2 .kd-container { transform: scale(0.21); transform-origin: bottom center; }
-.skw-3 .kd-container { transform: scale(0.25); transform-origin: bottom center; }
-.skw-4 .kd-container { transform: scale(0.21); transform-origin: bottom center; }
-.skw-5 .kd-container { transform: scale(0.17); transform-origin: bottom center; }
-.skw-1 { animation: kd-float 3.2s ease-in-out infinite; }
-.skw-2 { animation: kd-float 2.8s ease-in-out infinite 0.4s; }
+.skw-1 .kd-container { transform: scale(0.13); transform-origin: bottom center; }
+.skw-2 .kd-container { transform: scale(0.18); transform-origin: bottom center; }
+.skw-3 .kd-container { transform: scale(0.22); transform-origin: bottom center; }
+.skw-4 .kd-container { transform: scale(0.18); transform-origin: bottom center; }
+.skw-5 .kd-container { transform: scale(0.13); transform-origin: bottom center; }
+.skw-1 { animation: kd-float 3.2s ease-in-out infinite; margin-bottom: -8px; }
+.skw-2 { animation: kd-float 2.8s ease-in-out infinite 0.4s; margin-bottom: -4px; }
 .skw-3 { animation: kd-float 3.5s ease-in-out infinite 0.8s; }
-.skw-4 { animation: kd-float 2.9s ease-in-out infinite 0.2s; }
-.skw-5 { animation: kd-float 3.1s ease-in-out infinite 0.6s; }
+.skw-4 { animation: kd-float 2.9s ease-in-out infinite 0.2s; margin-bottom: -4px; }
+.skw-5 { animation: kd-float 3.1s ease-in-out infinite 0.6s; margin-bottom: -8px; }
 @keyframes kd-float {
     0%,100% { transform:translateY(0); }
     50%      { transform:translateY(-6px); }
