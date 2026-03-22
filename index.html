@@ -117,37 +117,148 @@
     <div id="qr-reader"></div>
     <!-- Overlay magique -->
     <div id="scan-overlay">
-        <div class="scan-vignette"></div>
-        <div class="scan-circle">
-            <div class="scan-ring"></div>
-            <div class="scan-ring scan-ring-inner"></div>
-            <div class="scan-particles">
-                <div class="scan-particle sp-s1"></div>
-                <div class="scan-particle sp-s2"></div>
-                <div class="scan-particle sp-s3"></div>
-                <div class="scan-particle sp-s4"></div>
-                <div class="scan-particle sp-s5"></div>
-                <div class="scan-particle sp-s6"></div>
+
+        <!-- Filtre caméra AR — appliqué via JS sur la vidéo -->
+
+        <!-- Kanji des 9 gardiens flottants -->
+        <div class="scan-kanji-float" aria-hidden="true">
+            <span class="skf skf-1" style="color:#ffb7c5;">花子</span>
+            <span class="skf skf-2" style="color:#98e8d4;">雷神</span>
+            <span class="skf skf-3" style="color:#c4b5fd;">陽炎</span>
+            <span class="skf skf-4" style="color:#fde68a;">天照</span>
+            <span class="skf skf-5" style="color:#fdba74;">玉藻</span>
+            <span class="skf skf-6" style="color:#6ee7b7;">五右衛門</span>
+            <span class="skf skf-7" style="color:#a5b4fc;">無限</span>
+            <span class="skf skf-8" style="color:#fca5a5;">響</span>
+            <span class="skf skf-9" style="color:#e2e8f0;">大和</span>
+        </div>
+
+        <!-- Haut : kanji miroir + titre -->
+        <div class="scan-header">
+            <div class="scan-mirror-kanji">鏡</div>
+            <div class="scan-title">Vision des Esprits</div>
+        </div>
+
+        <!-- Bouton fermer -->
+        <button class="scan-close-btn" onclick="stopScan()" aria-label="Fermer">✕</button>
+
+        <!-- Octogone sceau shinto -->
+        <div class="scan-reticle-wrap">
+            <svg class="scan-reticle-svg" viewBox="0 0 220 220" width="220" height="220">
+                <!-- Octogone extérieur -->
+                <polygon points="80,5 140,5 215,80 215,140 140,215 80,215 5,140 5,80"
+                    fill="none" stroke="rgba(255,215,0,0.7)" stroke-width="1.5"
+                    class="scan-oct-outer"/>
+                <!-- Octogone intérieur -->
+                <polygon points="90,22 130,22 198,90 198,130 130,198 90,198 22,130 22,90"
+                    fill="none" stroke="rgba(255,183,197,0.4)" stroke-width="1"
+                    class="scan-oct-inner"/>
+                <!-- Lignes de division style torii -->
+                <line x1="110" y1="5"   x2="110" y2="215" stroke="rgba(255,215,0,0.15)" stroke-width="1"/>
+                <line x1="5"   y1="110" x2="215" y2="110" stroke="rgba(255,215,0,0.15)" stroke-width="1"/>
+                <line x1="35"  y1="35"  x2="185" y2="185" stroke="rgba(255,215,0,0.08)" stroke-width="1"/>
+                <line x1="185" y1="35"  x2="35"  y2="185" stroke="rgba(255,215,0,0.08)" stroke-width="1"/>
+                <!-- Coins ornementaux -->
+                <circle cx="110" cy="8"   r="3" fill="rgba(255,215,0,0.8)"/>
+                <circle cx="110" cy="212" r="3" fill="rgba(255,215,0,0.8)"/>
+                <circle cx="8"   cy="110" r="3" fill="rgba(255,215,0,0.8)"/>
+                <circle cx="212" cy="110" r="3" fill="rgba(255,215,0,0.8)"/>
+                <!-- Ligne de scan -->
+                <line x1="25" y1="110" x2="195" y2="110"
+                    stroke="rgba(255,183,197,0.7)" stroke-width="1.5"
+                    class="scan-line"/>
+            </svg>
+            <!-- Kanji de feedback -->
+            <div class="scan-feedback-kanji" id="scan-feedback-kanji"></div>
+        </div>
+
+        <!-- Texte -->
+        <p class="scan-text" id="scan-status">Le miroir cherche les sceaux cachés<span class="scan-dots"><span>.</span><span>.</span><span>.</span></span></p>
+
+        <!-- Kodamas avec le vrai code du jeu -->
+        <div class="scan-kodamas-row" aria-hidden="true">
+            <div class="scan-kd-wrap skw-1">
+                <div class="kd-container" style="position:relative;opacity:1;animation:none;">
+                    <div class="kodama-new-head" style="animation-delay:0s;">
+                        <div class="kodama-new-left-eye"></div>
+                        <div class="kodama-new-right-eye"></div>
+                        <div class="kodama-new-mouth"></div>
+                    </div>
+                    <div class="kodama-new-body">
+                        <div class="kodama-new-left-arm"></div>
+                        <div class="kodama-new-right-arm"></div>
+                    </div>
+                </div>
+                <div class="scan-kd-luciole"></div>
+            </div>
+            <div class="scan-kd-wrap skw-2">
+                <div class="kd-container" style="position:relative;opacity:1;animation:none;">
+                    <div class="kodama-new-head" style="animation-delay:-1.5s;">
+                        <div class="kodama-new-left-eye"></div>
+                        <div class="kodama-new-right-eye"></div>
+                        <div class="kodama-new-mouth"></div>
+                    </div>
+                    <div class="kodama-new-body">
+                        <div class="kodama-new-left-arm"></div>
+                        <div class="kodama-new-right-arm"></div>
+                    </div>
+                </div>
+                <div class="scan-kd-luciole"></div>
+            </div>
+            <div class="scan-kd-wrap skw-3">
+                <div class="kd-container" style="position:relative;opacity:1;animation:none;">
+                    <div class="kodama-new-head" style="animation-delay:-3s;">
+                        <div class="kodama-new-left-eye"></div>
+                        <div class="kodama-new-right-eye"></div>
+                        <div class="kodama-new-mouth"></div>
+                    </div>
+                    <div class="kodama-new-body">
+                        <div class="kodama-new-left-arm"></div>
+                        <div class="kodama-new-right-arm"></div>
+                    </div>
+                </div>
+                <div class="scan-kd-luciole"></div>
+            </div>
+            <div class="scan-kd-wrap skw-4">
+                <div class="kd-container" style="position:relative;opacity:1;animation:none;">
+                    <div class="kodama-new-head" style="animation-delay:-2s;">
+                        <div class="kodama-new-left-eye"></div>
+                        <div class="kodama-new-right-eye"></div>
+                        <div class="kodama-new-mouth"></div>
+                    </div>
+                    <div class="kodama-new-body">
+                        <div class="kodama-new-left-arm"></div>
+                        <div class="kodama-new-right-arm"></div>
+                    </div>
+                </div>
+                <div class="scan-kd-luciole"></div>
+            </div>
+            <div class="scan-kd-wrap skw-5">
+                <div class="kd-container" style="position:relative;opacity:1;animation:none;">
+                    <div class="kodama-new-head" style="animation-delay:-4s;">
+                        <div class="kodama-new-left-eye"></div>
+                        <div class="kodama-new-right-eye"></div>
+                        <div class="kodama-new-mouth"></div>
+                    </div>
+                    <div class="kodama-new-body">
+                        <div class="kodama-new-left-arm"></div>
+                        <div class="kodama-new-right-arm"></div>
+                    </div>
+                </div>
+                <div class="scan-kd-luciole"></div>
             </div>
         </div>
-        <p class="scan-text" id="scan-status">Approchez le miroir du sceau...</p>
-        <div class="scan-buttons">
-            <button class="scan-btn" id="btn-torch" onclick="toggleTorch()">🔦 Éclairer</button>
-            <button class="scan-btn" id="btn-manual" onclick="showManualEntry()" style="display:none;">✏️ Entrer le code</button>
-            <button class="scan-btn scan-btn-cancel" onclick="stopScan()">✕ Fermer</button>
-        </div>
-        <!-- Entrée manuelle -->
+
+        <!-- Code manuel discret -->
         <div id="manual-entry" style="display:none;">
-            <p style="color:var(--sakura); font-size:14px; margin-bottom:10px;">Entrez le code inscrit sous le sceau :</p>
-            <input type="text" id="manual-code" maxlength="6" placeholder="NK01" autocomplete="off" 
-                style="width:120px; padding:12px; font-size:24px; text-align:center; border-radius:10px; border:2px solid var(--gold); background:rgba(0,0,0,0.7); color:var(--gold); font-family:'Fredoka One',cursive; letter-spacing:4px;">
-            <button class="scan-btn" onclick="submitManualCode()" style="margin-top:10px;">🌸 Valider</button>
+            <input type="text" id="manual-code" maxlength="20" placeholder="Code du sceau..." autocomplete="off"
+                style="width:200px;padding:12px;font-size:20px;text-align:center;border-radius:12px;border:2px solid var(--gold);background:rgba(0,0,0,0.8);color:var(--gold);font-family:'Fredoka One',cursive;letter-spacing:3px;">
+            <button class="scan-btn" onclick="submitManualCode()" style="margin-top:10px;display:block;margin-left:auto;margin-right:auto;">🌸 Valider</button>
         </div>
-        <!-- Résultat de scan -->
-        <div id="scan-result" style="display:none;">
-            <div id="scan-result-icon" style="font-size:60px;"></div>
-            <p id="scan-result-text" style="color:var(--gold); font-size:20px; margin-top:10px;"></p>
-        </div>
+        <button class="scan-manual-link" id="btn-manual" onclick="showManualEntry()" style="display:none;">Le sceau résiste ? Touchez ici</button>
+
+        <!-- Résultat (compatibilité) -->
+        <div id="scan-result" style="display:none;"></div>
     </div>
 </div>
 

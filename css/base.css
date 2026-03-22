@@ -34,112 +34,203 @@ body.ar-mode #qr-reader img { display: none !important; } /* Hide html5-qrcode d
 body.ar-mode #screen-hub { background: transparent !important; }
 
 /* Overlay magique par-dessus le flux caméra */
+/* ══════════════════════════════════════
+   SCANNER — Vision des Esprits
+   ══════════════════════════════════════ */
+
 #scan-overlay {
     position: fixed; inset: 0; z-index: 510;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    pointer-events: none;
-    background: none;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: space-between;
+    pointer-events: none; padding: 0;
 }
 #scan-overlay > * { pointer-events: auto; }
 
-/* Vignette violette sur le flux caméra */
-.scan-vignette {
+/* Kanji flottants des 9 gardiens */
+.scan-kanji-float {
     position: absolute; inset: 0;
-    background: radial-gradient(circle at center, transparent 25%, rgba(26,5,29,0.5) 50%, rgba(26,5,29,0.85) 100%);
-    pointer-events: none; z-index: 0;
+    pointer-events: none; overflow: hidden; z-index: 1;
+}
+.skf {
+    position: absolute;
+    font-family: 'Ma Shan Zheng', cursive;
+    opacity: 0; animation: skf-drift linear infinite;
+    user-select: none; text-shadow: 0 0 20px currentColor;
+}
+.skf-1  { font-size:28px; left:8%;  top:15%; animation-duration:18s; animation-delay:0s;   }
+.skf-2  { font-size:20px; left:78%; top:22%; animation-duration:22s; animation-delay:-4s;  }
+.skf-3  { font-size:24px; left:25%; top:65%; animation-duration:19s; animation-delay:-7s;  }
+.skf-4  { font-size:32px; left:60%; top:55%; animation-duration:25s; animation-delay:-2s;  }
+.skf-5  { font-size:18px; left:42%; top:20%; animation-duration:16s; animation-delay:-9s;  }
+.skf-6  { font-size:16px; left:88%; top:72%; animation-duration:21s; animation-delay:-5s;  }
+.skf-7  { font-size:26px; left:12%; top:82%; animation-duration:20s; animation-delay:-11s; }
+.skf-8  { font-size:22px; left:55%; top:88%; animation-duration:17s; animation-delay:-3s;  }
+.skf-9  { font-size:30px; left:72%; top:8%;  animation-duration:23s; animation-delay:-8s;  }
+@keyframes skf-drift {
+    0%   { opacity:0;    transform:translateY(0px)   rotate(-5deg); }
+    10%  { opacity:0.22; }
+    50%  { opacity:0.18; transform:translateY(-30px) rotate(3deg); }
+    90%  { opacity:0.22; }
+    100% { opacity:0;    transform:translateY(-60px) rotate(-5deg); }
+}
+.scan-overlay-success .skf { animation: skf-converge 0.8s ease-in forwards !important; }
+@keyframes skf-converge {
+    0%   { opacity: 0.22; }
+    100% { transform: translate(calc(50vw - 50%), calc(50vh - 50%)) scale(0); opacity: 0; }
 }
 
-/* Cercle sacré de scan */
-.scan-circle {
-    position: relative; width: 260px; height: 260px;
-    z-index: 1;
+/* Header */
+.scan-header {
+    display: flex; flex-direction: column; align-items: center;
+    padding-top: 52px; z-index: 3; text-align: center;
+}
+.scan-mirror-kanji {
+    font-family: 'Ma Shan Zheng', cursive; font-size: 26px;
+    color: rgba(255,215,0,0.6); letter-spacing: 2px;
+    text-shadow: 0 0 15px rgba(255,215,0,0.4);
+    animation: scan-kanji-pulse 3s ease-in-out infinite alternate;
+}
+.scan-title {
+    font-family: 'Fredoka One', cursive; font-size: 13px;
+    color: rgba(255,183,197,0.55); letter-spacing: 3px;
+    text-transform: uppercase; margin-top: 2px;
+}
+@keyframes scan-kanji-pulse { 0% { opacity:.5; } 100% { opacity:1; } }
+
+/* Fermer */
+.scan-close-btn {
+    position: absolute; top: 16px; right: 16px;
+    width: 34px; height: 34px; border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(0,0,0,0.35); color: rgba(255,255,255,0.4);
+    font-size: 15px; cursor: pointer; backdrop-filter: blur(8px);
+    transition: all 0.3s; z-index: 10;
+    display: flex; align-items: center; justify-content: center;
+}
+.scan-close-btn:hover { color: rgba(255,100,100,0.9); border-color: rgba(255,100,100,0.4); }
+
+/* Octogone */
+.scan-reticle-wrap {
+    position: relative; z-index: 3;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.scan-reticle-svg {
+    animation: scan-oct-pulse 3s ease-in-out infinite alternate;
+    filter: drop-shadow(0 0 8px rgba(255,215,0,0.3));
+}
+.scan-oct-outer { animation: scan-spin-slow 20s linear infinite; transform-origin: 110px 110px; }
+.scan-oct-inner { animation: scan-spin-slow 15s linear infinite reverse; transform-origin: 110px 110px; }
+.scan-line {
+    animation: scan-line-sweep 2.5s ease-in-out infinite alternate;
+    transform-origin: 110px 110px;
+}
+@keyframes scan-oct-pulse {
+    0%   { filter: drop-shadow(0 0 6px rgba(255,215,0,0.25)); }
+    100% { filter: drop-shadow(0 0 16px rgba(255,215,0,0.55)); }
+}
+@keyframes scan-spin-slow { 100% { transform: rotate(360deg); } }
+@keyframes scan-line-sweep {
+    0%   { transform: translateY(-80px); opacity:0.3; }
+    50%  { opacity:0.8; }
+    100% { transform: translateY(80px);  opacity:0.3; }
 }
 
-/* Anneau shimenawa — corde sacrée */
-.scan-ring {
-    position: absolute; inset: 0; border-radius: 50%;
-    border: 3px solid rgba(255,215,0,0.5);
-    box-shadow: 0 0 15px rgba(255,215,0,0.3), 0 0 40px rgba(255,215,0,0.1), inset 0 0 15px rgba(255,215,0,0.1);
-    animation: scan-ring-spin 12s linear infinite, scan-ring-pulse 3s ease-in-out infinite alternate;
-}
-.scan-ring-inner {
-    inset: 15px; border-color: rgba(255,183,197,0.3);
-    box-shadow: 0 0 10px rgba(255,183,197,0.2), inset 0 0 10px rgba(255,183,197,0.1);
-    animation-direction: reverse;
-    animation-duration: 8s, 2.5s;
-}
-@keyframes scan-ring-spin { 100% { transform: rotate(360deg); } }
-@keyframes scan-ring-pulse {
-    0% { opacity: 0.6; border-width: 2px; }
-    100% { opacity: 1; border-width: 4px; }
+/* Feedback kanji */
+.scan-feedback-kanji {
+    position: absolute; font-family: 'Ma Shan Zheng', cursive;
+    font-size: 72px; opacity: 0; pointer-events: none;
+    transition: opacity 0.2s; text-shadow: 0 0 30px currentColor;
 }
 
-/* Particules dorées convergentes */
-.scan-particles { position: absolute; inset: -30px; pointer-events: none; }
-.scan-particle {
-    position: absolute; width: 4px; height: 4px; border-radius: 50%;
-    background: #ffd700;
-    box-shadow: 0 0 6px #ffd700, 0 0 12px rgba(255,215,0,0.4);
-    opacity: 0;
-}
-.scan-active .scan-particle { animation: scan-particle-converge 2s ease-in-out infinite; }
-.sp-s1 { top: 0; left: 50%; animation-delay: 0s; }
-.sp-s2 { top: 25%; right: 0; animation-delay: -0.3s; }
-.sp-s3 { bottom: 0; left: 50%; animation-delay: -0.6s; }
-.sp-s4 { top: 25%; left: 0; animation-delay: -0.9s; }
-.sp-s5 { bottom: 25%; right: 10%; animation-delay: -1.2s; }
-.sp-s6 { bottom: 25%; left: 10%; animation-delay: -1.5s; }
-@keyframes scan-particle-converge {
-    0% { transform: translate(0,0) scale(1); opacity: 0; }
-    30% { opacity: 0.8; }
-    100% { transform: translate(calc(130px - 100%), calc(130px - 100%)) scale(0.3); opacity: 0; }
-}
-
-/* Scan réussi — flash doré */
-.scan-success .scan-ring {
-    border-color: rgba(255,215,0,0.9) !important;
-    box-shadow: 0 0 30px rgba(255,215,0,0.7), 0 0 80px rgba(255,215,0,0.4) !important;
-    animation: none !important;
-}
-.scan-success .scan-ring-inner { animation: none !important; border-color: rgba(255,215,0,0.7) !important; }
-
-/* Scan raté — flash rouge */
-.scan-wrong .scan-ring {
-    border-color: rgba(255,50,50,0.8) !important;
-    box-shadow: 0 0 20px rgba(255,50,50,0.5) !important;
-    animation: scan-shake 0.3s ease !important;
-}
-@keyframes scan-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
-
-/* Texte et boutons */
+/* Texte */
 .scan-text {
-    color: rgba(255,255,255,0.8); font-size: 16px; margin-top: 20px;
-    font-family: 'Ma Shan Zheng', cursive; letter-spacing: 2px;
-    text-shadow: 0 2px 10px rgba(0,0,0,0.8);
-    z-index: 1;
+    font-family: 'Fredoka One', cursive; font-size: 16px;
+    color: rgba(255,255,255,0.8); letter-spacing: 0.5px;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.9);
+    z-index: 3; text-align: center; margin: 0; padding: 0;
 }
-.scan-buttons { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; justify-content: center; z-index: 1; }
+.scan-dots span { display:inline-block; animation: scan-dot-bounce 1.4s ease-in-out infinite; color:#ffb7c5; }
+.scan-dots span:nth-child(1) { animation-delay:0s; }
+.scan-dots span:nth-child(2) { animation-delay:0.2s; }
+.scan-dots span:nth-child(3) { animation-delay:0.4s; }
+@keyframes scan-dot-bounce {
+    0%,60%,100% { transform:translateY(0);    opacity:0.4; }
+    30%          { transform:translateY(-5px); opacity:1; }
+}
+
+/* Kodamas row */
+.scan-kodamas-row {
+    display: flex; align-items: flex-end; justify-content: center;
+    gap: 8px; padding-bottom: 28px; z-index: 3; width: 100%;
+}
+.scan-kd-wrap { position: relative; display: flex; flex-direction: column; align-items: center; }
+.skw-1 .kd-container { transform: scale(0.17); transform-origin: bottom center; }
+.skw-2 .kd-container { transform: scale(0.21); transform-origin: bottom center; }
+.skw-3 .kd-container { transform: scale(0.25); transform-origin: bottom center; }
+.skw-4 .kd-container { transform: scale(0.21); transform-origin: bottom center; }
+.skw-5 .kd-container { transform: scale(0.17); transform-origin: bottom center; }
+.skw-1 { animation: kd-float 3.2s ease-in-out infinite; }
+.skw-2 { animation: kd-float 2.8s ease-in-out infinite 0.4s; }
+.skw-3 { animation: kd-float 3.5s ease-in-out infinite 0.8s; }
+.skw-4 { animation: kd-float 2.9s ease-in-out infinite 0.2s; }
+.skw-5 { animation: kd-float 3.1s ease-in-out infinite 0.6s; }
+@keyframes kd-float {
+    0%,100% { transform:translateY(0); }
+    50%      { transform:translateY(-6px); }
+}
+.scan-kd-luciole {
+    position: absolute; width: 5px; height: 5px; border-radius: 50%;
+    background: #a8d5a2; box-shadow: 0 0 8px #a8d5a2, 0 0 16px rgba(168,213,162,0.6);
+    animation: luciole-orbit 4s linear infinite; pointer-events: none;
+}
+.skw-2 .scan-kd-luciole { animation-duration:5s;   background:#ffb7c5; box-shadow:0 0 8px #ffb7c5; animation-delay:-1s;   }
+.skw-3 .scan-kd-luciole { animation-duration:3.5s; background:#fde68a; box-shadow:0 0 8px #fde68a; animation-delay:-2s;   }
+.skw-4 .scan-kd-luciole { animation-duration:4.5s; background:#c4b5fd; box-shadow:0 0 8px #c4b5fd; animation-delay:-0.5s; }
+.skw-5 .scan-kd-luciole { animation-duration:3.8s; background:#98e8d4; box-shadow:0 0 8px #98e8d4; animation-delay:-3s;   }
+@keyframes luciole-orbit {
+    0%   { transform:translate(18px,-10px)  scale(1);   opacity:0.8; }
+    25%  { transform:translate(5px,-25px)   scale(1.2); opacity:1;   }
+    50%  { transform:translate(-18px,-10px) scale(0.9); opacity:0.7; }
+    75%  { transform:translate(-5px,5px)    scale(1.1); opacity:0.9; }
+    100% { transform:translate(18px,-10px)  scale(1);   opacity:0.8; }
+}
+.scan-overlay-success .scan-kd-wrap { animation: kd-joy 0.5s ease-in-out 2 !important; }
+@keyframes kd-joy {
+    0%,100% { transform:translateY(0) rotate(0deg); }
+    25%      { transform:translateY(-12px) rotate(-5deg); }
+    75%      { transform:translateY(-12px) rotate(5deg); }
+}
+.scan-overlay-wrong .scan-kd-wrap { animation: kd-hide 0.4s ease-in-out !important; }
+@keyframes kd-hide {
+    0%,100% { transform:translateY(0); }
+    50%      { transform:translateY(8px); }
+}
+
+/* Manuel */
+.scan-manual-link {
+    font-family: 'Fredoka One', cursive; font-size: 11px;
+    color: rgba(255,255,255,0.25); background: none; border: none;
+    cursor: pointer; text-decoration: underline; letter-spacing: 0.5px;
+    z-index: 3; padding-bottom: 4px; transition: color 0.3s;
+}
+.scan-manual-link:hover { color: rgba(255,183,197,0.6); }
 .scan-btn {
-    padding: 10px 18px; border-radius: 25px;
-    border: 1px solid rgba(255,255,255,0.2); color: white;
-    background: rgba(0,0,0,0.5); font-size: 14px;
-    font-family: 'Fredoka One', cursive; cursor: pointer;
-    backdrop-filter: blur(5px); transition: all 0.3s;
+    padding:10px 20px; border-radius:25px;
+    border:1px solid rgba(255,255,255,0.2); color:white;
+    background:rgba(0,0,0,0.6); font-size:14px;
+    font-family:'Fredoka One',cursive; cursor:pointer;
+    backdrop-filter:blur(8px); transition:all 0.3s;
 }
-.scan-btn:hover { background: rgba(255,215,0,0.15); border-color: var(--gold); }
-.scan-btn-cancel { color: rgba(255,150,150,0.8); border-color: rgba(255,100,100,0.3); }
+.scan-btn:hover { background:rgba(255,215,0,0.15); border-color:var(--gold); }
+#manual-entry { z-index:3; text-align:center; padding:0 20px; }
+#scan-result { z-index:3; }
 
-#manual-entry { z-index: 1; text-align: center; margin-top: 15px; }
-#scan-result { z-index: 1; text-align: center; animation: scan-result-pop 0.5s cubic-bezier(0.17,0.89,0.32,1.49); }
-@keyframes scan-result-pop { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+/* Scan wrong/success — rétrocompat */
+.scan-success .scan-reticle-svg { filter:drop-shadow(0 0 20px rgba(255,215,0,0.8)) !important; }
+.scan-wrong   .scan-reticle-svg { filter:drop-shadow(0 0 12px rgba(255,50,50,0.7)) !important;
+    animation: scan-shake 0.3s ease; }
+@keyframes scan-shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
 
-/* --- PORTES SHOJI --- */
-#shoji-doors { position: fixed; inset: 0; z-index: 8000; display: flex; pointer-events: none; }
-.shoji-door { width: 50%; height: 100%; background-color: #f4f4f0; background-image: linear-gradient(90deg, transparent 95%, #d0c8b8 95%), linear-gradient(0deg, transparent 95%, #d0c8b8 95%); background-size: 20% 10%; border: 8px solid #3d2f2d; transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 30px rgba(0,0,0,0.8);}
-.shoji-door.left { transform: translateX(-100%); border-right: 4px solid #3d2f2d; }
-.shoji-door.right { transform: translateX(100%); border-left: 4px solid #3d2f2d; }
-#shoji-doors.closed .shoji-door.left { transform: translateX(0); }
-#shoji-doors.closed .shoji-door.right { transform: translateX(0); }
 #shoji-shadow { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: 150px; font-family: 'Ma Shan Zheng', cursive; filter: drop-shadow(0 0 10px rgba(0,0,0,0.8)) brightness(0); opacity: 0; transition: opacity 0.2s; pointer-events: none; z-index: 8001; }
 #shoji-doors.closed #shoji-shadow { opacity: 0.8; }
 

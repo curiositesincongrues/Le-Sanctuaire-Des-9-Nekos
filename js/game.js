@@ -575,6 +575,11 @@ function startScan() {
 
     console.log('[Scan] Activation mode AR...');
     document.body.classList.add('ar-mode');
+    // Filtre Vision des Esprits sur la vidéo
+    setTimeout(() => {
+        const vid = document.querySelector('#qr-reader video');
+        if (vid) vid.style.cssText += ';filter:hue-rotate(260deg) saturate(1.25) brightness(0.88);transition:filter 0.5s;';
+    }, 800);
     document.getElementById('btn-scan').style.display = 'none'; 
     document.getElementById('btn-cancel-scan').style.display = 'block';
     
@@ -622,7 +627,12 @@ function startScan() {
                     if(navigator.vibrate) navigator.vibrate([50, 30, 100]);
                     
                     document.getElementById('scan-status').textContent = '✦ Sceau déchiffré ! ✦';
-                    showDiscoveryScreen(currentFound);
+                    // Joie des kodamas + convergence kanji
+                    const ovSuccess = document.getElementById('scan-overlay');
+                    const fkSuccess = document.getElementById('scan-feedback-kanji');
+                    if (fkSuccess) { fkSuccess.textContent = '✦'; fkSuccess.style.color = '#ffd700'; fkSuccess.style.opacity = '1'; }
+                    if (ovSuccess) { ovSuccess.classList.add('scan-overlay-success'); }
+                    setTimeout(() => showDiscoveryScreen(currentFound), 600);
                     
                     const flash = document.getElementById('flash'); 
                     flash.style.background = 'rgba(255,215,0,0.6)'; flash.style.opacity = 1;
@@ -631,10 +641,13 @@ function startScan() {
                     setTimeout(() => { stopScan(); clearInterval(heartInterval); setupQuiz(); }, 1500);
                     
                 } else {
-                    circle.classList.add('scan-wrong');
+                    // Feedback raté
+                    const overlay = document.getElementById('scan-overlay');
+                    const fk = document.getElementById('scan-feedback-kanji');
+                    if (fk) { fk.textContent = '禁'; fk.style.color = '#ff4444'; fk.style.opacity = '1'; setTimeout(() => { fk.style.opacity = '0'; }, 800); }
+                    if (overlay) { overlay.classList.add('scan-overlay-wrong'); setTimeout(() => overlay.classList.remove('scan-overlay-wrong'), 500); }
                     playWrong(); if(navigator.vibrate) navigator.vibrate([100, 50, 100]);
                     document.getElementById('scan-status').textContent = 'Ce n\'est pas le bon sceau... Continuez de chercher !';
-                    setTimeout(() => circle.classList.remove('scan-wrong'), 500);
                 }
             }
         ).then(() => {
@@ -1515,7 +1528,7 @@ function showDiscoveryScreen(idx) {
     // Nom du gardien
     const nameEl = document.createElement('div');
     nameEl.textContent = g.n;
-    nameEl.style.cssText = `font-family:'Ma Shan Zheng',cursive;font-size:54px;color:${color};text-shadow:0 0 30px ${color},0 0 60px ${dark};opacity:0;transform:translateY(20px);transition:opacity 0.6s ease,transform 0.6s ease;margin-bottom:8px;text-align:center;`;
+    nameEl.style.cssText = `font-family:'Fredoka One',cursive;font-size:54px;color:${color};text-shadow:0 0 30px ${color},0 0 60px ${dark};opacity:0;transform:translateY(20px);transition:opacity 0.6s ease,transform 0.6s ease;margin-bottom:8px;text-align:center;`;
     overlay.appendChild(nameEl);
 
     // Kanji sous le nom
@@ -1526,13 +1539,13 @@ function showDiscoveryScreen(idx) {
 
     // Texte poétique
     const textEl = document.createElement('div');
-    textEl.style.cssText = `font-family:'Ma Shan Zheng',cursive;font-size:18px;color:rgba(255,255,255,0.85);text-align:center;max-width:320px;line-height:1.7;opacity:0;transition:opacity 0.6s ease 0.4s;margin-bottom:32px;padding:0 20px;`;
+    textEl.style.cssText = `font-family:'Fredoka One',cursive;font-size:18px;font-style:italic;color:rgba(255,255,255,0.85);text-align:center;max-width:320px;line-height:1.7;opacity:0;transition:opacity 0.6s ease 0.4s;margin-bottom:32px;padding:0 20px;`;
     overlay.appendChild(textEl);
 
     // Bouton
     const btn = document.createElement('button');
     btn.textContent = '✨ Que l\'épreuve commence...';
-    btn.style.cssText = `font-family:'Ma Shan Zheng',cursive;font-size:20px;color:#fff;background:linear-gradient(135deg,${dark},${color});border:none;border-radius:50px;padding:14px 32px;cursor:pointer;opacity:0;transform:scale(0.8);transition:opacity 0.5s ease 0.6s,transform 0.5s ease 0.6s;box-shadow:0 4px 20px ${dark}88;`;
+    btn.style.cssText = `font-family:'Fredoka One',cursive;font-size:20px;color:#fff;background:linear-gradient(135deg,${dark},${color});border:none;border-radius:50px;padding:14px 32px;cursor:pointer;opacity:0;transform:scale(0.8);transition:opacity 0.5s ease 0.6s,transform 0.5s ease 0.6s;box-shadow:0 4px 20px ${dark}88;`;
     overlay.appendChild(btn);
 
     // Séquence d'animation
