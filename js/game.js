@@ -223,6 +223,11 @@ function initGummyPaws() {
     };
     const positions = getPositions();
 
+    // Flag pour masquer le parchemin au premier tap
+    let parchemin = document.querySelector('#screen-oath .frame-parchemin');
+    if (parchemin) { parchemin.style.opacity = '1'; parchemin.style.display = ''; }
+    let firstTapDone = false;
+
     PAW_COLORS.forEach((color, index) => {
         const { x, y } = positions[index];
 
@@ -262,6 +267,13 @@ function initGummyPaws() {
 
             // TEST_MODE desktop : clic simple suffit
             if (TEST_MODE && e.pointerType === 'mouse') {
+                // Masquer le parchemin au premier tap
+                if (!firstTapDone && parchemin) {
+                    firstTapDone = true;
+                    parchemin.style.transition = 'opacity 0.5s ease';
+                    parchemin.style.opacity = '0';
+                    setTimeout(() => { parchemin.style.display = 'none'; }, 500);
+                }
                 isLocked = true;
                 paw.classList.add('locked');
                 try { playGameSFX('chime_portal'); } catch(e2) {}
@@ -278,6 +290,13 @@ function initGummyPaws() {
                 return;
             }
 
+            // Masquer le parchemin au premier tap
+            if (!firstTapDone && parchemin) {
+                firstTapDone = true;
+                parchemin.style.transition = 'opacity 0.5s ease';
+                parchemin.style.opacity = '0';
+                setTimeout(() => { parchemin.style.display = 'none'; }, 500);
+            }
             paw.classList.add('holding');
             if (navigator.vibrate) navigator.vibrate(15);
             // Son qui monte
@@ -563,7 +582,7 @@ function startScan() {
     const circle = overlay.querySelector('.scan-circle');
     circle.classList.remove('scan-success', 'scan-wrong');
     circle.classList.add('scan-active');
-    document.getElementById('scan-status').textContent = 'Approchez le miroir du sceau...';
+    document.getElementById('scan-status').textContent = 'Le miroir cherche les sceaux cachés...';
     document.getElementById('manual-entry').style.display = 'none';
     document.getElementById('scan-result').style.display = 'none';
     document.getElementById('btn-manual').style.display = 'none';
@@ -602,11 +621,8 @@ function startScan() {
                     playGameSFX('pop'); playMikoChime(currentFound);
                     if(navigator.vibrate) navigator.vibrate([50, 30, 100]);
                     
-                    const result = document.getElementById('scan-result');
-                    document.getElementById('scan-result-icon').textContent = guardianData[currentFound].e;
-                    document.getElementById('scan-result-text').textContent = `${guardianData[currentFound].n} trouvé !`;
-                    result.style.display = 'block';
                     document.getElementById('scan-status').textContent = '✦ Sceau déchiffré ! ✦';
+                    showDiscoveryScreen(currentFound);
                     
                     const flash = document.getElementById('flash'); 
                     flash.style.background = 'rgba(255,215,0,0.6)'; flash.style.opacity = 1;
@@ -730,7 +746,7 @@ function setupQuiz() {
     const fuseBar = document.getElementById('fuse-bar');
     const incenseTip = document.getElementById('incense-tip');
     fuseBar.setAttribute('width', '300');
-    let hintGiven1 = false, hintGiven2 = false;
+    let hintGiven2 = false;
 
     if(quizInterval) clearInterval(quizInterval);
     
@@ -740,13 +756,6 @@ function setupQuiz() {
         fuseBar.setAttribute('width', w);
         if(incenseTip) incenseTip.setAttribute('cx', w);
         
-        if(quizFuseTime <= 50 && !hintGiven1) {
-            hintGiven1 = true;
-            const hint1 = document.createElement('div');
-            hint1.className = 'quiz-hint';
-            hint1.innerHTML = '🌿 <i>Un esprit murmure...</i>';
-            document.getElementById('quiz-options').before(hint1);
-        }
         if(quizFuseTime <= 20 && !hintGiven2) {
             hintGiven2 = true;
             const correctIdx = guardianData[currentFound].r;
@@ -759,7 +768,7 @@ function setupQuiz() {
             document.body.classList.add('shake-screen');
             setTimeout(() => document.body.classList.remove('shake-screen'), 500);
             quizFuseTime = 100;
-            hintGiven1 = false; hintGiven2 = false;
+            hintGiven2 = false;
         }
     }
     
@@ -1461,6 +1470,127 @@ function playMinigame() {
         });
     }
 }
+
+/* --- ÉCRAN DE DÉCOUVERTE --- */
+function showDiscoveryScreen(idx) {
+    const g = guardianData[idx];
+    const color = g.color || '#ffb7c5';
+    const dark = g.dark || '#ff1493';
+    const kanji = g.kanji || '';
+    const discoveryText = g.discovery || `L'âme de ${g.n} est libérée...`;
+
+    // Overlay plein écran
+    const overlay = document.createElement('div');
+    overlay.id = 'discovery-overlay';
+    overlay.style.cssText = `position:fixed;inset:0;z-index:9500;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#0a0010;opacity:0;transition:opacity 0.4s ease;`;
+    document.body.appendChild(overlay);
+
+    // Temps 1 — flash radial couleur
+    const flash = document.createElement('div');
+    flash.style.cssText = `position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,${color} 0%,transparent 70%);opacity:0;pointer-events:none;transition:opacity 0.3s ease;`;
+    overlay.appendChild(flash);
+
+    // Kanji géant en filigrane
+    const kanjiEl = document.createElement('div');
+    kanjiEl.textContent = kanji;
+    kanjiEl.style.cssText = `position:absolute;font-family:'Ma Shan Zheng',cursive;font-size:min(55vw,340px);color:${color};opacity:0.07;pointer-events:none;user-select:none;line-height:1;`;
+    overlay.appendChild(kanjiEl);
+
+    // Halo derrière relique
+    const halo = document.createElement('div');
+    halo.style.cssText = `position:relative;width:220px;height:220px;display:flex;align-items:center;justify-content:center;margin-bottom:24px;`;
+    const haloRing = document.createElement('div');
+    haloRing.style.cssText = `position:absolute;inset:-20px;border-radius:50%;background:conic-gradient(${color},${dark},#fff,${color});opacity:0;animation:discoveryHaloSpin 3s linear infinite;filter:blur(8px);transition:opacity 0.8s ease;`;
+    halo.appendChild(haloRing);
+
+    // SVG relique
+    const relicWrap = document.createElement('div');
+    relicWrap.style.cssText = `position:relative;z-index:2;width:180px;height:180px;display:flex;align-items:center;justify-content:center;transform:scale(0);transition:transform 0.6s cubic-bezier(0.17,0.89,0.32,1.49);filter:drop-shadow(0 0 30px ${color});`;
+    relicWrap.innerHTML = getRelicSVG(idx);
+    const svg = relicWrap.querySelector('svg');
+    if (svg) { svg.style.width = '180px'; svg.style.height = '180px'; }
+    halo.appendChild(relicWrap);
+    overlay.appendChild(halo);
+
+    // Nom du gardien
+    const nameEl = document.createElement('div');
+    nameEl.textContent = g.n;
+    nameEl.style.cssText = `font-family:'Ma Shan Zheng',cursive;font-size:54px;color:${color};text-shadow:0 0 30px ${color},0 0 60px ${dark};opacity:0;transform:translateY(20px);transition:opacity 0.6s ease,transform 0.6s ease;margin-bottom:8px;text-align:center;`;
+    overlay.appendChild(nameEl);
+
+    // Kanji sous le nom
+    const kanjiSmall = document.createElement('div');
+    kanjiSmall.textContent = kanji;
+    kanjiSmall.style.cssText = `font-family:'Ma Shan Zheng',cursive;font-size:24px;color:${dark};opacity:0;transition:opacity 0.6s ease 0.2s;margin-bottom:20px;`;
+    overlay.appendChild(kanjiSmall);
+
+    // Texte poétique
+    const textEl = document.createElement('div');
+    textEl.style.cssText = `font-family:'Ma Shan Zheng',cursive;font-size:18px;color:rgba(255,255,255,0.85);text-align:center;max-width:320px;line-height:1.7;opacity:0;transition:opacity 0.6s ease 0.4s;margin-bottom:32px;padding:0 20px;`;
+    overlay.appendChild(textEl);
+
+    // Bouton
+    const btn = document.createElement('button');
+    btn.textContent = '✨ Que l\'épreuve commence...';
+    btn.style.cssText = `font-family:'Ma Shan Zheng',cursive;font-size:20px;color:#fff;background:linear-gradient(135deg,${dark},${color});border:none;border-radius:50px;padding:14px 32px;cursor:pointer;opacity:0;transform:scale(0.8);transition:opacity 0.5s ease 0.6s,transform 0.5s ease 0.6s;box-shadow:0 4px 20px ${dark}88;`;
+    overlay.appendChild(btn);
+
+    // Séquence d'animation
+    requestAnimationFrame(() => { overlay.style.opacity = '1'; });
+
+    // T1 — flash
+    setTimeout(() => { flash.style.opacity = '0.6'; }, 100);
+    setTimeout(() => { flash.style.opacity = '0'; }, 500);
+
+    // T2 — relique + halo
+    setTimeout(() => {
+        haloRing.style.opacity = '0.8';
+        relicWrap.style.transform = 'scale(1)';
+        try { playGameSFX('chime_portal'); } catch(e) {}
+        // Particules
+        for (let i = 0; i < 12; i++) {
+            const p = document.createElement('div');
+            const a = (i/12)*Math.PI*2, d = 80+Math.random()*120;
+            p.style.cssText = `position:absolute;left:50%;top:50%;width:${4+Math.random()*6}px;height:${4+Math.random()*6}px;border-radius:50%;background:${color};box-shadow:0 0 8px ${color};transform:translate(-50%,-50%);animation:discoveryParticle 1s ease-out forwards;--tx:${Math.cos(a)*d}px;--ty:${Math.sin(a)*d}px;animation-delay:${Math.random()*0.3}s;pointer-events:none;`;
+            overlay.appendChild(p);
+            setTimeout(() => p.remove(), 1400);
+        }
+    }, 600);
+
+    // T3 — nom + texte poétique typewriter
+    setTimeout(() => {
+        nameEl.style.opacity = '1'; nameEl.style.transform = 'translateY(0)';
+        kanjiSmall.style.opacity = '1';
+    }, 1200);
+
+    setTimeout(() => {
+        textEl.style.opacity = '1';
+        // Typewriter
+        let i = 0;
+        const chars = discoveryText.split('');
+        const tw = setInterval(() => {
+            textEl.textContent += chars[i];
+            i++;
+            if (i >= chars.length) clearInterval(tw);
+        }, 40);
+    }, 1600);
+
+    setTimeout(() => {
+        btn.style.opacity = '1'; btn.style.transform = 'scale(1)';
+    }, 2400);
+
+    // Clic bouton → fermer + lancer quiz
+    btn.onclick = () => {
+        overlay.style.opacity = '0';
+        setTimeout(() => {
+            overlay.remove();
+            stopScan();
+            clearInterval(heartInterval);
+            setupQuiz();
+        }, 400);
+    };
+}
+
 
 /* --- WIN / SOUL ANIMATION --- */
 function winGame() {

@@ -76,9 +76,13 @@ const TEXTS_EMBEDDED = {
   },
   "guardians": [
     {
-      "qr": "qr_mochi",
-      "name": "Mochi",
+      "qr": "qr_hanako",
+      "name": "Hanako",
       "emoji": "🍡",
+      "kanji": "花子",
+      "color": "#ffb7c5",
+      "dark": "#ff1493",
+      "discovery": "Les pétales de cerisier dansent à nouveau dans le vent du Sanctuaire... L'âme de Hanako est libérée.",
       "question": "À l'intérieur des délicieux mochis, on trouve souvent une pâte sucrée très populaire au Japon. De quoi est-elle faite ?",
       "answers": [
         "De haricots rouges",
@@ -90,9 +94,13 @@ const TEXTS_EMBEDDED = {
       "instruction": "La Pesée de Riz : Maintiens appuyé sans relâcher !"
     },
     {
-      "qr": "qr_ken",
-      "name": "Ken",
+      "qr": "qr_raijin",
+      "name": "Raijin",
       "emoji": "⚔️",
+      "kanji": "雷神",
+      "color": "#98e8d4",
+      "dark": "#00b386",
+      "discovery": "L'éclair sacré de Raijin illumine les ténèbres... La lame du dieu du tonnerre est enfin libre.",
       "question": "Les puissants guerriers Samouraïs obéissaient à un code d'honneur et de courage très strict. Comment s'appelait-il ?",
       "answers": [
         "Le Judo",
@@ -104,9 +112,13 @@ const TEXTS_EMBEDDED = {
       "instruction": "Le Rythme du Sabre : Frappe quand la lame brille !"
     },
     {
-      "qr": "qr_shinobi",
-      "name": "Shinobi",
+      "qr": "qr_kagerou",
+      "name": "Kagerou",
       "emoji": "🥷",
+      "kanji": "陽炎",
+      "color": "#c4b5fd",
+      "dark": "#8b5cf6",
+      "discovery": "Ce que l'on ne voyait pas existe enfin... L'ombre de Kagerou se dissout entre deux mondes.",
       "question": "Les ninjas étaient les maîtres de l'ombre. Comment s'appelle l'art martial secret qu'ils étudiaient ?",
       "answers": [
         "Le Kenjutsu",
@@ -118,9 +130,13 @@ const TEXTS_EMBEDDED = {
       "instruction": "L'Ombre Fuyante : Attrape le sceau avant qu'il disparaisse !"
     },
     {
-      "qr": "qr_aiko",
-      "name": "Aiko",
+      "qr": "qr_amaterasu",
+      "name": "Amaterasu",
       "emoji": "💖",
+      "kanji": "天照",
+      "color": "#fde68a",
+      "dark": "#f59e0b",
+      "discovery": "Sa lumière dorée traverse les nuages comme une promesse éternelle... Le cœur d'Amaterasu bat à nouveau.",
       "question": "Dans les légendes japonaises, comment appelle-t-on les esprits, les fantômes ou les monstres comme l'Ombre que vous combattez ?",
       "answers": [
         "Les Yokais",
@@ -132,9 +148,13 @@ const TEXTS_EMBEDDED = {
       "instruction": "Le Souffle du Cœur : Glisse pour repousser l'Ombre !"
     },
     {
-      "qr": "qr_kitsune",
-      "name": "Kitsune",
+      "qr": "qr_tamamo",
+      "name": "Tamamo",
       "emoji": "🦊",
+      "kanji": "玉藻",
+      "color": "#fdba74",
+      "dark": "#f97316",
+      "discovery": "Les neuf queues de Tamamo ondulent dans la nuit... Le renard sage sourit, ses secrets rendus au vent.",
       "question": "La légende dit qu'un renard magique gagne quelque chose tous les 100 ans pour prouver sa grande sagesse. Quoi donc ?",
       "answers": [
         "Une paire d'ailes",
@@ -146,9 +166,13 @@ const TEXTS_EMBEDDED = {
       "instruction": "L'Encre Maudite : Frotte pour révéler le sceau caché !"
     },
     {
-      "qr": "qr_sumo",
-      "name": "Sumo",
+      "qr": "qr_goemon",
+      "name": "Goemon",
       "emoji": "🍙",
+      "kanji": "五右衛門",
+      "color": "#6ee7b7",
+      "dark": "#10b981",
+      "discovery": "La terre tremble de joie sous ses pas libérés... La force de Goemon résonne comme un tambour sacré.",
       "question": "Juste avant le combat, que lancent les grands lutteurs de Sumo sur le sol pour chasser les mauvais esprits ?",
       "answers": [
         "Du sel",
@@ -160,9 +184,13 @@ const TEXTS_EMBEDDED = {
       "instruction": "La Force du Colosse : Martèle l'écran de toutes tes forces !"
     },
     {
-      "qr": "qr_zennon",
-      "name": "Zennon",
+      "qr": "qr_mugen",
+      "name": "Mugen",
       "emoji": "🧘",
+      "kanji": "無限",
+      "color": "#a5b4fc",
+      "dark": "#6366f1",
+      "discovery": "Dans ce souffle immobile, le Sanctuaire retrouve sa paix millénaire... Le silence de Mugen emplit l'espace.",
       "question": "Comment s'appelle la tradition japonaise qui consiste à contempler les fleurs de cerisiers au printemps ?",
       "answers": [
         "L'Ikebana",
@@ -174,9 +202,13 @@ const TEXTS_EMBEDDED = {
       "instruction": "L'Immobilité du Sage : Ne bouge plus... Deviens la statue !"
     },
     {
-      "qr": "qr_taiko",
-      "name": "Taiko",
+      "qr": "qr_hibiki",
+      "name": "Hibiki",
       "emoji": "🥁",
+      "kanji": "響",
+      "color": "#fca5a5",
+      "dark": "#ef4444",
+      "discovery": "Chaque battement est un cœur qui se souvient d'avoir existé... Le tambour de Hibiki résonne jusqu'aux étoiles.",
       "question": "Le Taiko est un tambour géant qui résonne comme le tonnerre. Avec quoi les musiciens frappent-ils dessus ?",
       "answers": [
         "Avec les mains nues",
@@ -188,9 +220,13 @@ const TEXTS_EMBEDDED = {
       "instruction": "Le Tambour du Tonnerre : Alterne Gauche et Droite en rythme !"
     },
     {
-      "qr": "qr_shogun",
-      "name": "Shogun",
+      "qr": "qr_yamato",
+      "name": "Yamato",
       "emoji": "🏯",
+      "kanji": "大和",
+      "color": "#e2e8f0",
+      "dark": "#94a3b8",
+      "discovery": "Le Sanctuaire des 9 Nekos respire enfin, libéré pour l'éternité... L'âme de Yamato veille sur vous à jamais.",
       "question": "Le Shogun était protégé par une créature légendaire en forme de serpent géant qui volait dans les nuages. Qui est-ce ?",
       "answers": [
         "Le Dragon (Ryu)",
@@ -199,7 +235,7 @@ const TEXTS_EMBEDDED = {
       ],
       "correct": 0,
       "gameType": "memory",
-      "instruction": "La Mémoire du Shogun : Mémorise l'ordre des sceaux sacrés !"
+      "instruction": "Les Sceaux du Destin : Mémorise l'ordre des sceaux sacrés !"
     }
   ],
   "cinematics": {
@@ -376,6 +412,10 @@ let T = null; // Global texts object
         guardianData[i].qr    = src.qr;
         guardianData[i].e     = src.emoji;
         guardianData[i].type  = src.gameType;
+        guardianData[i].kanji = src.kanji || '';
+        guardianData[i].color = src.color || '#ffd700';
+        guardianData[i].dark  = src.dark || '#ff1493';
+        guardianData[i].discovery = src.discovery || '';
     });
     // Sync mikoNames
     if (typeof mikoNames !== 'undefined' && TEXTS_EMBEDDED.mikos) {
@@ -408,6 +448,10 @@ async function loadTexts(lang = 'fr') {
                 guardianData[i].qr = g.qr;
                 guardianData[i].e = g.emoji;
                 guardianData[i].type = g.gameType;
+                guardianData[i].kanji = g.kanji || '';
+                guardianData[i].color = g.color || '#ffd700';
+                guardianData[i].dark = g.dark || '#ff1493';
+                guardianData[i].discovery = g.discovery || '';
             });
         }
         

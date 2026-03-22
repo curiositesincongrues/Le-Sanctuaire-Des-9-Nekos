@@ -1030,3 +1030,21 @@
 #circle-progress { filter: drop-shadow(0 0 6px rgba(255,215,0,0.4)); }
 
 .catch-target { cursor: pointer; }
+
+/* ══ ÉCRAN DE DÉCOUVERTE ══ */
+@keyframes discoveryHaloSpin {
+    0%   { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+@keyframes discoveryParticle {
+    0%   { transform: translate(-50%,-50%) scale(1); opacity: 1; }
+    100% { transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(0); opacity: 0; }
+}
+#discovery-overlay { overflow: hidden; }
+
+/* Scanner — texte amélioré */
+#scan-overlay .scan-text {
+    font-family: 'Ma Shan Zheng', cursive;
+    letter-spacing: 2px;
+    font-size: 17px;
+}

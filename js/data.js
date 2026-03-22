@@ -158,15 +158,15 @@ function getRelicSVG(index, size = 40) {
 }
 
 const guardianData = [
-    { qr: "qr_mochi", n: "", e: "🍡", q: "", a: [], r: 1, type: "hold", instr: "" },
-    { qr: "qr_ken", n: "", e: "⚔️", q: "", a: [], r: 0, type: "rhythm", instr: "" },
-    { qr: "qr_shinobi", n: "", e: "🥷", q: "", a: [], r: 2, type: "catch", instr: "" },
-    { qr: "qr_aiko", n: "", e: "💖", q: "", a: [], r: 1, type: "swipe", instr: "" },
-    { qr: "qr_kitsune", n: "", e: "🦊", q: "", a: [], r: 2, type: "scratch", instr: "" },
-    { qr: "qr_sumo", n: "", e: "🍙", q: "", a: [], r: 1, type: "mash", instr: "" },
-    { qr: "qr_zennon", n: "", e: "🧘", q: "", a: [], r: 1, type: "statue", instr: "" },
-    { qr: "qr_taiko", n: "", e: "🥁", q: "", a: [], r: 1, type: "drum", instr: "" },
-    { qr: "qr_shogun", n: "", e: "🏯", q: "", a: [], r: 0, type: "memory", instr: "" }
+    { qr: "qr_hanako",    n: "", e: "🍡", q: "", a: [], r: 0, type: "hold",   instr: "", kanji: "花子", color: "#ffb7c5", dark: "#ff1493" },
+    { qr: "qr_raijin",    n: "", e: "⚔️", q: "", a: [], r: 1, type: "rhythm", instr: "", kanji: "雷神", color: "#98e8d4", dark: "#00b386" },
+    { qr: "qr_kagerou",   n: "", e: "🥷", q: "", a: [], r: 1, type: "catch",  instr: "", kanji: "陽炎", color: "#c4b5fd", dark: "#8b5cf6" },
+    { qr: "qr_amaterasu", n: "", e: "💖", q: "", a: [], r: 0, type: "swipe",  instr: "", kanji: "天照", color: "#fde68a", dark: "#f59e0b" },
+    { qr: "qr_tamamo",    n: "", e: "🦊", q: "", a: [], r: 2, type: "scratch",instr: "", kanji: "玉藻", color: "#fdba74", dark: "#f97316" },
+    { qr: "qr_goemon",    n: "", e: "🍙", q: "", a: [], r: 0, type: "mash",   instr: "", kanji: "五右衛門", color: "#6ee7b7", dark: "#10b981" },
+    { qr: "qr_mugen",     n: "", e: "🧘", q: "", a: [], r: 1, type: "statue", instr: "", kanji: "無限", color: "#a5b4fc", dark: "#6366f1" },
+    { qr: "qr_hibiki",    n: "", e: "🥁", q: "", a: [], r: 2, type: "drum",   instr: "", kanji: "響",   color: "#fca5a5", dark: "#ef4444" },
+    { qr: "qr_yamato",    n: "", e: "🏯", q: "", a: [], r: 0, type: "memory", instr: "", kanji: "大和", color: "#e2e8f0", dark: "#94a3b8" }
 ];
 
 let currentFound = 0; let foundGuardians = new Set(); let hpOni = 0; let audioCtx, masterGain;
