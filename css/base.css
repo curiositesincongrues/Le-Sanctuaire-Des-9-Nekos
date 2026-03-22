@@ -5,18 +5,14 @@
 :root { --sakura: #ffb7c5; --gold: #ffd700; --deep: #1a051d; --white: #ffffff; --oni: #ff4d4d; --kusanagi: #4fc3f7; --bg-lightness: 10%; --bg-current: #5d1a4a; --bg-glow: #8c3873; --bg-edge: #5d1a4a; color-scheme: light only; }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
+html, body { width: 100%; height: 100%; overflow: hidden; }
 body { margin: 0; background: var(--bg-current); height: 100dvh; width: 100vw; overflow: hidden; color: white; transition: background 1.5s ease-in-out; overscroll-behavior: none; user-select: none; -webkit-user-select: none; font-family: 'Fredoka One', cursive;}
-/* Mobile render profiles */
+#app { position: relative; width: 100vw; height: 100dvh; overflow: hidden; }
+/* On mobile, body gets the radial gradient matching the WebGL bg shader.
+   Visible through transparent canvas (alpha:true) when WebGL fails. */
 .is-mobile body { background: radial-gradient(ellipse at 50% 35%, var(--bg-glow) 0%, var(--bg-edge) 70%); }
-html.render-premium body { background: var(--bg-current) !important; }
-html.render-balanced body { background: radial-gradient(ellipse at 50% 33%, var(--bg-glow) 0%, color-mix(in srgb, var(--bg-current) 72%, var(--bg-glow) 28%) 48%, var(--bg-edge) 78%) !important; }
-html.render-safe body { background: radial-gradient(ellipse at 50% 35%, var(--bg-glow) 0%, var(--bg-edge) 70%) !important; }
 
-#canvas-fx { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
-html.render-premium #canvas-fx { opacity: 1; }
-html.render-balanced #canvas-fx { opacity: 1; }
-html.render-safe #canvas-fx { opacity: 1; }
-html.render-premium.no-webgl body, body.no-webgl { background: radial-gradient(ellipse at center, var(--bg-glow) 0%, var(--bg-edge) 72%) !important; }
+#canvas-fx { position: fixed; inset: 0; width: 100vw; height: 100dvh; z-index: 1; pointer-events: none; }
 #flash { position: fixed; inset: 0; background: transparent; opacity: 0; z-index: 9000; pointer-events: none; transition: opacity 0.1s, background 0.1s; }
 
 /* --- OVERLAYS CINÉMATIQUES --- */
@@ -26,7 +22,7 @@ body.cinema-glitch #canvas-fx { filter: hue-rotate(-30deg) saturate(1.5); }
 body.cinema-glitch #cinema-grain { opacity: 0.3 !important; animation: grain-flicker 0.1s steps(1) infinite; }
 @keyframes grain-flicker { 0% { transform: translate(0,0); } 50% { transform: translate(-2px, 1px); } 100% { transform: translate(1px, -1px); } }
 
-.fog { position: absolute; inset: -50%; background: url('https://www.transparenttextures.com/patterns/stardust.png'); opacity: 0.15; animation: fog-move 30s linear infinite; pointer-events: none; z-index: 0; transform: none; }
+.fog { position: fixed; inset: -50%; background: url('https://www.transparenttextures.com/patterns/stardust.png'); opacity: 0.15; animation: fog-move 30s linear infinite; pointer-events: none; z-index: 0; transform: none; }
 @keyframes fog-move { from { transform: translate(0px, 0px) rotate(0deg); } to { transform: translate(5%, 5%) rotate(5deg); } }
 
 /* --- QR / AR MODE --- */
@@ -215,7 +211,7 @@ body.ar-mode #screen-hub { background: transparent !important; }
     height: 100vh;   /* On libère la hauteur */
     z-index: 90; 
     overflow: visible; /* On empêche la coupure */
-    pointer-events: none; /* Laisse passer les clics vers les pattes */
+    pointer-events: auto; /* DOIT capter les clics pour les runes enfants */
 }
 #constellation-lines { position: absolute; inset: 0; z-index: 100; pointer-events: none; }
 .rune-node { position: absolute; font-size: 40px; transform: translate(-50%, -50%); transition: transform 0.2s cubic-bezier(0.17, 0.89, 0.32, 1.49), filter 0.2s; z-index: 101; user-select: none; -webkit-user-select: none; touch-action: none; filter: drop-shadow(0 0 15px rgba(255,183,197,0.3)); cursor: pointer;}
@@ -298,80 +294,4 @@ body.ar-mode #screen-hub { background: transparent !important; }
 .smoke-particle, .ember, .gold-mote, .ray, .final-lantern, .eclipse-ring, .eclipse-pulse,
 .ghost-guardian, .kd-container, .kodama-new-head, .ritual-mandala, .kusanagi-svg {
     will-change: transform, opacity;
-}
-
-/* =======================================================
-   PASS 4 — Polish mobile Pixel 9a (mobile only)
-   Reserre la composition, allège le voile, affine la vignette.
-   ======================================================= */
-@media (max-width: 900px) and (orientation: portrait) {
-  .is-mobile .screen {
-    padding-top: calc(16px + env(safe-area-inset-top));
-    padding-bottom: calc(16px + env(safe-area-inset-bottom));
-    padding-left: 16px;
-    padding-right: 16px;
-  }
-
-  .is-mobile .screen::before {
-    opacity: 0.12;
-    background-size: 320px 320px;
-  }
-
-  .is-mobile .game-title-3d {
-    top: calc(8.2% + env(safe-area-inset-top));
-    font-size: clamp(29px, 4.8vw, 38px);
-    line-height: 1.22;
-    letter-spacing: 1.3px;
-    padding: 0 18px;
-  }
-
-  .is-mobile .bg-kanji {
-    top: 50%;
-    font-size: min(58vw, 300px);
-  }
-
-  .is-mobile #story-text {
-    font-size: clamp(17px, 4.55vw, 21px);
-    line-height: 1.42;
-    min-height: 84px;
-    max-width: min(86vw, 560px);
-    margin-top: 0;
-  }
-
-  .is-mobile .btn-grad {
-    width: min(88vw, 640px);
-  }
-
-  .is-mobile #btn-start {
-    width: min(86vw, 620px);
-    padding: 18px 28px;
-  }
-
-  .is-mobile .frame-parchemin {
-    width: min(92vw, 430px);
-    padding: 28px 24px;
-  }
-
-  .is-mobile #cinema-vignette {
-    background: radial-gradient(ellipse at center, transparent 56%, rgba(0,0,0,0.38) 100%);
-  }
-
-  .is-mobile body:has(#layer-boat.show-layer) #cinema-vignette,
-  .is-mobile body:has(#layer-koi.show-layer) #cinema-vignette,
-  .is-mobile body:has(#layer-castle.show-layer) #cinema-vignette {
-    background: radial-gradient(ellipse at center, transparent 58%, rgba(0,0,0,0.30) 100%);
-  }
-
-  .is-mobile body:has(#layer-torii.show-layer) #cinema-vignette {
-    background: radial-gradient(ellipse at center, transparent 58%, rgba(0,0,0,0.26) 100%);
-  }
-
-  .is-mobile body:has(#layer-noface.show-layer) #cinema-vignette,
-  .is-mobile body:has(#neko-hero[style*="display: block"]) #cinema-vignette {
-    background: radial-gradient(ellipse at center, transparent 56%, rgba(0,0,0,0.34) 100%);
-  }
-
-  .is-mobile body:has(#layer-daruma.show-layer) #cinema-vignette {
-    background: radial-gradient(ellipse at center, transparent 48%, rgba(0,0,0,0.50) 100%);
-  }
 }

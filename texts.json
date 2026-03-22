@@ -1,7 +1,7 @@
 {
   "meta": {
     "lang": "fr",
-    "version": "1.3"
+    "version": "1.0"
   },
   "app": {
     "title": "LE SANCTUAIRE<br>DES 9 NEKOS",
@@ -36,7 +36,7 @@
   },
   "oath": {
     "title": "LE SCELLÉ MAGIQUE",
-    "instruction": "🐾 Maintenez chacune un pouce sur une patte jusqu'à ce qu'elle se cristallise !",
+    "instruction": "🐾 Posez chacune un pouce sur votre Rune et maintenez le contact !",
     "counter": "/ 8"
   },
   "hub": {
@@ -76,98 +76,145 @@
   "guardians": [
     {
       "qr": "qr_mochi",
-      "name": "SATO",
+      "name": "Mochi",
       "emoji": "🍡",
-      "question": "Au Japon, la pâte sucrée traditionnelle cachée à l'intérieur des Mochis est faite à base de...",
-      "answers": ["Chocolat", "Haricots rouges", "Crème de sésame"],
-      "correct": 1,
+      "question": "À l'intérieur des délicieux mochis, on trouve souvent une pâte sucrée très populaire au Japon. De quoi est-elle faite ?",
+      "answers": [
+        "De haricots rouges",
+        "De fraises écrasées",
+        "De thé vert"
+      ],
+      "correct": 0,
       "gameType": "hold",
       "instruction": "La Pesée de Riz : Maintiens appuyé sans relâcher !"
     },
     {
       "qr": "qr_ken",
-      "name": "KENSHIN",
+      "name": "Ken",
       "emoji": "⚔️",
-      "question": "Selon la croyance japonaise, si tu plies 1000 origamis de cet oiseau, ton vœu se réalisera :",
-      "answers": ["La Grue", "Le Corbeau", "Le Cygne"],
-      "correct": 0,
+      "question": "Les puissants guerriers Samouraïs obéissaient à un code d'honneur et de courage très strict. Comment s'appelait-il ?",
+      "answers": [
+        "Le Judo",
+        "Le Bushido",
+        "Le Sudoku"
+      ],
+      "correct": 1,
       "gameType": "rhythm",
-      "instruction": "Le Forgeron : Tape en rythme quand ça s'illumine !"
+      "instruction": "Le Rythme du Sabre : Frappe quand la lame brille !"
     },
     {
       "qr": "qr_shinobi",
-      "name": "HAYATE",
+      "name": "Shinobi",
       "emoji": "🥷",
-      "question": "Dans les légendes japonaises, comment appelle-t-on les mystérieux esprits de la nature et les fantômes ?",
-      "answers": ["Les Yokais", "Les Ninjas", "Les Pokémons"],
-      "correct": 0,
+      "question": "Les ninjas étaient les maîtres de l'ombre. Comment s'appelle l'art martial secret qu'ils étudiaient ?",
+      "answers": [
+        "Le Kenjutsu",
+        "Le Ninjutsu",
+        "Le Karaté"
+      ],
+      "correct": 1,
       "gameType": "catch",
-      "instruction": "Cache-Cache : Attrape-le 5 fois vite !"
+      "instruction": "L'Ombre Fuyante : Attrape le sceau avant qu'il disparaisse !"
     },
     {
       "qr": "qr_aiko",
-      "name": "SAYURI",
+      "name": "Aiko",
       "emoji": "💖",
-      "question": "Au printemps, les Japonais célèbrent le 'Hanami'. Mais que regardent-ils pendant cette fête ?",
-      "answers": ["Les étoiles filantes", "Les fleurs de cerisier", "La neige fondre"],
-      "correct": 1,
+      "question": "Dans les légendes japonaises, comment appelle-t-on les esprits, les fantômes ou les monstres comme l'Ombre que vous combattez ?",
+      "answers": [
+        "Les Yokais",
+        "Les Kami",
+        "Les Kamikazes"
+      ],
+      "correct": 0,
       "gameType": "swipe",
-      "instruction": "L'Éventail : Glisse ton doigt pour faire du vent !"
+      "instruction": "Le Souffle du Cœur : Glisse pour repousser l'Ombre !"
     },
     {
       "qr": "qr_kitsune",
-      "name": "INARI",
+      "name": "Kitsune",
       "emoji": "🦊",
-      "question": "Le Maneki-Neko, ce célèbre chat porte-bonheur, tient toujours un objet dans sa patte. Lequel ?",
-      "answers": ["Une clochette", "Un poisson", "Une pièce d'or"],
+      "question": "La légende dit qu'un renard magique gagne quelque chose tous les 100 ans pour prouver sa grande sagesse. Quoi donc ?",
+      "answers": [
+        "Une paire d'ailes",
+        "Une clochette d'or",
+        "Une nouvelle queue"
+      ],
       "correct": 2,
       "gameType": "scratch",
-      "instruction": "L'Encre Maudite : Frotte pour révéler le masque !"
+      "instruction": "L'Encre Maudite : Frotte pour révéler le sceau caché !"
     },
     {
       "qr": "qr_sumo",
-      "name": "RIKI",
+      "name": "Sumo",
       "emoji": "🍙",
-      "question": "Quel célèbre studio d'animation japonais a créé Mon Voisin Totoro et Le Voyage de Chihiro ?",
-      "answers": ["Studio Disney", "Studio Ghibli", "Studio Nintendo"],
-      "correct": 1,
+      "question": "Juste avant le combat, que lancent les grands lutteurs de Sumo sur le sol pour chasser les mauvais esprits ?",
+      "answers": [
+        "Du sel",
+        "Du sable",
+        "Du poivre"
+      ],
+      "correct": 0,
       "gameType": "mash",
-      "instruction": "Le Duel : VITE ! Tape 30 fois !"
+      "instruction": "La Force du Colosse : Martèle l'écran de toutes tes forces !"
     },
     {
       "qr": "qr_zennon",
-      "name": "ENZO",
+      "name": "Zennon",
       "emoji": "🧘",
-      "question": "Dans la philosophie Zen, que représente le cercle sacré tracé d'un seul trait (Enso) ?",
-      "answers": ["La répétition", "L'infini ou l'absolu", "Le temps"],
+      "question": "Comment s'appelle la tradition japonaise qui consiste à contempler les fleurs de cerisiers au printemps ?",
+      "answers": [
+        "L'Ikebana",
+        "Le Hanami",
+        "L'Origami"
+      ],
       "correct": 1,
       "gameType": "statue",
-      "instruction": "Méditation Zen : Chut... Ne touche plus l'écran."
+      "instruction": "L'Immobilité du Sage : Ne bouge plus... Deviens la statue !"
     },
     {
       "qr": "qr_taiko",
-      "name": "RAIDEN",
+      "name": "Taiko",
       "emoji": "🥁",
-      "question": "Comment nomme-t-on les baguettes de bois utilisées pour frapper le tambour Taiko ?",
-      "answers": ["Les Hashi", "Les Bachi", "Les Katanas"],
-      "correct": 1,
+      "question": "Le Taiko est un tambour géant qui résonne comme le tonnerre. Avec quoi les musiciens frappent-ils dessus ?",
+      "answers": [
+        "Avec les mains nues",
+        "Avec des maillets rembourrés",
+        "Avec de gros bâtons en bois"
+      ],
+      "correct": 2,
       "gameType": "drum",
-      "instruction": "Le Tambour : Alterne Gauche (G) et Droite (D) !"
+      "instruction": "Le Tambour du Tonnerre : Alterne Gauche et Droite en rythme !"
     },
     {
       "qr": "qr_shogun",
-      "name": "NOBORU",
+      "name": "Shogun",
       "emoji": "🏯",
-      "question": "Selon la légende, la véritable épée sacrée Kusanagi a été découverte dans...",
-      "answers": ["La gueule d'un tigre", "La queue d'un dragon", "Le cœur d'un volcan"],
-      "correct": 1,
+      "question": "Le Shogun était protégé par une créature légendaire en forme de serpent géant qui volait dans les nuages. Qui est-ce ?",
+      "answers": [
+        "Le Dragon (Ryu)",
+        "Le Phénix",
+        "Le Tigre Blanc"
+      ],
+      "correct": 0,
       "gameType": "memory",
-      "instruction": "Le Code Secret : Retiens et reproduis la séquence !"
+      "instruction": "La Mémoire du Shogun : Mémorise l'ordre des sceaux sacrés !"
     }
   ],
   "cinematics": {
-    "acts": ["壱", "弐", "参", "肆", "伍"],
-    "shadows": ["守", "魂", "光", "封"],
+    "acts": [
+      "壱",
+      "弐",
+      "参",
+      "肆",
+      "伍"
+    ],
+    "shadows": [
+      "守",
+      "魂",
+      "光",
+      "封"
+    ],
     "intro": {
       "act1": [
         {
@@ -214,7 +261,7 @@
     }
   },
   "finale": {
-    "title": "SANCTUAIRE RESTAURÉ !",
+    "title": "",
     "exorcism": [
       {
         "fr": "Les 9 Gardiens sont réunis.",
@@ -225,33 +272,26 @@
         "jp": "Kage ga saigo ni tatsu."
       },
       {
-        "fr": "Mais la magie des héroïnes est plus forte !",
-        "jp": "Hiroin no chikara ga masaru!"
+        "fr": "Mais la magie des 8 Mikos est plus forte !",
+        "jp": "Hachi-nin no Miko no chikara ga masaru!"
       }
     ],
-    "countdown": ["三", "二", "一"],
-    "hikari": "光",
-    "hikariSpoken": "Hikari...",
     "victory": [
       {
-        "fr": "<span style='color:white;'>La lumière brille à nouveau sur Neko-Jinja.</span>",
-        "jp": "Hikari ga futatabi terasu."
+        "fr": "La lumière brille à nouveau sur le Sanctuaire.",
+        "jp": "Hikari ga futatabi Seichi o terashita."
       },
       {
-        "fr": "Votre amitié a purifié l'Ombre.",
-        "jp": "Yūjō ga kage o kiyometa."
+        "fr": "Les Yokai se souviennent... et un pétale suffit à tout dire.",
+        "jp": "Yokai wa oboete iru... hitohira de jūbun da."
       },
       {
-        "fr": "Les Gardiens vous remercient pour votre courage.",
-        "jp": "Shugosha-tachi ga kansha suru."
-      },
-      {
-        "fr": "Le parchemin a scellé votre victoire.",
-        "jp": "Shōri wa fūin sareta."
+        "fr": "Les Gardiens veillent sur vous à jamais.",
+        "jp": "Shugosha-tachi wa eien ni anata-tachi o mamoru."
       }
     ],
     "sealPrompt": {
-      "fr": "<span style='font-size:24px;'>Scellez cette légende dans le Miroir.</span>",
+      "fr": "Scellez cette légende dans le Miroir.",
       "jp": "Densetsu o kagami ni fūin seyo."
     }
   },
@@ -284,8 +324,26 @@
     ]
   },
   "mikos": {
-    "names": ["Ava", "Nelya", "Mariam", "Antinea", "Rosa-Louise", "Romane", "Bahia", "Fatima"],
-    "emojis": ["🌸", "🌙", "✨", "🦊", "🎀", "🔮", "💫", "🦋"]
+    "names": [
+      "Ava",
+      "Nelya",
+      "Mariam",
+      "Antinea",
+      "Rosa-Louise",
+      "Romane",
+      "Bahia",
+      "Fatima"
+    ],
+    "emojis": [
+      "🌸",
+      "🌙",
+      "✨",
+      "🦊",
+      "🎀",
+      "🔮",
+      "💫",
+      "🦋"
+    ]
   },
   "ui": {
     "loading": "Chargement...",

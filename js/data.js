@@ -169,7 +169,7 @@ const guardianData = [
     { qr: "qr_shogun", n: "", e: "🏯", q: "", a: [], r: 0, type: "memory", instr: "" }
 ];
 
-let currentFound = 0; let hpOni = 0; let audioCtx, masterGain;
+let currentFound = 0; let foundGuardians = new Set(); let hpOni = 0; let audioCtx, masterGain;
 let mainOscillators = []; let html5QrcodeScanner = null;
 let hasGyro = false;
 let audioLayers = { wind: null, chime: null, pad: null, melody: null };

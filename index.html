@@ -10,10 +10,12 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="9 Nekos">
     <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="icons/icon-192.png">
     <link rel="icon" type="image/png" href="icons/icon-96x96.png" sizes="96x96">
-<link rel="apple-touch-icon" href="icons/icon-152x152.png">
-<link rel="apple-touch-icon" sizes="180x180" href="icons/icon-192x192.png"> <link rel="apple-touch-icon" sizes="167x167" href="icons/icon-192x192.png"> 
+    <link rel="apple-touch-icon" href="icons/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="167x167" href="icons/icon-192x192.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-192x192.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192x192.png"> 
     <title>🌸 LE SANCTUAIRE DES 9 NEKOS SACRÉS 🌸</title>
     
     <script src="https://unpkg.com/html5-qrcode"></script>
@@ -23,9 +25,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
     
     <!-- CSS DÉCOUPÉ -->
-    <link rel="stylesheet" href="css/base.css?v=90001">
-    <link rel="stylesheet" href="css/cinematics.css?v=90001">
-    <link rel="stylesheet" href="css/game.css?v=90001">
+    <link rel="stylesheet" href="css/base.css?v=940001">
+    <link rel="stylesheet" href="css/cinematics.css?v=940001">
+    <link rel="stylesheet" href="css/game.css?v=940001">
     
     <script id="bg-vs" type="x-shader/x-vertex">
         attribute vec2 aPos; varying vec2 vUv;
@@ -639,7 +641,7 @@
     </div>
 
     <div id="screen-final" class="screen">
-        <h1 style="color:var(--gold); font-size: 30px; text-shadow: 0 0 20px var(--gold); margin: 0 0 10px 0; opacity: 0; transform: translateY(-20px); transition: 1s;" id="final-title">SANCTUAIRE RESTAURÉ !</h1>
+        <h1 style="color:var(--gold); font-size: 30px; text-shadow: 0 0 20px var(--gold); margin: 0 0 10px 0; display: none; opacity: 0; transform: translateY(-20px); transition: 1s;" id="final-title">SANCTUAIRE RESTAURÉ !</h1>
         <div id="final-circ-nekos">
             <div id="final-daruma" class="noface-container awake" style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);"></div>
             <div id="final-neko-hero" class="neko-stage happy" style="opacity: 0; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) scale(1.1);">
@@ -665,7 +667,7 @@
             <p>Sanctuaire purifié en : <b id="cert-time" style="color: var(--oni)">--</b></p>
             <div class="cert-names">Ava • Nelya • Mariam • Antinea<br>Rosa-Louise • Romane • Bahia • Fatima</div>
         </div>
-        <button id="btn-download" class="btn-grad pulse-btn" style="display:none; transform:scale(0); transition:0.5s;" onclick="openMirror()">🪞 OUVRIR LE MIROIR DES ESPRITS</button>
+        <button id="btn-download" class="btn-grad pulse-btn" style="display:none; transform:scale(0); transition:0.5s;" onclick="openMirrorAndCapture()">✨ Figer notre légende ✨</button>
         <canvas id="polaroid-canvas" style="display:none;"></canvas>
         
         <!-- Scène bateau épilogue -->
@@ -693,24 +695,24 @@
             <div class="mirror-frame"></div>
         </div>
         <p class="mirror-instruction">Placez vos visages dans le miroir...</p>
-        <button id="btn-capture" onclick="captureEstampe()">🌸 SCELLER LE REFLET 🌸</button>
+        <button id="btn-capture" onclick="captureEstampe()" style="display:none;">🌸 SCELLER LE REFLET 🌸</button>
     </div>
 
 <!-- JS DÉCOUPÉ (ordre de dépendance) -->
-<script src="js/data.js?v=100000"></script>
-<script src="js/texts.js?v=113"></script>
-<script src="js/audio.js?v=1900"></script>
-<script src="js/renderer.js?v=111900"></script>
-<script src="js/cinematics.js?v=111901"></script>
-<script src="js/game.js?v=111901"></script>
-<script src="js/debug.js?v=114"></script>
+<script src="js/data.js?v=940001"></script>
+<script src="js/texts.js?v=940001"></script>
+<script src="js/audio.js?v=940001"></script>
+<script src="js/renderer.js?v=940001"></script>
+<script src="js/cinematics.js?v=940001"></script>
+<script src="js/game.js?v=940001"></script>
+<script src="js/debug.js?v=940001"></script>
 
 <!-- PWA : Service Worker + Device Detection -->
 <script>
 /* Service Worker Registration */
 if ('serviceWorker' in navigator && (location.protocol === 'http:' || location.protocol === 'https:')) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
+        navigator.serviceWorker.register('./sw.js')
             .then(reg => console.log('[PWA] SW enregistré:', reg.scope))
             .catch(err => console.log('[PWA] SW erreur:', err));
     });
@@ -759,6 +761,14 @@ document.addEventListener('visibilitychange', () => {
         audioCtx.resume().then(() => console.log('[Audio] Reprise après switch app'));
     }
 });
+
+
+
+/* Mobile Shell bootstrap */
+window.__SANCTUARY_SHELL_CONFIG__ = {
+    mobile: /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent || ''),
+    standalone: window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true
+};
 
 /* Camera Permission State Tracking */
 window.cameraPermission = 'unknown'; // 'granted', 'denied', 'unknown'

@@ -3,7 +3,7 @@
    Le Sanctuaire des 9 Nekos Sacrés
    ============================================ */
 
-const CACHE_NAME = 'neko-sanctuaire-v4-texts';
+const CACHE_NAME = 'neko-sanctuaire-v8-shell';
 const ASSETS_TO_CACHE = [
     '/',
     '/index.html',
@@ -19,8 +19,8 @@ const ASSETS_TO_CACHE = [
     '/js/debug.js',
     '/texts.json',
     '/manifest.json',
-    '/icons/icon-192.png',
-    '/icons/icon-512.png'
+    '/icons/icon-192x192.png',
+    '/icons/icon-512x512.png'
 ];
 
 // Fonts externes à cacher au premier chargement
@@ -52,20 +52,36 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
     const url = new URL(event.request.url);
     
-    // Assets locaux → cache-first
+    // Assets locaux JS/CSS → network-first (évite cache périmé après refresh)
+    // HTML + icons → cache-first (stable)
     if (url.origin === location.origin) {
-        event.respondWith(
-            caches.match(event.request).then(cached => {
-                if (cached) return cached;
-                return fetch(event.request).then(response => {
+        const isJSorCSS = url.pathname.endsWith('.js') || url.pathname.endsWith('.css');
+        if (isJSorCSS) {
+            // Network-first : toujours essayer le réseau, fallback cache
+            event.respondWith(
+                fetch(event.request).then(response => {
                     if (response.ok) {
                         const clone = response.clone();
                         caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
                     }
                     return response;
-                }).catch(() => cached);
-            })
-        );
+                }).catch(() => caches.match(event.request))
+            );
+        } else {
+            // Cache-first pour HTML, images, manifest
+            event.respondWith(
+                caches.match(event.request).then(cached => {
+                    if (cached) return cached;
+                    return fetch(event.request).then(response => {
+                        if (response.ok) {
+                            const clone = response.clone();
+                            caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+                        }
+                        return response;
+                    }).catch(() => cached);
+                })
+            );
+        }
         return;
     }
     

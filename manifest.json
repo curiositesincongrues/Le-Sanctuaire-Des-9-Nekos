@@ -8,7 +8,10 @@
   "theme_color": "#ffb7c5",
   "background_color": "#12011a",
   "lang": "fr",
-  "categories": ["games", "entertainment"],
+  "categories": [
+    "games",
+    "entertainment"
+  ],
   "icons": [
     {
       "src": "icons/icon-48x48.png",
@@ -62,5 +65,12 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
-  ]
+  ],
+  "display_override": [
+    "fullscreen",
+    "standalone",
+    "minimal-ui",
+    "browser"
+  ],
+  "scope": "./"
 }

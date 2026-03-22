@@ -354,6 +354,27 @@ function playGameSFX(type, freq=440) {
     else if(type === 'zen') { osc.type = 'sine'; osc.frequency.setValueAtTime(329.63, now); gain.gain.setValueAtTime(0, now); gain.gain.linearRampToValueAtTime(0.4, now+1); gain.gain.exponentialRampToValueAtTime(0.01, now+4); osc.start(now); osc.stop(now+4); } 
     else if(type === 'pop') { osc.type = 'sine'; osc.frequency.setValueAtTime(800, now); osc.frequency.exponentialRampToValueAtTime(1200, now+0.1); gain.gain.setValueAtTime(0.1, now); gain.gain.exponentialRampToValueAtTime(0.01, now+0.1); osc.start(now); osc.stop(now+0.1); } 
     else if(type === 'beep') { osc.type = 'sine'; osc.frequency.setValueAtTime(freq, now); gain.gain.setValueAtTime(0.3, now); gain.gain.exponentialRampToValueAtTime(0.01, now+0.2); osc.start(now); osc.stop(now+0.2); } 
+    else if(type === 'kawaii_pop') {
+        const baseFreqs = [523.25, 659.25, 783.99];
+        baseFreqs.forEach((f, i) => {
+            const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+            o.type = 'sine';
+            o.frequency.setValueAtTime(f * 0.5, now);
+            o.frequency.exponentialRampToValueAtTime(f * 2, now + 0.06);
+            o.frequency.exponentialRampToValueAtTime(f, now + 0.18);
+            g.gain.setValueAtTime(0, now + i * 0.02);
+            g.gain.linearRampToValueAtTime(0.18, now + i * 0.02 + 0.04);
+            g.gain.exponentialRampToValueAtTime(0.01, now + i * 0.02 + 0.5);
+            o.connect(g); g.connect(audioCtx.destination);
+            o.start(now + i * 0.02); o.stop(now + i * 0.02 + 0.5);
+        });
+        const spark = audioCtx.createOscillator(); const sparkGain = audioCtx.createGain();
+        spark.type = 'triangle';
+        spark.frequency.setValueAtTime(2400, now); spark.frequency.exponentialRampToValueAtTime(1200, now + 0.12);
+        sparkGain.gain.setValueAtTime(0.08, now); sparkGain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+        spark.connect(sparkGain); sparkGain.connect(audioCtx.destination);
+        spark.start(now); spark.stop(now + 0.15);
+    }
     else if (type === 'chime_portal') {
         const freqs = [880, 1108.73, 1318.51, 1760];
         freqs.forEach((f, i) => { const o = audioCtx.createOscillator(); const g = audioCtx.createGain(); o.type = 'sine'; o.frequency.value = f; g.gain.setValueAtTime(0, now + i*0.1); g.gain.linearRampToValueAtTime(0.3, now + i*0.1 + 0.1); g.gain.exponentialRampToValueAtTime(0.01, now + i*0.1 + 1.5); o.connect(g); g.connect(audioCtx.destination); o.start(now + i*0.1); o.stop(now + i*0.1 + 1.5); });

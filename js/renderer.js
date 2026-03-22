@@ -10,31 +10,28 @@
 
 const cvs = document.getElementById('canvas-fx');
 const _isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
-const _renderProfile = window.renderProfile || (_isMobile ? 'balanced' : 'desktop');
-const _isPremiumMobile = _renderProfile === 'premium';
-const _isSafeMobile = _renderProfile === 'safe';
 
-// Premium (Pixel 9a target) uses the desktop-like opaque canvas path for richer contrast.
-// Balanced/safe mobile keep transparency so CSS can rescue the screen if the GPU flakes out.
+// ── KEY ARCHITECTURAL FIX ──
+// alpha:false = opaque canvas = CSS behind it is INVISIBLE
+// If GPU fails silently → black wall, no fallback possible
+// alpha:true  = transparent canvas = CSS bleeds through if GPU doesn't draw
 const gl = cvs.getContext('webgl', {
-    alpha: _isMobile ? !_isPremiumMobile : false,
+    alpha: _isMobile,            // mobile: transparent safety net / desktop: opaque perf
     premultipliedAlpha: false,
-    antialias: !_isSafeMobile,
+    antialias: false,            // save GPU on mobile
     preserveDrawingBuffer: false
 });
-
-console.log('[Renderer] Render profile:', _renderProfile, '| mobile:', _isMobile, '| premiumMobile:', _isPremiumMobile, '| safeMobile:', _isSafeMobile);
 
 /* --- CSS Fallback — hides canvas, restores CSS backgrounds --- */
 function activateCSSFallback(reason) {
     if (document.body.classList.contains('no-webgl')) return; // already fired
     console.warn(`[Renderer] ${reason} — CSS fallback active`);
     cvs.style.display = "none";
-    // Opaque paths (desktop + premium mobile) need a real CSS background restored.
-    if (!_isMobile || _isPremiumMobile) {
-        document.body.style.background = "radial-gradient(ellipse at center, var(--bg-glow) 0%, var(--bg-edge) 72%)";
+    // On desktop (alpha:false), body bg was invisible behind opaque canvas — restore it.
+    // On mobile (alpha:true), body gradient is already visible via CSS vars — no inline override needed.
+    if (!_isMobile) {
+        document.body.style.background = "radial-gradient(ellipse at center, #8a2570 0%, #5d1a4a 100%)";
     }
-    document.documentElement.classList.add('no-webgl');
     document.body.classList.add('no-webgl');
 }
 
@@ -50,7 +47,8 @@ const MOODS = {
     SACRE:      { bg:[0.1,0.04,0.18],     glow:[0.22,0.1,0.38],   petal:[1.0,0.8,0.85],   fog:[0.1,0.04,0.18],     wind:0.08, speedMult:0.4,  gravDir:1.0 },
     DARUMA:     { bg:[0.18,0.02,0.02],    glow:[0.35,0.04,0.08],  petal:[0.6,0.05,0.1],   fog:[0.14,0.01,0.01],    wind:1.5,  speedMult:4.0,  gravDir:1.0 },
     RITUEL:     { bg:[0.18,0.06,0.30],    glow:[0.32,0.14,0.48],  petal:[0.8,0.9,1.0],    fog:[0.18,0.06,0.30],    wind:0.05, speedMult:0.3,  gravDir:1.0 },
-    FINAL:      { bg:[0.0,0.0,0.0],       glow:[0.0,0.0,0.0],     petal:[1.0,0.85,0.3],   fog:[0.0,0.0,0.0],       wind:0.1,  speedMult:0.6,  gravDir:1.0 },
+    FINAL:      { bg:[0.10,0.06,0.18],    glow:[0.35,0.20,0.50],  petal:[1.0,1.0,1.0],    fog:[0.08,0.04,0.14],    wind:0.15, speedMult:1.2,  gravDir:1.0 },
+    REUNION:    { bg:[0.10,0.08,0.17],    glow:[0.34,0.26,0.34],  petal:[1.0,0.95,0.98],  fog:[0.09,0.07,0.14],    wind:0.02, speedMult:0.14, gravDir:-0.15 },
     AUBE:       { bg:[0.12,0.06,0.16],    glow:[0.55,0.38,0.12],  petal:[1.0,0.85,0.5],   fog:[0.1,0.05,0.12],     wind:0.03, speedMult:0.15, gravDir:-1.0 },
     VICTOIRE:   { bg:[0.16,0.06,0.20],    glow:[0.5,0.35,0.2],    petal:[1.0,0.9,0.6],    fog:[0.12,0.05,0.16],    wind:0.06, speedMult:0.25, gravDir:-0.5 },
     EPILOGUE:   { bg:[0.04,0.05,0.14],    glow:[0.1,0.15,0.25],   petal:[0.85,0.88,0.95], fog:[0.04,0.05,0.12],    wind:0.02, speedMult:0.1,  gravDir:1.0 }
@@ -166,8 +164,7 @@ if (gl) {
     }
 
     function resize() {
-        const dprCap = _renderProfile === 'premium' ? 2.5 : (_renderProfile === 'balanced' ? 2 : 1.5);
-        const dpr = Math.min(window.devicePixelRatio || 1, dprCap);
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
         cvs.width = window.innerWidth * dpr;
         cvs.height = window.innerHeight * dpr;
         gl.viewport(0, 0, cvs.width, cvs.height);
@@ -260,8 +257,7 @@ if (gl) {
                 gl.bindBuffer(gl.ARRAY_BUFFER, vBuf); gl.enableVertexAttribArray(aPos); gl.vertexAttribPointer(aPos, 3, gl.FLOAT, false, 0, 0); gl.bindBuffer(gl.ARRAY_BUFFER, nBuf); gl.enableVertexAttribArray(aNorm); gl.vertexAttribPointer(aNorm, 3, gl.FLOAT, false, 0, 0);
                 gl.bindBuffer(gl.ARRAY_BUFFER, iBuf1); gl.enableVertexAttribArray(aInst1); gl.vertexAttribPointer(aInst1, 4, gl.FLOAT, false, 0, 0); ext.vertexAttribDivisorANGLE(aInst1, 1);
                 gl.bindBuffer(gl.ARRAY_BUFFER, iBuf2); gl.enableVertexAttribArray(aInst2); gl.vertexAttribPointer(aInst2, 2, gl.FLOAT, false, 0, 0); ext.vertexAttribDivisorANGLE(aInst2, 1);
-                const petalCount = _renderProfile === 'premium' ? 300 : (_renderProfile === 'balanced' ? 220 : 140);
-                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, iBuf); ext.drawElementsInstancedANGLE(gl.TRIANGLES, pInds.length, gl.UNSIGNED_SHORT, 0, petalCount);
+                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, iBuf); ext.drawElementsInstancedANGLE(gl.TRIANGLES, pInds.length, gl.UNSIGNED_SHORT, 0, 300);
             }
 
             requestAnimationFrame(render);
@@ -274,7 +270,7 @@ if (gl) {
            With alpha:true the user already sees CSS (not black),
            but we also hide the canvas and flag no-webgl for
            ThemeManager to stop bridging to a dead context. */
-        if (_isMobile && !_isPremiumMobile) {
+        if (_isMobile) {
             setTimeout(function() {
                 if (gl.isContextLost() || document.body.classList.contains('no-webgl')) return;
                 if (_renderFrameCount < 5) {
