@@ -589,7 +589,13 @@ function startScan() {
                         return u.searchParams.get('seal') || text;
                     } catch(e) { return text; }
                 };
-                if(extractSeal(decodedText) === guardianData[currentFound].qr) {
+                const scannedSeal = extractSeal(decodedText);
+                // Chercher le gardien correspondant parmi ceux non encore trouvés
+                const scannedIdx = guardianData.findIndex(g => g.qr === scannedSeal);
+                if (scannedIdx !== -1 && !foundGuardians.has(scannedIdx)) {
+                    currentFound = scannedIdx; // Setter le bon gardien
+                }
+                if(scannedSeal === guardianData[currentFound].qr && !foundGuardians.has(currentFound)) {
                     circle.classList.remove('scan-active');
                     circle.classList.add('scan-success');
                     
@@ -679,6 +685,9 @@ function submitManualCode() {
     const code = document.getElementById('manual-code').value.trim().toUpperCase();
     if (!code) return;
     
+    // Chercher le gardien correspondant parmi ceux non encore trouvés
+    const manualIdx = guardianData.findIndex(g => g.qr === code || g.qr.toUpperCase() === code);
+    if (manualIdx !== -1 && !foundGuardians.has(manualIdx)) currentFound = manualIdx;
     if (code === guardianData[currentFound].qr || code === guardianData[currentFound].qr.toUpperCase()) {
         playGameSFX('pop'); playMikoChime(currentFound);
         if(navigator.vibrate) navigator.vibrate([50, 30, 100]);
@@ -1455,7 +1464,7 @@ function playMinigame() {
 
 /* --- WIN / SOUL ANIMATION --- */
 function winGame() {
-    const wonIndex = currentFound; foundGuardians.add(wonIndex); currentFound = foundGuardians.size;
+    const wonIndex = currentFound; foundGuardians.add(wonIndex); // currentFound reste inchangé jusqu'au prochain scan
     window.ondevicemotion = null; document.body.ontouchstart = null; document.body.onmouseup = null;
     window._memTap = null; window.mem = null;
     window.speechSynthesis.cancel();
@@ -1473,7 +1482,7 @@ function animateSoulToHub(idx) {
     setTimeout(() => {
         const grid = document.getElementById('grid-nekos'); grid.innerHTML = "";
         guardianData.forEach((g, i) => { 
-            let isUnlocked = foundGuardians.has(i) && i !== wonIndex;
+            let isUnlocked = foundGuardians.has(i) && i !== idx;
             const svgIcon = getRelicSVG(i); 
             grid.innerHTML += `<div id="slot-${i}" class="slot ${isUnlocked ? 'unlocked' : 'locked'}" onclick="handleSlotClick(${i})">${svgIcon}</div>`; 
         });
