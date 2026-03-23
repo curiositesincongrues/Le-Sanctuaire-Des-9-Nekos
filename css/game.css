@@ -18,9 +18,9 @@
 .compass-inner-ring { position: absolute; width: 150px; height: 150px; border: 3px dashed var(--sakura); border-radius: 50%; animation: spin-reverse 15s linear infinite; opacity: 0.6; pointer-events: none;}
 #needle-gold { width: 6px; height: 80px; background: var(--gold); position: absolute; bottom: 50%; transform-origin: bottom center; border-radius: 10px; box-shadow: 0 0 15px var(--gold); z-index: 4; transition: transform 0.2s ease-out;}
 .grid-9 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 20px; margin-bottom: 10px; }
-.slot { width: 70px; height: 70px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.05); border: 2px dashed rgba(255,183,197,0.4); border-radius: 15px; font-size: 30px; transition: all 0.5s cubic-bezier(0.17, 0.89, 0.32, 1.49); cursor: pointer; position: relative; filter: grayscale(0.9) opacity(0.4); }
+.slot { width: 70px; height: 70px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.05); border: 2px dashed rgba(255,183,197,0.4); border-radius: 15px; font-size: 30px; transition: all 0.5s cubic-bezier(0.17, 0.89, 0.32, 1.49); cursor: pointer; position: relative; filter: grayscale(0.85) opacity(0.55); }
 .slot.unlocked { filter: grayscale(0) opacity(1); border: 3px solid var(--gold); background: rgba(255, 183, 197, 0.2); box-shadow: 0 0 15px rgba(255,183,197,0.5); font-size: 40px; animation: pulse-card 2s infinite alternate; }
-#hub-progress-container { width: 80%; height: 14px; background: rgba(0,0,0,0.5); border-radius: 10px; overflow: hidden; margin-top: 8px; border: 2px solid rgba(255,183,197,0.3); }
+#hub-progress-container { width: 80%; height: 14px; background: rgba(255,183,197,0.15); border-radius: 10px; overflow: hidden; margin-top: 8px; border: 2px solid rgba(255,183,197,0.5); }
 #hub-progress-bar { width: 0%; height: 100%; background: linear-gradient(90deg, var(--sakura), var(--gold)); transition: width 0.8s cubic-bezier(0.17, 0.89, 0.32, 1.49); }
 
 /* --- GAME ARENA --- */
@@ -60,20 +60,25 @@
 
 /* --- ÉCRAN FINAL --- */
 #screen-final { background: linear-gradient(to bottom, transparent 0%, transparent 100%); transition: background 1.5s ease; }
-#final-circ-nekos { position: relative; width: 100%; display: flex; justify-content: center; align-items: center; min-height: min(450px, 50dvh); margin-top: 40px; margin-bottom: 10px; overflow: visible; transition: opacity 1.5s ease; }
+#final-circ-nekos { position: relative; width: 100%; display: flex; justify-content: center; align-items: center; min-height: min(450px, 50dvh); margin-top: min(40px, 4dvh); margin-bottom: 10px; overflow: visible; transition: opacity 1.5s ease; }
 .final-node { position: absolute; font-size: 50px; opacity: 0; transform: scale(0) rotate(180deg); transition: all 0.6s cubic-bezier(0.17, 0.89, 0.32, 1.49); filter: drop-shadow(0 0 10px white); z-index: 10;}
-#final-story-box { font-family: 'Fredoka One', cursive; font-size: 18px; line-height: 1.6; min-height: 100px; margin-top: 10px; color: #ffffff !important; text-shadow: 0px 4px 10px rgba(0,0,0,1), 0px 0px 5px rgba(0,0,0,1) !important; font-weight: bold; transition: opacity 0.8s ease, transform 0.8s ease; opacity: 1; transform: translateY(0); z-index: 9999 !important; position: relative; }
+#final-story-box { font-family: 'Fredoka One', cursive; font-size: 18px; line-height: 1.6; min-height: 100px; margin-top: 10px; color: #ffffff !important; text-shadow: 0px 4px 10px rgba(0,0,0,1), 0px 0px 5px rgba(0,0,0,1), 0 0 30px rgba(0,0,0,0.8) !important; font-weight: bold; transition: opacity 0.8s ease, transform 0.8s ease; opacity: 1; transform: translateY(0); z-index: 9999 !important; position: relative; }
 @media (max-width: 480px) {
     #final-story-box {
         font-size: 16px;
-        padding: 8px 16px;
-        background: rgba(0, 0, 0, 0.45);
-        border-radius: 12px;
-        backdrop-filter: blur(4px);
-        -webkit-backdrop-filter: blur(4px);
+        padding: 4px 16px;
         margin: 0 12px;
         min-height: 60px;
+        /* Pas de background — text-shadow renforcé pour lisibilité */
+        text-shadow:
+            0 2px 4px rgba(0,0,0,1),
+            0 4px 12px rgba(0,0,0,1),
+            0 0 30px rgba(0,0,0,0.95) !important;
     }
+}
+/* iPhone SE et très petits écrans — texte miroir plus compact */
+@media (max-height: 680px) {
+    #final-story-box { font-size: 15px !important; }
 }
 
 /* --- CERTIFICAT --- */
@@ -1142,7 +1147,7 @@
 }
 .mirror-portal {
     position:fixed; left:50%; top:50%; transform:translate(-50%,-50%);
-    width:min(420px,80vmin); height:min(420px,80vmin);
+    width:min(380px,76vmin); height:min(380px,76vmin);
     border-radius:50%;
     border:2px solid rgba(255,215,0,0.35);
     animation:portal-pulse 3s ease-in-out infinite;
@@ -1236,4 +1241,22 @@
     10%  { opacity:0.7; }
     90%  { opacity:0.5; }
     100% { transform:translateY(calc(min(420px,80vmin) + 10px)) rotate(180deg); opacity:0; }
+}
+
+/* ── OPT-02 : Neko Suprême scale explicite mobile ── */
+@media (max-width: 480px) {
+    .neko-supreme-stage .neko-scale-wrapper { transform: scale(0.38) !important; }
+}
+
+/* ── VIS-04 : Portal miroir breakpoints ── */
+@media (min-width: 600px) {
+    .mirror-portal { width: min(440px, 58vmin) !important; height: min(440px, 58vmin) !important; }
+    .mirror-portal-ring { width: min(470px, 62vmin) !important; height: min(470px, 62vmin) !important; }
+}
+
+/* ── will-change sur animations critiques outro ── */
+.kd-container, .miko-doll, .mirror-portal, .mirror-portal-ring,
+.mystic-pop-relic, .mystic-pop-neko-wrap, .neko-supreme-wrap,
+.kd-ground-glow, .mirror-name-rain {
+    will-change: transform, opacity;
 }

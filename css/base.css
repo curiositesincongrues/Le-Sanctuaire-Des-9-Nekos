@@ -18,7 +18,7 @@ body { margin: 0; background: var(--bg-current); height: 100dvh; width: 100vw; o
 
 /* ① WebGL canvas — luminosité + saturation boostées */
 .is-mobile #canvas-fx {
-    filter: brightness(1.4) saturate(1.2) contrast(1.05);
+    filter: brightness(1.2) saturate(1.05) contrast(1.02); /* réduit pour ne pas sur-saturer le WebGL */
 }
 
 /* ② Textes narratifs — text-shadow noir renforcé pour percer le voile solaire */

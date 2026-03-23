@@ -273,8 +273,8 @@ if (gl) {
         if (_isMobile) {
             setTimeout(function() {
                 if (gl.isContextLost() || document.body.classList.contains('no-webgl')) return;
-                if (_renderFrameCount < 5) {
-                    activateCSSFallback("Render loop stalled (" + _renderFrameCount + " frames in 1.5s)");
+                if (_renderFrameCount < 3) {
+                    activateCSSFallback("Render loop stalled (" + _renderFrameCount + " frames in 3s)");
                     return;
                 }
                 try {
@@ -292,7 +292,7 @@ if (gl) {
                 } catch(e) {
                     activateCSSFallback("Watchdog readPixels error: " + e.message);
                 }
-            }, 1500);
+            }, 3000); // Augmenté de 1.5s à 3s — laisse le temps aux flagship mobile
         }
     }
 }

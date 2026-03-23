@@ -1068,10 +1068,10 @@ function playMinigame() {
 
         const doSwipe = (dx, dy) => {
             const isCorrect =
-                (currentDir === '→' && dx > 50) ||
-                (currentDir === '←' && dx < -50) ||
-                (currentDir === '↑' && dy < -50) ||
-                (currentDir === '↓' && dy > 50);
+                (currentDir === '→' && dx > 20) ||
+                (currentDir === '←' && dx < -20) ||
+                (currentDir === '↑' && dy < -20) ||
+                (currentDir === '↓' && dy > 20);
             if (isCorrect) {
                 score++;
                 playMikoChime(score % 8);
@@ -1088,10 +1088,49 @@ function playMinigame() {
             }
         };
 
+        // Touch — swipe naturel
         tg.ontouchstart = (e) => { startX = e.touches[0].clientX; startY = e.touches[0].clientY; };
         tg.ontouchend = (e) => { doSwipe(e.changedTouches[0].clientX - startX, e.changedTouches[0].clientY - startY); };
+        // Souris — clic + glisser (seuil réduit à 20px)
         tg.onmousedown = (e) => { startX = e.clientX; startY = e.clientY; };
         tg.onmouseup = (e) => { doSwipe(e.clientX - startX, e.clientY - startY); };
+        // Clavier — flèches directionnelles (desktop)
+        const _swipeKey = (e) => {
+            const map = { ArrowRight:'→', ArrowLeft:'←', ArrowUp:'↑', ArrowDown:'↓' };
+            if (!map[e.key]) return;
+            e.preventDefault();
+            const dMap = { '→':[100,0], '←':[-100,0], '↑':[0,-100], '↓':[0,100] };
+            const [dx,dy] = dMap[map[e.key]];
+            doSwipe(dx, dy);
+        };
+        window.addEventListener('keydown', _swipeKey);
+        // Boutons directionnels visibles sur desktop
+        const dpadWrap = document.createElement('div');
+        dpadWrap.id = 'swipe-dpad';
+        dpadWrap.style.cssText = 'display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:1fr 1fr 1fr;gap:6px;width:150px;height:150px;margin-top:16px;';
+        const btnStyle = 'width:44px;height:44px;border-radius:12px;border:2px solid rgba(255,105,180,0.5);background:rgba(255,105,180,0.12);font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.1s;color:#ff69b4;';
+        const dpad = [
+            {dir:'↑',dx:0,dy:-100,col:2,row:1},
+            {dir:'←',dx:-100,dy:0,col:1,row:2},
+            {dir:'→',dx:100,dy:0,col:3,row:2},
+            {dir:'↓',dx:0,dy:100,col:2,row:3},
+        ];
+        dpad.forEach(({dir,dx,dy,col,row}) => {
+            const btn = document.createElement('button');
+            btn.textContent = dir;
+            btn.style.cssText = btnStyle + `grid-column:${col};grid-row:${row};`;
+            btn.onmousedown = () => { btn.style.background='rgba(255,105,180,0.35)'; };
+            btn.onclick = () => { btn.style.background='rgba(255,105,180,0.12)'; doSwipe(dx,dy); };
+            dpadWrap.appendChild(btn);
+        });
+        // Afficher le dpad uniquement sur non-touch
+        if (!('ontouchstart' in window)) {
+            tg.closest('div').appendChild(dpadWrap);
+        }
+        // Nettoyage clavier à la fin du jeu (winGame supprime l'arena)
+        const _origWin = winGame;
+        const _cleanSwipe = () => { window.removeEventListener('keydown', _swipeKey); };
+        tg.closest('div').addEventListener('DOMNodeRemoved', _cleanSwipe, {once:true});
     }
 
     // ══════════════════════════════════════════
@@ -1644,6 +1683,8 @@ function setOutroMood(mood) {
 /* --- CINÉMATIQUE FINALE — TEXTE + WEBGL + VOIX JP --- */
 async function launchFinalCinematic() {
     transitionScreen('screen-final', "✨");
+    // Nettoyer le kanji d'acte intro (五幕·落) qui peut persister
+    try { document.getElementById('act-counter')?.classList.remove('visible'); } catch(e) {}
 
     // Init audio — résoudre le contexte suspendu (politique navigateur anti-autoplay)
     if (!audioCtx) { try { initSfx(); } catch(e) {} }
@@ -1926,7 +1967,7 @@ async function launchFinalCinematic() {
                 <div class="ember em-3"></div>
                 <div class="ember em-4"></div>
             </div>`;
-        daruma.style.cssText = 'display:block;opacity:0;transform:translate(-50%,-50%) scale(0.2);transition:none;position:fixed;left:50%;top:45%;';
+        daruma.style.cssText = 'display:block;opacity:0;transform:translate(-50%,-50%) scale(0.2);transition:none;position:fixed;left:50%;top:clamp(38%, 45%, 48%);';
         daruma.classList.add('awake');
         // Forcer un reflow avant d'ajouter la transition
         void daruma.offsetHeight;
@@ -1950,7 +1991,7 @@ async function launchFinalCinematic() {
         }
     } catch(e) {}
 
-    await showFinalText(exorcism[1], 0);
+    await showFinalText(exorcism[1], 100);
 
     // Apparition de l'ombre
     await sleep(100);
@@ -2291,10 +2332,10 @@ async function spawnMikosScene(sf, sleep) {
         { mi: 3, row: 'back',  x:   55, y: -80, scale: 0.85 }, // Antinea
         { mi: 1, row: 'back',  x:  165, y: -75, scale: 0.82 }, // Nelya
         // Rangée avant (y=+30px depuis centre)
-        { mi: 6, row: 'front', x: -185, y:  30, scale: 0.90 }, // Bahia
+        { mi: 6, row: 'front', x: -162, y:  30, scale: 0.90 }, // Bahia
         { mi: 0, row: 'front', x:  -55, y:  20, scale: 1.10 }, // Ava (centre gauche, légèrement plus basse)
         { mi: 2, row: 'front', x:   55, y:  20, scale: 1.00 }, // Mariam
-        { mi: 4, row: 'front', x:  185, y:  30, scale: 0.90 }, // Rosa-Louise
+        { mi: 4, row: 'front', x:  162, y:  30, scale: 0.90 }, // Rosa-Louise
     ];
 
     const container = document.createElement('div');
@@ -2422,7 +2463,7 @@ async function spawnCastleVictory(sf, sleep) {
     container.id = 'castle-victory-scene';
     container.style.cssText = 'position:fixed;inset:0;z-index:9998;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;opacity:0;transition:opacity 0.8s ease;';
     container.innerHTML = `
-        <div style="position:relative;width:260px;height:320px;display:flex;align-items:center;justify-content:center;">
+        <div style="position:relative;width:260px;height:min(320px,45dvh);display:flex;align-items:center;justify-content:center;">
             <div style="position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);width:300px;height:100px;background:radial-gradient(ellipse,rgba(255,120,50,0.45) 0%,rgba(255,200,80,0.2) 45%,transparent 72%);filter:blur(22px);z-index:0;"></div>
             <svg viewBox="0 0 240 300" width="240" height="300" style="position:relative;z-index:1;filter:drop-shadow(0 0 14px rgba(160,40,20,0.5));">
                 <g>
@@ -2495,8 +2536,8 @@ async function spawnYokaiScene(sf, sleep) {
 
     // ml = offset depuis le centre de la zone (négatif=gauche, positif=droite)
     zone.innerHTML =
-        kd('kd-rhythm-3',  -60, 38, 0.62, -1.0) +  // grand gauche
-        kd('kd-rhythm-1',  -15, 42, 0.50, -2.5) +  // moyen centre-gauche
+        kd('kd-rhythm-3',  -60, 26, 0.62, -1.0) +  // grand gauche
+        kd('kd-rhythm-1',  -15, 30, 0.50, -2.5) +  // moyen centre-gauche
         kd('kd-rhythm-2',  +30, 35, 0.38, -4.0) +  // petit centre-droite
         kd('kd-rhythm-1',  -95, 25, 0.30,  0.0) +  // petit gauche loin
         kd('kd-rhythm-3',  +65, 22, 0.28, -3.0) +  // minuscule droite
