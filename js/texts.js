@@ -256,43 +256,43 @@ const TEXTS_EMBEDDED = {
       "act1": [
         {
           "fr": "Au-delà des brumes du temps,<br>loin du monde des hommes...",
-          "jp": "Toki no kiri o koete, hito no sekai kara tōku hanarete..."
+          "jp": "時の霧を越えて、　人の世界から遠く離れて…"
         },
         {
           "fr": "Se cache un lieu où les esprits de l'eau<br>murmurent des secrets...",
-          "jp": "Mizu no seirei ga himitsu o sasayaku basho ga kakusarete iru..."
+          "jp": "水の精霊が、秘密を囁く場所が隠されている…"
         }
       ],
       "act2": [
         {
           "fr": "Le majestueux Sanctuaire de Neko-Jinja<br>s'élevait vers les cieux.",
-          "jp": "Sōgon na Neko-Jinja ga ten ni sobietatte ita."
+          "jp": "荘厳な猫神社が、　天に聳え立っていた。"
         },
         {
           "fr": "Un domaine imprégné<br>de magie pure.",
-          "jp": "Junsui na mahō ni mitasareta ryōiki."
+          "jp": "純粋な魔法に満たされた、　領域。"
         }
       ],
       "act3": [
         {
           "fr": "Où les anciens esprits<br>veillaient en silence.",
-          "jp": "Kodai no seirei ga shizuka ni mimamotte ita."
+          "jp": "古代の精霊が、　静かに見守っていた。"
         },
         {
           "fr": "Le Neko Suprême et ses huit Gardiens<br>protégeaient l'épée sacrée Kusanagi.",
-          "jp": "Shugosha wa seinaru tsurugi, Kusanagi o mamotte imashita."
+          "jp": "守護者は、聖なる剣、草薙を守っていました。"
         }
       ],
       "act4": [
         {
           "fr": "Mais l'Ombre Millénaire s'éveilla...<br><span class='line-break'>et le sceau vola en éclats.</span>",
-          "jp": "Shikashi, kage no seirei ga mezame, fūin wa kudake chitta..."
+          "jp": "しかし…　影の精霊が目覚め、　封印は砕け散った…"
         }
       ],
       "act5": [
         {
           "fr": "La lumière fut engloutie par la nuit.<br><span class='line-break'>Les 9 Gardiens dispersés aux quatre vents.</span>",
-          "jp": "Hikari wa yami ni nomare, kokonotsu no shugosha wa yomo ni chitta."
+          "jp": "光は闇に飲まれ、　九つの守護者は四方に散った。"
         }
       ]
     }
@@ -302,34 +302,34 @@ const TEXTS_EMBEDDED = {
     "exorcism": [
       {
         "fr": "Les 9 Gardiens sont réunis.",
-        "jp": "Kokonotsu no shugosha ga soroita."
+        "jp": "九つの守護者が、　揃いた。"
       },
       {
         "fr": "L'Ombre se dresse une dernière fois.",
-        "jp": "Kage ga saigo ni tatsu."
+        "jp": "影が…　最後に立つ。"
       },
       {
         "fr": "Mais la magie des 8 Mikos est plus forte !",
-        "jp": "Hachi-nin no Miko no chikara ga masaru!"
+        "jp": "八人の巫女の力が、勝る！"
       }
     ],
     "victory": [
       {
         "fr": "La lumière brille à nouveau sur le Sanctuaire.",
-        "jp": "Hikari ga futatabi Seichi o terashita."
+        "jp": "光が、　再び聖地を照らした。"
       },
       {
         "fr": "Les Yokai se souviennent... et un pétale suffit à tout dire.",
-        "jp": "Yokai wa oboete iru... hitohira de jūbun da."
+        "jp": "妖怪は覚えている…　一枚の花びらで、十分だ。"
       },
       {
         "fr": "Les Gardiens veillent sur vous à jamais.",
-        "jp": "Shugosha-tachi wa eien ni anata-tachi o mamoru."
+        "jp": "守護者たちは…　永遠に、あなたたちを守る。"
       }
     ],
     "sealPrompt": {
       "fr": "Scellez cette légende dans le Miroir.",
-      "jp": "Densetsu o kagami ni fūin seyo."
+      "jp": "伝説を…　鏡に封印せよ。"
     }
   },
   "certificate": {
@@ -348,15 +348,15 @@ const TEXTS_EMBEDDED = {
     "texts": [
       {
         "fr": "Le voyage touche à sa fin...",
-        "jp": "Tabi wa owari ni chikadzuku..."
+        "jp": "旅は、終わりに近づく…"
       },
       {
         "fr": "Mais les esprits veillent toujours.",
-        "jp": "Seirei wa ima mo mimamotte iru."
+        "jp": "精霊は今も、見守っている。"
       },
       {
         "fr": "Et le souvenir restera gravé dans vos cœurs.",
-        "jp": "Omoide wa eien ni kokoro ni kizamareru."
+        "jp": "思い出は永遠に、心に刻まれる。"
       }
     ]
   },

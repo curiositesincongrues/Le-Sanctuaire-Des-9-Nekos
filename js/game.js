@@ -777,7 +777,7 @@ function setupQuiz() {
 
 function verifyQuiz(idx) {
     if(idx === guardianData[currentFound].r) { 
-        clearInterval(quizInterval); window.speechSynthesis.cancel();
+        clearInterval(quizInterval); cancelVoice();
         // Flash vert sur la bonne réponse
         const correctEl = document.getElementById(`opt-${idx}`);
         if(correctEl) { correctEl.style.background = 'rgba(110,231,183,0.4)'; correctEl.style.borderColor = '#6ee7b7'; correctEl.style.transform = 'scale(1.04)'; }
@@ -807,7 +807,7 @@ function playMinigame() {
         if (!audioCtx && typeof initSfx === 'function') initSfx();
         if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
     } catch(e2) {}
-    window.speechSynthesis && window.speechSynthesis.cancel();
+    cancelVoice();
 
     // Init audio si pas encore fait (mode debug saute "Commencer l'aventure")
     try {
@@ -1597,7 +1597,7 @@ function winGame() {
     const wonIndex = currentFound; foundGuardians.add(wonIndex); // currentFound reste inchangé jusqu'au prochain scan
     window.ondevicemotion = null; document.body.ontouchstart = null; document.body.onmouseup = null;
     window._memTap = null; window.mem = null;
-    window.speechSynthesis.cancel();
+    cancelVoice();
     
     if(micStream) { micStream.getTracks().forEach(t => t.stop()); cancelAnimationFrame(micLoop); document.getElementById('mic-gauge').style.display = 'none'; }
     
@@ -1655,17 +1655,17 @@ async function launchFinalCinematic() {
 
     const finale = (typeof T !== 'undefined' && T && T.finale) ? T.finale : {};
     const exorcism = Array.isArray(finale.exorcism) ? finale.exorcism : [
-        { fr: 'Les 9 Gardiens sont réunis.', jp: 'Kokonotsu no shugosha ga soroita.' },
-        { fr: "L'Ombre se dresse une dernière fois.", jp: 'Kage ga saigo ni tatsu.' },
-        { fr: 'Mais la magie des 8 Mikos est plus forte !', jp: 'Hiroin no chikara ga masaru!' }
+        { fr: 'Les 9 Gardiens sont réunis.', jp: '九つの守護者が、　揃いた。' },
+        { fr: "L'Ombre se dresse une dernière fois.", jp: '影が…　最後に立つ。' },
+        { fr: 'Mais la magie des 8 Mikos est plus forte !', jp: '八人の巫女の力が、勝る！' }
     ];
     const victory = Array.isArray(finale.victory) ? finale.victory : [
-        { fr: 'La lumière brille à nouveau sur Neko-Jinja.', jp: 'Hikari ga futatabi terasu.' },
-        { fr: "Votre amitié a purifié l'Ombre.", jp: 'Yūjō ga kage o kiyometa.' },
-        { fr: 'Les Gardiens vous remercient pour votre courage.', jp: 'Shugosha-tachi ga kansha suru.' },
-        { fr: 'Le parchemin a scellé votre victoire.', jp: 'Shōri wa fūin sareta.' }
+        { fr: 'La lumière brille à nouveau sur Neko-Jinja.', jp: '光が、　再び照らす。' },
+        { fr: "Votre amitié a purifié l'Ombre.", jp: '友情が…影を清めた。' },
+        { fr: 'Les Gardiens vous remercient pour votre courage.', jp: '守護者たちが、感謝する。' },
+        { fr: 'Le parchemin a scellé votre victoire.', jp: '勝利は、封印された。' }
     ];
-    const sealPrompt = finale.sealPrompt || { fr: 'Scellez cette légende dans le Miroir.', jp: 'Densetsu o kagami ni fūin seyo.' };
+    const sealPrompt = finale.sealPrompt || { fr: 'Scellez cette légende dans le Miroir.', jp: '伝説を…　鏡に封印せよ。' };
 
     const stage = document.getElementById('final-circ-nekos');
     const sf = document.getElementById('final-story-box');
@@ -1774,7 +1774,7 @@ async function launchFinalCinematic() {
         sf.style.transform = 'translateY(0)';
         await typewriterText(sf, entry.fr || '');
         if (entry.jp) {
-            try { speakDucked(entry.jp, { rate: 0.9, volume: 0.9 }); } catch(e) {}
+            try { speakDucked(entry.jp, { rate: 0.80 }); } catch(e) {}
         }
         await sleep(pause);
     };
@@ -1826,7 +1826,7 @@ async function launchFinalCinematic() {
         const relicIndices = [0,1,2,3,4,5,6,7];
         const stageW = stage.clientWidth  || stage.offsetWidth  || Math.min(window.innerWidth  * 0.92, 560);
         const stageH = stage.clientHeight || stage.offsetHeight || Math.min(window.innerHeight * 0.64, 520);
-        const radius = Math.min(stageW, stageH) * 0.44;
+        const radius = Math.min(stageW, stageH) * (window.isMobileDevice ? 0.36 : 0.44);
         console.log('[Mandala] stage:', stageW, stageH, '→ radius:', radius);
 
         const spawnRipple = (x, y) => {
@@ -1874,10 +1874,10 @@ async function launchFinalCinematic() {
         if (sf) {
             sf.style.opacity = '0';
             await sleep(200);
-            const e0 = exorcism[0] || { fr: 'Les 9 Gardiens sont réunis.', jp: 'Kokonotsu no shugosha ga soroita.' };
+            const e0 = exorcism[0] || { fr: 'Les 9 Gardiens sont réunis.', jp: '九つの守護者が、　揃いた。' };
             sf.textContent = e0.fr;
             sf.style.opacity = '1';
-            if (e0.jp) { try { await speakDucked(e0.jp, { rate: 0.9, volume: 0.9 }); } catch(e) {} }
+            if (e0.jp) { try { await speakDucked('九つの守護者が、　揃いた。', { rate: 0.80 }); } catch(e) {} }
         }
 
         await sleep(4600);
@@ -2068,7 +2068,7 @@ async function launchFinalCinematic() {
     // SÉQUENCE MIKOS — Les 8 Mikos révélées
     // ═══════════════════════════════════════════
     setOutroMood('REUNION');
-    try { setMusicMood('SACRE'); } catch(e) {}
+    try { currentMusicMood = null; setMusicMood('SACRE'); } catch(e) {}
     // Vider et masquer le texte résiduel de l'ombre
     if (sf) { sf.classList.add('text-fade-out'); await sleep(400); sf.textContent = ''; sf.classList.remove('text-fade-out'); }
     await spawnMikosScene(sf, sleep);
@@ -2077,27 +2077,176 @@ async function launchFinalCinematic() {
     // ÉCRAN 4 — CHÂTEAU RENAÎT
     // ═══════════════════════════════════════════
     setOutroMood('AUBE');
-    try { setMusicMood('VICTOIRE'); } catch(e) {}
+    try { currentMusicMood = null; setMusicMood('VICTOIRE'); } catch(e) {}
     await spawnCastleVictory(sf, sleep);
 
     // ═══════════════════════════════════════════
     // ÉCRAN 5 — YOKAI
     // ═══════════════════════════════════════════
     setOutroMood('RITUEL');
-    try { setMusicMood('EPILOGUE'); } catch(e) {}
+    try {
+        currentMusicMood = null; setMusicMood('EPILOGUE');
+        // Gamme Yo basse mystérieuse pour les yokais
+        if (typeof currentMelodyNotes !== 'undefined') {
+            currentMelodyNotes = [196.00, 220.00, 261.63, 293.66, 392.00, 293.66, 261.63, 220.00];
+            _lastMelodyNotes = [];
+        }
+    } catch(e) {}
     await spawnYokaiScene(sf, sleep);
 
     // ═══════════════════════════════════════════
     // ÉCRAN 6 — NEKO SUPRÊME
     // ═══════════════════════════════════════════
     setOutroMood('FINAL');
+    try {
+        // Neko Suprême : retour à VICTOIRE avec gamme lumineuse haute
+        currentMusicMood = null;
+        setMusicMood('VICTOIRE');
+        // Override immédiat avec gamme très haute — effet d'élévation
+        setTimeout(() => {
+            if (typeof currentMelodyNotes !== 'undefined') {
+                currentMelodyNotes = [1046.5, 1174.66, 1318.51, 1046.5, 880.00, 1046.5, 1318.51, 1760.00];
+                _lastMelodyNotes = [];
+            }
+        }, 100);
+    } catch(e) {}
     await spawnNekoSupreme(sf, sleep);
 
     await showFinalText(sealPrompt, 400);
+    try { setMusicMood('MIROIR'); } catch(e) {}
 
     if (btnMirror) {
-        btnMirror.style.display = 'block';
-        requestAnimationFrame(() => { btnMirror.style.transform = 'scale(1)'; });
+        // Cacher le btn-grad original — on crée une scène dédiée
+        btnMirror.style.display = 'none';
+
+        // Nettoyage de la scène finale pour laisser place au portail
+        const screenFinalEl2 = document.getElementById('screen-final');
+        const stage2 = document.getElementById('final-circ-nekos');
+        if (stage2) { stage2.style.opacity = '0'; stage2.style.visibility = 'hidden'; }
+
+        // === KANJI INTRO 鏡 ===
+        const kanjiIntro = document.createElement('div');
+        kanjiIntro.className = 'mirror-kanji-intro';
+        kanjiIntro.textContent = '鏡';
+        document.body.appendChild(kanjiIntro);
+        await new Promise(r => setTimeout(r, 1800));
+        kanjiIntro.remove();
+
+        // === PORTAIL CERCLE ===
+        const portal = document.createElement('div');
+        portal.className = 'mirror-portal';
+        document.body.appendChild(portal);
+
+        const portalRing = document.createElement('div');
+        portalRing.className = 'mirror-portal-ring';
+        document.body.appendChild(portalRing);
+
+        // 9 reliques en orbite autour du portail
+        const portalSize = Math.min(420, window.innerWidth * 0.8);
+        const orbitR = portalSize / 2 + 28;
+        const relicKeys2 = ['mochi','ken','shinobi','aiko','kitsune','sumo','zennon','taiko','shogun'];
+        const relicColors2 = guardianData.map(g => g.color);
+        relicKeys2.forEach((key, i) => {
+            const angle = (i / 9) * Math.PI * 2;
+            const rx = window.innerWidth/2 + Math.cos(angle) * orbitR - 16;
+            const ry = window.innerHeight/2 + Math.sin(angle) * orbitR - 16;
+            const wrap = document.createElement('div');
+            wrap.style.cssText = `position:fixed;left:${rx}px;top:${ry}px;width:32px;height:32px;z-index:9051;pointer-events:none;opacity:0;transition:opacity 0.4s ease;transform-origin:center;`;
+            const svgStr = relicSVG[key];
+            if (svgStr) {
+                const clean = svgStr.replace(/class="[^"]*"/g,'').replace(/<svg/,`<svg xmlns="http://www.w3.org/2000/svg"`);
+                wrap.innerHTML = clean;
+                const svgEl = wrap.querySelector('svg');
+                if (svgEl) { svgEl.setAttribute('width','32'); svgEl.setAttribute('height','32'); }
+            }
+            document.body.appendChild(wrap);
+            setTimeout(() => { wrap.style.opacity = '0.8'; }, i * 100 + 200);
+            // Animation orbite CSS
+            wrap.style.animation = `none`;
+            // Orbite JS simple
+            let orbitAngle = angle;
+            // Vitesses individuelles — 2 reliques à contre-sens (indices 2 et 7)
+            const orbitSpeeds = [0.00022, 0.00038, -0.00026, 0.00042, 0.00031, 0.00018, 0.00045, -0.00029, 0.00035];
+            const orbitSpeed = orbitSpeeds[i] || 0.0003;
+            const orbitLoop = () => {
+                orbitAngle += orbitSpeed;
+                const nx = window.innerWidth/2 + Math.cos(orbitAngle) * orbitR - 16;
+                const ny = window.innerHeight/2 + Math.sin(orbitAngle) * orbitR - 16;
+                wrap.style.left = nx + 'px';
+                wrap.style.top = ny + 'px';
+                if (document.body.contains(wrap)) requestAnimationFrame(orbitLoop);
+            };
+            requestAnimationFrame(orbitLoop);
+            portal._relicWraps = portal._relicWraps || [];
+            portal._relicWraps.push(wrap);
+        });
+
+        // === PLUIE DE PRÉNOMS — vitesses et tailles variées ===
+        const nameRainEls = [];
+        const pawColors2 = ['#ffb7c5','#98e8d4','#fde68a','#c4b5fd','#fca5a5','#6ee7b7','#a5b4fc','#fdba74'];
+        // Chaque prénom tombe plusieurs fois à des positions différentes
+        mikoNames.forEach((name, i) => {
+            const copies = 2; // 2 copies de chaque prénom en pluie
+            for (let c = 0; c < copies; c++) {
+                const el = document.createElement('div');
+                el.className = 'mirror-name-rain';
+                el.textContent = name;
+                const leftPct = 5 + Math.random() * 88;
+                const fontSize = 12 + Math.random() * 20;
+                const rot = -20 + Math.random() * 40;
+                // Vitesses très variées — certains lents, certains rapides
+                const duration = 5 + Math.random() * 9;
+                const delay = c * 4.5 + Math.random() * 3;
+                const opacity = 0.25 + Math.random() * 0.5;
+                const color = pawColors2[i];
+                el.style.cssText = `left:${leftPct}%;top:-40px;font-size:${fontSize}px;color:${color};--nr:${rot}deg;--nd:${duration}s;--delay:${delay}s;--no:${opacity};--col:${color};--glow:${Math.round(fontSize*0.5)}px;`;
+                document.body.appendChild(el);
+                nameRainEls.push(el);
+            }
+        });
+
+        // === TEXTE RITUEL — typewriter effect ===
+        if (sf) {
+            sf.innerHTML = '';
+            sf.style.opacity = '1';
+            sf.style.fontFamily = "'Fredoka One', cursive";
+            sf.style.fontSize = '22px';
+            // Kanji discret au-dessus
+            const kanjiSub = document.createElement('div');
+            kanjiSub.style.cssText = "font-family:'Ma Shan Zheng',cursive;font-size:14px;color:rgba(255,215,0,0.45);letter-spacing:3px;margin-bottom:12px;";
+            kanjiSub.textContent = '伝説を鏡に封印せよ';
+            sf.appendChild(kanjiSub);
+            // Texte principal via typewriter
+            const textSpan = document.createElement('span');
+            textSpan.style.cssText = "display:block;font-family:'Fredoka One',cursive;font-size:22px;";
+            sf.appendChild(textSpan);
+            // Typewriter effect manuel
+            const phrase = sealPrompt.fr || 'Scellez cette légende dans le Miroir.';
+            let charIdx = 0;
+            const typeInterval = setInterval(() => {
+                if (charIdx < phrase.length) {
+                    textSpan.textContent = phrase.substring(0, ++charIdx);
+                } else {
+                    clearInterval(typeInterval);
+                }
+            }, 45);
+        }
+
+        // === BOUTON SOBRE — style btn-grad avec flash photo ===
+        const mirrorBtn = document.createElement('button');
+        mirrorBtn.id = 'btn-download-mirror';
+        mirrorBtn.textContent = '🪞 Scellez notre légende';
+        mirrorBtn.onclick = () => {
+            // Nettoyer SANS supprimer le portail — la caméra s'y injecte directement
+            nameRainEls.forEach(el => el.remove());
+            portalRing.remove();
+            if (portal._relicWraps) portal._relicWraps.forEach(w => w.remove());
+            mirrorBtn.remove();
+            if (sf) { sf.style.fontFamily = ''; sf.style.fontSize = ''; sf.innerHTML = ''; }
+            openMirrorAndCapture(); // injecte la caméra dans portal
+        };
+        document.body.appendChild(mirrorBtn);
+        requestAnimationFrame(() => { mirrorBtn.style.opacity = '1'; });
     }
 }
 
@@ -2155,7 +2304,9 @@ async function spawnMikosScene(sf, sleep) {
 
     // Conteneur centré des dolls
     const stage = document.createElement('div');
-    stage.style.cssText = 'position:relative;width:420px;height:260px;flex-shrink:0;';
+    const mikoContainerW = Math.min(420, window.innerWidth * 0.95);
+    const xScale = mikoContainerW / 420;
+    stage.style.cssText = `position:relative;width:${mikoContainerW}px;height:260px;flex-shrink:0;`;
     container.appendChild(stage);
 
     // Phrase narrative
@@ -2166,6 +2317,7 @@ async function spawnMikosScene(sf, sleep) {
     const nameEls = {};
 
     layout.forEach(({ mi, x, y, scale }) => {
+        x = Math.round(x * xScale); // adaptatif si écran < 420px
         const isAva = mi === 0;
         const s = mikoStyles[mi];
         const dollSize = 80 * scale;
@@ -2243,7 +2395,7 @@ async function spawnMikosScene(sf, sleep) {
             });
             await _sleep(600);
             if (sf) { sf.classList.remove('text-fade-out'); await typewriterText(sf, 'Les 8 Mikos ont purifié le Sanctuaire.'); }
-            try { speakDucked('Hachi-nin no Miko ga Seichi o kiyometa.', { rate: 0.9, volume: 0.9 }); } catch(e) {}
+            try { speakDucked('八人の巫女が聖地を、清めた。', { rate: 0.82 }); } catch(e) {}
         }
 
         await _sleep(isAva ? 0 : 360);
@@ -2307,7 +2459,7 @@ async function spawnCastleVictory(sf, sleep) {
     // Texte dans sf
     await sleep(800);
     if (sf) { sf.style.opacity = '1'; await typewriterText(sf, 'La lumière brille à nouveau sur le Sanctuaire.'); }
-    try { speakDucked('Hikari ga futatabi Seichi o terashita.', { rate: 0.9, volume: 0.9 }); } catch(e) {}
+    try { speakDucked('光が、　再び聖地を照らした。', { rate: 0.85 }); } catch(e) {}
 
     await sleep(3800);
     container.style.opacity = '0';
@@ -2327,15 +2479,19 @@ async function spawnYokaiScene(sf, sleep) {
 
     // Zone avec overflow:visible — les kodamas dépassent sans être coupés
     const zone = document.createElement('div');
-    zone.style.cssText = 'position:relative;width:320px;height:320px;overflow:visible;';
+    const kdZoneW = Math.min(600, window.innerWidth * 0.88);
+    const kdScale = kdZoneW / 320; // facteur d'échelle des positions ml
+    zone.style.cssText = `position:relative;width:${kdZoneW}px;height:320px;overflow:visible;`;
 
     // Kodama HTML
     // Kodamas centrés : left:50% + margin-left pour offset depuis le centre
     // margin-left en px — contrôle précis sans débordement
-    const kd = (rhythm, ml, bottom, scale, delay) =>
-        `<div class="kd-container ${rhythm}" style="position:absolute;left:50%;margin-left:${ml}px;bottom:${bottom}%;transform:scale(${scale});transform-origin:bottom center;z-index:${Math.round(scale*10)};opacity:0;transition:opacity 0.6s ease;">` +
+    const kd = (rhythm, ml, bottom, scale, delay) => {
+        const scaledMl = Math.round(ml * kdScale);
+        return `<div class="kd-container ${rhythm}" style="position:absolute;left:50%;margin-left:${scaledMl}px;bottom:${bottom}%;transform:scale(${scale});transform-origin:bottom center;z-index:${Math.round(scale*10)};opacity:0;transition:opacity 0.6s ease;">` +
         `<div class="kodama-new-head" style="animation-delay:${delay}s;"><div class="kodama-new-left-eye"></div><div class="kodama-new-right-eye"></div><div class="kodama-new-mouth"></div></div>` +
         `<div class="kodama-new-body"><div class="kodama-new-left-arm"></div><div class="kodama-new-right-arm"></div></div></div>`;
+    };
 
     // ml = offset depuis le centre de la zone (négatif=gauche, positif=droite)
     zone.innerHTML =
@@ -2355,23 +2511,65 @@ async function spawnYokaiScene(sf, sleep) {
     container.appendChild(zone);
     document.body.appendChild(container);
 
-    // Apparition cascade
+    // Lueur de sol sous le groupe
+    const groundGlow = document.createElement('div');
+    groundGlow.className = 'kd-ground-glow';
+    zone.appendChild(groundGlow);
+
+    // Reflet au sol
+    const groundReflect = document.createElement('div');
+    groundReflect.className = 'kd-reflect';
+    zone.appendChild(groundReflect);
+
+    // Apparition cascade — surgissement depuis le sol
     const kds = zone.querySelectorAll('.kd-container');
+    const sparkColors = ['#ffb7c5','#fff','#ffd700','#c4b5fd','#98e8d4'];
     for (let i = 0; i < kds.length; i++) {
-        await sleep(i * 280);
-        kds[i].style.opacity = '1';
+        await sleep(i * 260);
+        const kd = kds[i];
+        // Lire le scale inline pour l'animation
+        const inlineScale = kd.style.transform.match(/scale\(([\d.]+)\)/);
+        const sc = inlineScale ? inlineScale[1] : '1';
+        kd.style.setProperty('--kd-s', sc);
+        kd.style.transform = ''; // retirer le scale inline — l'animation le gère
+        kd.classList.add('kd-surging');
+
+        // Étincelles radiales à l'apparition
+        const rect = { left: 0, top: 0 }; // position relative dans zone
+        const sparkCount = 7;
+        for (let s = 0; s < sparkCount; s++) {
+            const spark = document.createElement('div');
+            spark.className = 'kd-spark';
+            const angle = (s / sparkCount) * Math.PI * 2;
+            const dist = 40 + Math.random() * 30;
+            spark.style.setProperty('--sx', `${Math.cos(angle)*dist}px`);
+            spark.style.setProperty('--sy', `${Math.sin(angle)*dist}px`);
+            spark.style.background = sparkColors[Math.floor(Math.random()*sparkColors.length)];
+            spark.style.left = '50%'; spark.style.top = '30%';
+            spark.style.animationDelay = `${Math.random()*0.12}s`;
+            kd.appendChild(spark);
+            setTimeout(() => spark.remove(), 700);
+        }
+
+        // Remettre le scale après l'animation de surgissement
+        setTimeout(() => {
+            kd.classList.remove('kd-surging');
+            kd.style.transform = `scale(${sc})`;
+            kd.style.opacity = '0.9';
+        }, 650);
+
         try {
             if (audioCtx && audioCtx.state !== 'suspended') {
                 const freqs = [349.23, 392.00, 440.00, 493.88, 523.25, 587.33];
                 const o = audioCtx.createOscillator(), g = audioCtx.createGain();
                 o.type = 'sine';
-                o.frequency.setValueAtTime(freqs[i] * 0.8, audioCtx.currentTime);
-                o.frequency.linearRampToValueAtTime(freqs[i], audioCtx.currentTime + 0.15);
+                o.frequency.setValueAtTime(freqs[i % freqs.length] * 0.8, audioCtx.currentTime);
+                o.frequency.linearRampToValueAtTime(freqs[i % freqs.length], audioCtx.currentTime + 0.15);
                 g.gain.setValueAtTime(0, audioCtx.currentTime);
-                g.gain.linearRampToValueAtTime(0.14, audioCtx.currentTime + 0.06);
-                g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.45);
+                g.gain.linearRampToValueAtTime(0.18, audioCtx.currentTime + 0.06);
+                g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
                 o.connect(g); g.connect(masterGain || audioCtx.destination);
-                o.start(); o.stop(audioCtx.currentTime + 0.5);
+                o.start(); o.stop(audioCtx.currentTime + 0.55);
             }
         } catch(e) {}
     }
@@ -2379,20 +2577,32 @@ async function spawnYokaiScene(sf, sleep) {
     // Texte dans sf
     await sleep(300);
     if (sf) { sf.classList.remove('text-fade-out'); sf.innerHTML = ''; sf.style.opacity = '1'; await typewriterText(sf, 'Les Yokai se souviennent... et un pétale suffit à tout dire.'); }
-    try { speakDucked('Yokai wa oboete iru... hitohira de jūbun da.', { rate: 0.9, volume: 0.9 }); } catch(e) {}
+    try { speakDucked('妖怪は覚えている…　一枚の花びらで、十分だ。', { rate: 0.72 }); } catch(e) {}
 
     // Pétale tombe
     await sleep(1000);
     petalEl.classList.add('is-falling');
 
-    // Hochement
-    await sleep(2600);
+    // Regard coordonné vers le pétale + hochement
+    await sleep(1200);
+    const layout_ml = [-60, -15, +30, -95, +65, -35];
+    kds.forEach((kd, idx) => {
+        const head = kd.querySelector('.kodama-new-head');
+        if (head) {
+            const ml = layout_ml[idx] || 0;
+            const tiltDir = ml < 0 ? 1 : -1; // regard vers le centre
+            head.style.transition = 'transform 0.6s cubic-bezier(0.17,0.89,0.32,1.49)';
+            head.style.transform = `translateY(-6px) rotate(${tiltDir * (4 + Math.abs(ml)*0.04)}deg)`;
+        }
+    });
+    await sleep(1400);
+    // Hochement de joie
     kds.forEach(kd => {
         const head = kd.querySelector('.kodama-new-head');
         if (head) {
-            head.style.transition = 'transform 0.4s ease';
-            head.style.transform = 'translateY(-8px)';
-            setTimeout(() => { head.style.transform = ''; }, 400);
+            head.style.transition = 'transform 0.35s ease';
+            head.style.transform = 'translateY(-12px) scale(1.08)';
+            setTimeout(() => { head.style.transform = ''; head.style.transition = ''; }, 350);
         }
     });
 
@@ -2438,7 +2648,7 @@ async function spawnNekoSupreme(sf, sleep) {
 
     // Son d'apparition + musique VICTOIRE après le fade-in
     try { if (audioCtx && audioCtx.state === 'suspended') await audioCtx.resume(); playGameSFX('chime_portal'); } catch(e) {}
-    setTimeout(() => { try { setMusicMood('VICTOIRE'); } catch(e) {} }, 1500);
+    setTimeout(() => { try { currentMusicMood = null; setMusicMood('VICTOIRE'); } catch(e) {} }, 1500);
 
     // Texte — forcer opacity 1 en style inline (yokai l'avait mis à 0)
     await sleep(800);
@@ -2448,7 +2658,7 @@ async function spawnNekoSupreme(sf, sleep) {
         sf.innerHTML = '';
         await typewriterText(sf, 'Les Gardiens veillent sur vous à jamais.');
     }
-    try { speakDucked('Shugosha-tachi wa eien ni anata-tachi o mamoru.', { rate: 0.9, volume: 0.9 }); } catch(e) {}
+    try { speakDucked('守護者たちは…永遠に…あなたたちを守る。', { rate: 0.78 }); } catch(e) {}
 
     // Inclinaison + son
     await sleep(1500);
@@ -2572,67 +2782,102 @@ function openMirror() {
 }
 
 function openMirrorAndCapture() {
-    const btn = document.getElementById('btn-download');
+    const portal = document.querySelector('.mirror-portal');
+    if (!portal) { openMirror(); return; }
 
-    // Supprimer un éventuel cercle existant
-    const existing = document.getElementById('mirror-inplace');
-    if (existing) { existing.remove(); return; }
+    // Transition fondue nacré → caméra
+    portal.style.transition = 'all 0.8s ease';
+    portal.classList.add('mirror-portal-camera');
 
-    // Créer le cercle caméra au-dessus du bouton
-    const circle = document.createElement('div');
-    circle.id = 'mirror-inplace';
-    circle.style.cssText = 'position:fixed;left:50%;bottom:130px;transform:translateX(-50%);width:min(280px,70vw);height:min(280px,70vw);border-radius:50%;overflow:hidden;border:4px solid var(--gold);box-shadow:0 0 30px rgba(255,215,0,0.5),0 0 60px rgba(255,183,197,0.3);z-index:9000;background:#000;opacity:0;transition:opacity 0.4s ease;';
+    // Pétales sakura dans le portail
+    const petalColors = ['#ffb7c5','#ffd6e7','#ffe4f0','#ffb7c5','#ffd6e7','#fff0f5'];
+    for (let p = 0; p < 6; p++) {
+        const petal = document.createElement('div');
+        const dur = 3 + Math.random() * 2;
+        const left = 10 + Math.random() * 80;
+        const delay = Math.random() * 3;
+        petal.style.cssText = `position:absolute;width:7px;height:5px;background:${petalColors[p]};border-radius:40% 60% 55% 45%;opacity:0.7;left:${left}%;top:-10px;z-index:4;pointer-events:none;animation:portal-petal-fall ${dur}s ease-in ${delay}s infinite;filter:drop-shadow(0 0 3px ${petalColors[p]});`;
+        portal.appendChild(petal);
+    }
 
+    // Vidéo dans le portail
     const video = document.createElement('video');
     video.autoplay = true; video.playsInline = true;
-    video.style.cssText = 'width:100%;height:100%;object-fit:cover;transform:scaleX(-1);';
-    circle.appendChild(video);
+    video.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1);border-radius:50%;filter:sepia(0.2) hue-rotate(190deg) brightness(0.92) saturate(1.15);opacity:0;transition:opacity 0.8s ease;z-index:1;';
+    portal.appendChild(video);
 
+    // Shader reflet
+    const shader = document.createElement('div');
+    shader.style.cssText = 'position:absolute;inset:0;border-radius:50%;background:linear-gradient(135deg,rgba(255,255,255,0) 0%,rgba(161,196,253,0.1) 40%,rgba(255,255,255,0.18) 50%,rgba(255,255,255,0) 60%);background-size:200% 200%;animation:mirror-ripple 5s linear infinite;pointer-events:none;mix-blend-mode:overlay;z-index:2;';
+    portal.appendChild(shader);
+
+    // Compte à rebours kanji
+    const kanjiNums = ['三','二','一','✨'];
+    const cdColors = ['#ffb7c5','#ffb347','#ffffff','#ffd700'];
     const cd = document.createElement('div');
-    cd.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:"Fredoka One",cursive;font-size:80px;color:rgba(255,215,0,0.95);text-shadow:0 0 20px gold;pointer-events:none;z-index:10;transition:all 0.2s ease;';
-    circle.appendChild(cd);
-    document.body.appendChild(circle);
+    cd.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:"Ma Shan Zheng",cursive;font-size:min(22vmin,110px);pointer-events:none;z-index:5;transition:transform 0.15s ease,opacity 0.15s ease;';
+    portal.appendChild(cd);
 
-    if (btn) { btn.textContent = '📸 Immortaliser ce moment 📸'; btn.style.animation = 'pulse-btn 0.8s infinite alternate'; }
-
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false })
+    navigator.mediaDevices.getUserMedia({ video:{ facingMode:'user', width:{ideal:1280}, height:{ideal:1280} }, audio:false })
     .then(stream => {
         video.srcObject = stream;
-        requestAnimationFrame(() => { circle.style.opacity = '1'; });
+        // Fondu progressif de la vidéo
+        setTimeout(() => { video.style.opacity = '1'; }, 100);
 
-        let count = 3;
-        cd.textContent = count;
-        try { playGameSFX('beep', 880); } catch(e) {}
+        let count = 0; // index dans kanjiNums
+        const showKanji = () => {
+            const kanji = kanjiNums[count];
+            const color = cdColors[count];
+            cd.textContent = kanji;
+            cd.style.color = color;
+            cd.style.textShadow = `0 0 20px ${color}, 0 0 50px ${color}88`;
+            // Couleur bordure portail
+            portal.style.borderColor = color === '#ffffff' ? 'rgba(255,255,255,0.9)' : color;
+            portal.style.boxShadow = `0 0 40px ${color}66, 0 0 80px ${color}33`;
+            // Pulse du chiffre
+            cd.style.transform = 'scale(1.3)';
+            setTimeout(() => { cd.style.transform = 'scale(1)'; }, 200);
+            // Son : miko chime au lieu de beep
+            try {
+                if (count < 3) playMikoChime(count * 2 + 4);
+                else { playGameSFX('chime_portal'); if (navigator.vibrate) navigator.vibrate([80,30,120]); }
+            } catch(e) {}
+        };
+        showKanji();
 
         const tick = setInterval(() => {
-            count--;
-            if (count > 0) {
-                cd.textContent = count;
-                cd.style.transform = 'translate(-50%,-50%) scale(1.3)';
-                setTimeout(() => { cd.style.transform = 'translate(-50%,-50%) scale(1)'; }, 200);
-                try { playGameSFX('beep', 880); } catch(e) {}
-            } else {
+            count++;
+            if (count < 3) {
+                showKanji();
+            } else if (count === 3) {
+                showKanji(); // ✨
                 clearInterval(tick);
-                cd.textContent = '✨';
+                // Flash
                 const flash = document.getElementById('flash');
                 if (flash) { flash.style.background='white'; flash.style.opacity=1; setTimeout(()=>{ flash.style.opacity=0; flash.style.background='transparent'; },400); }
-                try { playGameSFX('pop'); } catch(e) {}
-                window._mirrorInplaceVideo = video;
+
+                // Snapshot
+                const snapCanvas = document.createElement('canvas');
+                snapCanvas.width = video.videoWidth || 1280;
+                snapCanvas.height = video.videoHeight || 720;
+                const snapCtx = snapCanvas.getContext('2d');
+                snapCtx.translate(snapCanvas.width, 0);
+                snapCtx.scale(-1, 1);
+                snapCtx.drawImage(video, 0, 0);
+                window._mirrorSnapshot = snapCanvas;
+                window._mirrorStream = stream;
+
                 setTimeout(() => {
-                    circle.style.opacity = '0';
-                    setTimeout(() => { circle.remove(); stream.getTracks().forEach(t => t.stop()); window._mirrorInplaceVideo = null; }, 400);
-                    if (btn) { btn.textContent = '✨ Figer notre légende ✨'; btn.style.animation = ''; }
+                    stream.getTracks().forEach(t => t.stop());
+                    if (portal && portal.parentNode) portal.remove();
                     captureEstampe();
-                }, 600);
+                }, 700);
             }
         }, 1000);
     })
-    .catch(() => {
-        circle.remove();
-        if (btn) { btn.textContent = '✨ Figer notre légende ✨'; btn.style.animation = ''; }
-        openMirror();
-    });
+    .catch(() => { openMirror(); });
 }
+
 
 /* --- CAPTURE ESTAMPE KAWAII POP --- */
 function captureEstampe() {
@@ -2642,6 +2887,8 @@ function captureEstampe() {
     if (navigator.vibrate) navigator.vibrate([100, 50, 200]);
     playGameSFX('thud');
 
+    // Utiliser le snapshot figé au moment du flash (évite la frame à moitié vide)
+    const snapshot = window._mirrorSnapshot || null;
     const video = window._mirrorInplaceVideo || document.getElementById('mirror-cam');
     const canvas = document.getElementById('polaroid-canvas');
     const ctx = canvas.getContext('2d');
@@ -2650,7 +2897,6 @@ function captureEstampe() {
 
     // Helper : dessiner un SVG string sur le canvas
     const drawSVG = (svgStr, x, y, w, h, angle = 0) => new Promise(resolve => {
-        // Nettoyer le SVG pour canvas
         const clean = svgStr
             .replace(/class="[^"]*"/g, '')
             .replace(/<svg/, `<svg xmlns="http://www.w3.org/2000/svg"`)
@@ -2673,98 +2919,132 @@ function captureEstampe() {
     });
 
     const render = async () => {
+        const rng = (seed) => { let x = Math.sin(seed+1) * 10000; return x - Math.floor(x); };
+
         // ══════════════════════════════════════
-        // FOND — nuit magique violet/bleu
+        // FOND — nuit encre violette
         // ══════════════════════════════════════
-        const bg = ctx.createRadialGradient(W/2, H*0.4, 80, W/2, H/2, H*0.8);
+        const bg = ctx.createRadialGradient(W/2, H*0.38, 60, W/2, H/2, H*0.75);
         bg.addColorStop(0, '#2d0a4e');
-        bg.addColorStop(0.5, '#12011a');
+        bg.addColorStop(0.45, '#12011a');
         bg.addColorStop(1, '#050010');
-        ctx.fillStyle = bg;
-        ctx.fillRect(0, 0, W, H);
+        ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+
+        // Texture washi — init si pas encore fait
+        if (typeof precomputeWashi === 'function' && (typeof washiCanvas === 'undefined' || !washiCanvas)) { try { precomputeWashi(); } catch(e) {} }
+        if (typeof washiCanvas !== 'undefined' && washiCanvas) {
+            ctx.save(); ctx.globalAlpha = 0.07; ctx.globalCompositeOperation = 'screen';
+            ctx.drawImage(washiCanvas, 0, 0, W, H);
+            ctx.globalCompositeOperation = 'source-over'; ctx.restore();
+        }
 
         // Étoiles procédurales
-        const rng = (seed) => { let x = Math.sin(seed) * 10000; return x - Math.floor(x); };
-        for (let i = 0; i < 220; i++) {
-            const sx = rng(i * 3.1) * W;
-            const sy = rng(i * 7.3) * H;
-            const sr = rng(i * 11.7) * 2.5 + 0.5;
-            const sa = rng(i * 5.9) * 0.7 + 0.3;
-            const colors = ['#fff', '#ffb7c5', '#c4b5fd', '#98e8d4', '#fde68a'];
+        for (let i = 0; i < 240; i++) {
+            const sx = rng(i*3.1)*W, sy = rng(i*7.3)*H;
+            const sr = rng(i*11.7)*2.5+0.5, sa = rng(i*5.9)*0.65+0.3;
+            const colors = ['#fff','#ffb7c5','#c4b5fd','#98e8d4','#fde68a'];
             ctx.fillStyle = colors[Math.floor(rng(i*2.2)*5)];
             ctx.globalAlpha = sa;
-            ctx.beginPath();
-            ctx.arc(sx, sy, sr, 0, Math.PI*2);
-            ctx.fill();
+            ctx.beginPath(); ctx.arc(sx, sy, sr, 0, Math.PI*2); ctx.fill();
         }
         ctx.globalAlpha = 1;
 
-        // Nuages ukiyo-e subtils dans les coins
-        const drawCloud = (cx, cy, scale, alpha) => {
-            ctx.save(); ctx.globalAlpha = alpha; ctx.fillStyle = '#c4b5fd';
-            const radii = [40, 30, 35, 25, 30];
-            const offsets = [[0,0],[45,-15],[80,5],[110,-10],[140,0]];
-            offsets.forEach(([ox,oy], i) => {
-                ctx.beginPath();
-                ctx.arc(cx+ox*scale, cy+oy*scale, radii[i]*scale, 0, Math.PI*2);
-                ctx.fill();
-            }); ctx.restore();
-        };
-        drawCloud(-30, 80, 0.6, 0.12);
-        drawCloud(W-160, 120, 0.55, 0.10);
-        drawCloud(-20, H-200, 0.5, 0.10);
-        drawCloud(W-180, H-150, 0.5, 0.08);
+        // Étoiles 4 branches (style ukiyo-e) dans les zones vides
+        for (let i = 0; i < 22; i++) {
+            const sx = rng(i*13.7+1)*W, sy = rng(i*19.3+1)*H;
+            const sr = rng(i*7.1+1)*4+2, sa = rng(i*3.7+1)*0.5+0.15;
+            ctx.save(); ctx.globalAlpha = sa; ctx.fillStyle = '#fde68a';
+            ctx.translate(sx, sy); ctx.rotate(rng(i*5.3)*Math.PI/4);
+            for (let b = 0; b < 4; b++) {
+                ctx.rotate(Math.PI/2);
+                ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(sr*0.3,sr*0.3); ctx.lineTo(0,sr*2.5); ctx.lineTo(-sr*0.3,sr*0.3);
+                ctx.closePath(); ctx.fill();
+            }
+            ctx.restore();
+        }
+        ctx.globalAlpha = 1;
 
         // Pétales sakura dispersés
-        for (let i = 0; i < 35; i++) {
+        for (let i = 0; i < 50; i++) {
             const px = rng(i*4.1)*W, py = rng(i*6.3)*H;
-            const pr = rng(i*8.7)*12+5, pa = rng(i*3.3)*Math.PI*2;
-            ctx.save(); ctx.globalAlpha = rng(i*9.1)*0.5+0.15;
+            const pr = rng(i*8.7)*14+4, pa = rng(i*3.3)*Math.PI*2;
+            ctx.save(); ctx.globalAlpha = rng(i*9.1)*0.45+0.1;
             ctx.translate(px, py); ctx.rotate(pa);
-            ctx.fillStyle = ['#ffb7c5','#ff69b4','#ffd6e7','#fca5a5'][Math.floor(rng(i*2.7)*4)];
-            ctx.beginPath();
-            ctx.ellipse(0, 0, pr, pr*0.6, 0, 0, Math.PI*2);
+            ctx.fillStyle = ['#ffb7c5','#ff69b4','#ffd6e7','#fca5a5','#ffe4e1'][Math.floor(rng(i*2.7)*5)];
+            ctx.beginPath(); ctx.ellipse(0, 0, pr, pr*0.55, 0, 0, Math.PI*2);
             ctx.fill(); ctx.restore();
         }
 
+        // Nuages ukiyo-e coins
+        const drawCloud = (cx, cy, scale, alpha) => {
+            ctx.save(); ctx.globalAlpha = alpha; ctx.fillStyle = '#c4b5fd';
+            [[0,0,40],[45,-15,30],[80,5,35],[115,-10,25],[148,0,30]].forEach(([ox,oy,r]) => {
+                ctx.beginPath(); ctx.arc(cx+ox*scale, cy+oy*scale, r*scale, 0, Math.PI*2); ctx.fill();
+            }); ctx.restore();
+        };
+        drawCloud(-20, 90, 0.65, 0.14); drawCloud(W-170, 130, 0.55, 0.11);
+        drawCloud(-20, H-210, 0.5, 0.10); drawCloud(W-175, H-160, 0.5, 0.09);
+
         // ══════════════════════════════════════
-        // TITRE — 九猫の奇跡
+        // TITRE avec ornements katana
         // ══════════════════════════════════════
-        ctx.save();
-        // Halo derrière le titre
-        const titleGlow = ctx.createRadialGradient(W/2, 120, 10, W/2, 120, 280);
-        titleGlow.addColorStop(0, 'rgba(255,20,147,0.25)');
+        // Lignes décoratives
+        const drawTitleLine = (y) => {
+            ctx.save(); ctx.strokeStyle = 'rgba(255,215,0,0.35)'; ctx.lineWidth = 1.5;
+            ctx.setLineDash([6,8]);
+            ctx.beginPath(); ctx.moveTo(80,y); ctx.lineTo(W-80,y); ctx.stroke();
+            // Losanges aux extrémités
+            ctx.setLineDash([]); ctx.fillStyle = 'rgba(255,215,0,0.5)';
+            [[80,y],[W-80,y]].forEach(([x,yy]) => {
+                ctx.save(); ctx.translate(x,yy); ctx.rotate(Math.PI/4);
+                ctx.fillRect(-5,-5,10,10); ctx.restore();
+            }); ctx.restore();
+        };
+        drawTitleLine(55);
+        drawTitleLine(200);
+
+        // Halo titre
+        const titleGlow = ctx.createRadialGradient(W/2, 125, 10, W/2, 125, 300);
+        titleGlow.addColorStop(0, 'rgba(255,20,147,0.22)');
         titleGlow.addColorStop(1, 'rgba(255,20,147,0)');
-        ctx.fillStyle = titleGlow; ctx.fillRect(0, 0, W, 260);
+        ctx.fillStyle = titleGlow; ctx.fillRect(0, 0, W, 270);
 
         ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.shadowColor = '#ff1493'; ctx.shadowBlur = 30;
-        ctx.fillStyle = '#ffd700'; ctx.font = "bold 88px 'Ma Shan Zheng', cursive";
-        ctx.fillText('九猫の奇跡', W/2, 105);
+        ctx.shadowColor = '#ff1493'; ctx.shadowBlur = 35;
+        ctx.fillStyle = '#ffd700'; ctx.font = "bold 90px 'Ma Shan Zheng', cursive";
+        ctx.fillText('九猫の奇跡', W/2, 108);
         ctx.shadowBlur = 0;
-        ctx.fillStyle = 'rgba(255,255,255,0.85)'; ctx.font = "36px 'Fredoka One', cursive";
-        ctx.fillText('Le Sanctuaire est purifié', W/2, 175);
-        ctx.restore();
+        ctx.fillStyle = 'rgba(255,235,180,0.95)'; ctx.font = "34px 'Fredoka One', cursive";
+        ctx.fillText('Joyeux anniversaire Ava · 9 ans de magie', W/2, 178);
+
+        // Katana ornements de titre (relique ken)
+        const kenSVG = relicSVG['ken'];
+        if (kenSVG) {
+            await drawSVG(kenSVG, 60, 68, 56, 56, -Math.PI/6);
+            await drawSVG(kenSVG, W-116, 68, 56, 56, Math.PI/6 + Math.PI);
+        }
 
         // ══════════════════════════════════════
-        // RELIQUES EN ARC — 9 SVG du jeu
+        // RELIQUES EN ARC — couleurs gardiens
         // ══════════════════════════════════════
-        const relicSize = 72;
+        const relicSize = 76;
         const relicPromises = [];
         for (let i = 0; i < 9; i++) {
             const svgStr = getRelicSVG(i);
             if (!svgStr) continue;
             const arcAngle = (i / 8) * Math.PI - Math.PI/2 + Math.PI/8;
-            const rx = W/2 + Math.cos(arcAngle) * 360;
-            const ry = 310 + Math.sin(arcAngle) * 60;
-            const tilt = (i - 4) * 0.08;
-            // Glow derrière chaque relique
-            ctx.save(); ctx.globalAlpha = 0.5;
-            const rg = ctx.createRadialGradient(rx, ry, 5, rx, ry, 45);
-            rg.addColorStop(0, '#ffd700'); rg.addColorStop(1, 'transparent');
-            ctx.fillStyle = rg; ctx.fillRect(rx-45, ry-45, 90, 90);
+            const rx = W/2 + Math.cos(arcAngle) * 370;
+            // Alternance hauteur odd/even
+            const ry = 310 + Math.sin(arcAngle) * 55 + (i%2 === 0 ? -18 : 18);
+            const tilt = (i - 4) * 0.09;
+            const gColor = guardianData[i] ? guardianData[i].color : '#ffd700';
+            // Halo coloré par gardien
+            ctx.save(); ctx.globalAlpha = 0.55;
+            const rg = ctx.createRadialGradient(rx, ry, 4, rx, ry, 50);
+            rg.addColorStop(0, gColor); rg.addColorStop(1, 'transparent');
+            ctx.fillStyle = rg; ctx.fillRect(rx-50, ry-50, 100, 100);
             ctx.restore();
-            relicPromises.push(drawSVG(svgStr, rx - relicSize/2, ry - relicSize/2, relicSize, relicSize, tilt));
+            relicPromises.push(drawSVG(svgStr, rx-relicSize/2, ry-relicSize/2, relicSize, relicSize, tilt));
         }
         await Promise.all(relicPromises);
 
@@ -2773,224 +3053,435 @@ function captureEstampe() {
         // ══════════════════════════════════════
         const photoX = W/2, photoY = 870, photoR = 340;
 
-        // Halo multicolore derrière la photo
-        ctx.save();
-        for (let a = 0; a < Math.PI*2; a += 0.15) {
-            const hx = photoX + Math.cos(a) * (photoR + 20);
-            const hy = photoY + Math.sin(a) * (photoR + 20);
-            const hue = (a / (Math.PI*2)) * 360;
-            ctx.globalAlpha = 0.35;
-            const hg = ctx.createRadialGradient(hx, hy, 0, hx, hy, 80);
-            hg.addColorStop(0, `hsl(${hue},100%,70%)`);
-            hg.addColorStop(1, 'transparent');
-            ctx.fillStyle = hg; ctx.fillRect(hx-80, hy-80, 160, 160);
-        }
-        ctx.globalAlpha = 1; ctx.restore();
+        // 4 grandes fleurs de sakura aux coins du cercle
+        const drawSakuraCorner = (cx, cy, size, angle) => {
+            ctx.save(); ctx.translate(cx, cy); ctx.rotate(angle);
+            ctx.globalAlpha = 0.55;
+            for (let p = 0; p < 5; p++) {
+                ctx.save(); ctx.rotate((p/5)*Math.PI*2);
+                const pg = ctx.createRadialGradient(0, -size*0.4, 2, 0, -size*0.4, size*0.55);
+                pg.addColorStop(0, '#ffd6e7'); pg.addColorStop(1, '#ff69b4');
+                ctx.fillStyle = pg;
+                ctx.beginPath(); ctx.ellipse(0, -size*0.4, size*0.28, size*0.42, 0, 0, Math.PI*2);
+                ctx.fill(); ctx.restore();
+            }
+            ctx.restore();
+        };
+        const sakuraOffset = photoR * 0.72;
+        drawSakuraCorner(photoX - sakuraOffset, photoY - sakuraOffset, 48, -Math.PI/5);
+        drawSakuraCorner(photoX + sakuraOffset, photoY - sakuraOffset, 48, Math.PI/5);
+        drawSakuraCorner(photoX - sakuraOffset, photoY + sakuraOffset, 42, Math.PI/4);
+        drawSakuraCorner(photoX + sakuraOffset, photoY + sakuraOffset, 42, -Math.PI/4);
 
-        // Anneau extérieur blanc
+        // Halo nacré doux
         ctx.save();
-        ctx.beginPath(); ctx.arc(photoX, photoY, photoR+16, 0, Math.PI*2);
-        ctx.strokeStyle = 'rgba(255,255,255,0.9)'; ctx.lineWidth = 6; ctx.stroke();
-        // Anneau intérieur doré
-        ctx.beginPath(); ctx.arc(photoX, photoY, photoR+6, 0, Math.PI*2);
+        const haloG = ctx.createRadialGradient(photoX, photoY, photoR*0.5, photoX, photoY, photoR+80);
+        haloG.addColorStop(0, 'rgba(255,183,197,0)');
+        haloG.addColorStop(0.6, 'rgba(196,181,253,0.15)');
+        haloG.addColorStop(1, 'transparent');
+        ctx.fillStyle = haloG; ctx.fillRect(photoX-photoR-90, photoY-photoR-90, (photoR+90)*2, (photoR+90)*2);
+        ctx.restore();
+
+        // Anneau shimenawa (corde sacrée — tirets obliques)
+        ctx.save();
+        ctx.beginPath(); ctx.arc(photoX, photoY, photoR+22, 0, Math.PI*2);
+        ctx.strokeStyle = 'rgba(255,215,0,0.18)'; ctx.lineWidth = 14;
+        ctx.setLineDash([4, 8]); ctx.lineDashOffset = 0; ctx.stroke();
+        ctx.setLineDash([]);
+        // Anneau blanc extérieur
+        ctx.beginPath(); ctx.arc(photoX, photoY, photoR+30, 0, Math.PI*2);
+        ctx.strokeStyle = 'rgba(255,255,255,0.85)'; ctx.lineWidth = 5; ctx.stroke();
+        // Anneau doré intérieur
+        ctx.beginPath(); ctx.arc(photoX, photoY, photoR+10, 0, Math.PI*2);
         ctx.strokeStyle = '#ffd700'; ctx.lineWidth = 3; ctx.stroke();
         ctx.restore();
 
-        // Photo dans le cercle
-        if (video && video.videoWidth > 0) {
+        // Photo dans le cercle — snapshot figé au moment du flash
+        const photoSrc = snapshot || (video && video.videoWidth > 0 ? video : null);
+        if (photoSrc) {
             ctx.save();
             ctx.beginPath(); ctx.arc(photoX, photoY, photoR, 0, Math.PI*2); ctx.clip();
-            const s = Math.min(video.videoWidth, video.videoHeight);
-            ctx.translate(photoX + photoR, photoY); ctx.scale(-1, 1); ctx.translate(-photoX, -photoY);
-            ctx.drawImage(video,
-                (video.videoWidth - s)/2, (video.videoHeight - s)/2, s, s,
-                photoX - photoR, photoY - photoR, photoR*2, photoR*2
-            );
+            const srcW = photoSrc.videoWidth || photoSrc.width;
+            const srcH = photoSrc.videoHeight || photoSrc.height;
+            const s = Math.min(srcW, srcH);
+            if (snapshot) {
+                // Snapshot déjà mirrorisé — dessin direct sans flip
+                ctx.drawImage(snapshot, (srcW-s)/2, (srcH-s)/2, s, s, photoX-photoR, photoY-photoR, photoR*2, photoR*2);
+            } else {
+                // Fallback : video live avec flip
+                ctx.translate(photoX + photoR, photoY); ctx.scale(-1, 1); ctx.translate(-photoX, -photoY);
+                ctx.drawImage(video, (srcW-s)/2, (srcH-s)/2, s, s, photoX-photoR, photoY-photoR, photoR*2, photoR*2);
+            }
             ctx.restore();
         } else {
-            // Placeholder si pas de caméra
             ctx.save();
             ctx.beginPath(); ctx.arc(photoX, photoY, photoR, 0, Math.PI*2);
-            const pg = ctx.createRadialGradient(photoX, photoY, 0, photoX, photoY, photoR);
-            pg.addColorStop(0, '#2d0a4e'); pg.addColorStop(1, '#12011a');
+            const pg = ctx.createRadialGradient(photoX, photoY-60, 30, photoX, photoY, photoR);
+            pg.addColorStop(0, '#3d1260'); pg.addColorStop(1, '#0a0018');
             ctx.fillStyle = pg; ctx.fill();
-            ctx.fillStyle = 'rgba(255,183,197,0.5)'; ctx.font = "120px serif";
-            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-            ctx.fillText('🌸', photoX, photoY);
+            // Placeholder neko SVG si pas de caméra
+            const nekoP = relicSVG['kitsune'];
+            if (nekoP) await drawSVG(nekoP, photoX-80, photoY-80, 160, 160, 0);
             ctx.restore();
         }
 
         // ══════════════════════════════════════
-        // 8 GUMMY PAWS en orbite autour de la photo
+        // 8 MÉDAILLONS JOUEUSES en orbite
         // ══════════════════════════════════════
         const pawColors = ['#ffb7c5','#98e8d4','#fde68a','#c4b5fd','#fca5a5','#6ee7b7','#a5b4fc','#fdba74'];
         const pawDark   = ['#ff1493','#00b386','#f59e0b','#8b5cf6','#ef4444','#10b981','#6366f1','#f97316'];
         for (let i = 0; i < 8; i++) {
             const a = (i/8)*Math.PI*2 - Math.PI/2;
-            const px = photoX + Math.cos(a)*(photoR+70);
-            const py = photoY + Math.sin(a)*(photoR+70);
-            const pr = 38;
-            // Corps gummy
-            const pg = ctx.createRadialGradient(px-pr*0.2, py-pr*0.2, 2, px, py, pr);
-            pg.addColorStop(0, pawColors[i]); pg.addColorStop(1, pawDark[i]);
-            ctx.save(); ctx.shadowColor = pawColors[i]; ctx.shadowBlur = 15;
+            const px = photoX + Math.cos(a)*(photoR+76);
+            const py = photoY + Math.sin(a)*(photoR+76);
+            const pr = 40;
+            const pg2 = ctx.createRadialGradient(px-pr*0.2, py-pr*0.25, 2, px, py, pr);
+            pg2.addColorStop(0, pawColors[i]); pg2.addColorStop(1, pawDark[i]);
+            ctx.save(); ctx.shadowColor = pawColors[i]; ctx.shadowBlur = 18;
             ctx.beginPath(); ctx.arc(px, py, pr, 0, Math.PI*2);
-            ctx.fillStyle = pg; ctx.fill();
-            ctx.strokeStyle = 'rgba(255,255,255,0.6)'; ctx.lineWidth = 2.5; ctx.stroke();
+            ctx.fillStyle = pg2; ctx.fill();
+            ctx.strokeStyle = 'rgba(255,255,255,0.65)'; ctx.lineWidth = 2.5; ctx.stroke();
             // Reflet glossy
-            ctx.globalAlpha = 0.65; ctx.fillStyle = '#fff';
-            ctx.beginPath(); ctx.ellipse(px-pr*0.15, py-pr*0.25, pr*0.38, pr*0.18, -0.3, 0, Math.PI*2);
+            ctx.globalAlpha = 0.6; ctx.fillStyle = '#fff';
+            ctx.beginPath(); ctx.ellipse(px-pr*0.15, py-pr*0.28, pr*0.36, pr*0.17, -0.3, 0, Math.PI*2);
             ctx.fill(); ctx.globalAlpha = 1;
-            // Ombres patte (cercles noirs)
-            ctx.globalAlpha = 0.18;
-            [[0,8,9],[-9,-9,5],[0,-14,5],[9,-9,5]].forEach(([ox,oy,r]) => {
-                ctx.beginPath(); ctx.arc(px+ox, py+oy, r, 0, Math.PI*2);
-                ctx.fillStyle = '#000'; ctx.fill();
+            // Patte de chat — 1 coussinet central + 4 petits
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = 'rgba(255,255,255,0.32)';
+            // Coussinet central
+            ctx.beginPath(); ctx.ellipse(px, py + pr*0.08, pr*0.38, pr*0.32, 0, 0, Math.PI*2); ctx.fill();
+            // 4 petits coussinets en arc au-dessus
+            const padR = pr * 0.16;
+            const padOffsets = [[-pr*0.35, -pr*0.28], [-pr*0.13, -pr*0.42], [pr*0.13, -pr*0.42], [pr*0.35, -pr*0.28]];
+            padOffsets.forEach(([ox, oy]) => {
+                ctx.beginPath(); ctx.ellipse(px+ox, py+oy, padR, padR*0.85, ox*0.03, 0, Math.PI*2); ctx.fill();
             });
-            ctx.globalAlpha = 1; ctx.restore();
+            ctx.restore();
         }
 
         // ══════════════════════════════════════
-        // KODAMAS — 5 petits esprits en bas
-        // ══════════════════════════════════════
-        const kodamaSVG = (cx, cy, scale, alpha) => {
-            ctx.save(); ctx.globalAlpha = alpha;
-            ctx.translate(cx, cy); ctx.scale(scale, scale);
-            // Corps
-            const bodyG = ctx.createRadialGradient(-5,-10,5, 0,0,45);
-            bodyG.addColorStop(0, '#ffffff'); bodyG.addColorStop(1, '#e8e8f0');
-            ctx.shadowColor = 'rgba(200,180,255,0.8)'; ctx.shadowBlur = 20;
-            // Corps principal (ellipse)
-            ctx.fillStyle = bodyG;
-            ctx.beginPath(); ctx.ellipse(0, 15, 30, 35, 0, 0, Math.PI*2); ctx.fill();
-            // Tête (cercle)
-            ctx.beginPath(); ctx.arc(0, -22, 28, 0, Math.PI*2); ctx.fill();
-            ctx.shadowBlur = 0;
-            // Yeux
-            ctx.fillStyle = '#1a0535';
-            ctx.beginPath(); ctx.ellipse(-10,-22,5,4,0,0,Math.PI*2); ctx.fill();
-            ctx.beginPath(); ctx.ellipse(10,-22,5,4,0,0,Math.PI*2); ctx.fill();
-            // Reflets yeux
-            ctx.fillStyle = '#fff';
-            ctx.beginPath(); ctx.arc(-8,-24,2,0,Math.PI*2); ctx.fill();
-            ctx.beginPath(); ctx.arc(12,-24,2,0,Math.PI*2); ctx.fill();
-            // Bouche
-            ctx.strokeStyle = '#1a0535'; ctx.lineWidth = 2;
-            ctx.beginPath(); ctx.arc(0,-15,5,0.2,Math.PI-0.2); ctx.stroke();
-            // Bras gauche
-            ctx.fillStyle = bodyG;
-            ctx.beginPath(); ctx.ellipse(-35,5,12,8,-0.4,0,Math.PI*2); ctx.fill();
-            // Bras droit
-            ctx.beginPath(); ctx.ellipse(35,5,12,8,0.4,0,Math.PI*2); ctx.fill();
-            ctx.restore();
-        };
-
-        // 5 kodamas de tailles variées
-        const kodamaData = [
-            {x: 160, y: 1430, s: 0.85, a: 0.9},
-            {x: 330, y: 1460, s: 1.05, a: 1.0},
-            {x: 540, y: 1420, s: 0.95, a: 1.0},
-            {x: 750, y: 1455, s: 1.00, a: 1.0},
-            {x: 920, y: 1435, s: 0.80, a: 0.9},
-        ];
-        kodamaData.forEach(({x,y,s,a}) => kodamaSVG(x, y, s, a));
-
-        // ══════════════════════════════════════
-        // BANDE PRÉNOMS
+        // KANJI GARDIENS — zone entre photo et nekos
         // ══════════════════════════════════════
         ctx.save();
-        // Fond rectangle arrondi
-        const bx = 60, by = 1550, bw = W-120, bh = 90;
-        ctx.fillStyle = 'rgba(255,183,197,0.12)';
-        ctx.beginPath();
-        ctx.roundRect(bx, by, bw, bh, 20);
-        ctx.fill();
-        ctx.strokeStyle = 'rgba(255,183,197,0.4)'; ctx.lineWidth = 1.5;
-        ctx.beginPath(); ctx.roundRect(bx, by, bw, bh, 20); ctx.stroke();
-
         ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillStyle = '#ffffff'; ctx.font = "28px 'Fredoka One', cursive";
-        const namesStr = mikoNames.join(' ✦ ');
-        ctx.fillText(namesStr, W/2, by + 30);
-
-        // Temps
-        const elapsed = Date.now() - gameStartTime;
-        const mins = Math.floor(elapsed/60000), secs = Math.floor((elapsed%60000)/1000);
-        ctx.fillStyle = '#ffd700'; ctx.font = "24px 'Fredoka One', cursive";
-        ctx.fillText(`✨ Sanctuaire purifié en ${mins} min ${secs} sec ✨`, W/2, by + 65);
+        ctx.fillStyle = 'rgba(255,215,0,0.45)';
+        // Taille adaptative : réduire si la ligne dépasse la largeur utile
+        let kanjiFontSize = 24;
+        ctx.font = `${kanjiFontSize}px 'Ma Shan Zheng', cursive`;
+        const kanjiStr = guardianData.map(g => g.kanji).join(' · ');
+        const kanjiMeasure = ctx.measureText(kanjiStr).width;
+        if (kanjiMeasure > W - 120) {
+            kanjiFontSize = Math.floor(kanjiFontSize * (W - 120) / kanjiMeasure);
+            ctx.font = `${kanjiFontSize}px 'Ma Shan Zheng', cursive`;
+        }
+        ctx.fillText(kanjiStr, W/2, 1255);
         ctx.restore();
+
+        // ══════════════════════════════════════
+        // RELIQUES EN ARC BAS — 9 SVG gardiens
+        // remplacent les kodamas
+        // ══════════════════════════════════════
+        const bottomRelicSize = 88;
+        const bottomY = 1390; // décalé vers le haut pour gap bande prénoms
+        const totalWidth = W - 160;
+        const step = totalWidth / 8;
+        const bottomPromises = [];
+
+        for (let i = 0; i < 9; i++) {
+            const svgStr = getRelicSVG(i);
+            if (!svgStr) continue;
+            const bx = 80 + i * step;
+            // Arc doux vers le bas
+            const by = bottomY + Math.sin((i/8)*Math.PI) * 30;
+            const tilt = (i - 4) * 0.07;
+            const gColor = guardianData[i] ? guardianData[i].color : '#ffd700';
+            const scale = i === 4 ? 1.15 : (i === 3 || i === 5 ? 1.05 : 1.0);
+            const finalSize = bottomRelicSize * scale;
+            // Halo gardien
+            ctx.save(); ctx.globalAlpha = 0.45;
+            const bg2 = ctx.createRadialGradient(bx, by, 4, bx, by, 52);
+            bg2.addColorStop(0, gColor); bg2.addColorStop(1, 'transparent');
+            ctx.fillStyle = bg2; ctx.fillRect(bx-52, by-52, 104, 104);
+            ctx.restore();
+            bottomPromises.push(drawSVG(svgStr, bx-finalSize/2, by-finalSize/2, finalSize, finalSize, tilt));
+        }
+        await Promise.all(bottomPromises);
+
+        // Kanji sous chaque relique — Y adaptatif à la taille de la relique
+        ctx.save();
+        ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+        ctx.font = "18px 'Ma Shan Zheng', cursive";
+        for (let i = 0; i < 9; i++) {
+            const bx = 80 + i * step;
+            const arcY = bottomY + Math.sin((i/8)*Math.PI) * 30;
+            const sc2 = i === 4 ? 1.15 : (i === 3 || i === 5 ? 1.05 : 1.0);
+            const halfSize = (bottomRelicSize * sc2) / 2;
+            const by = arcY + halfSize + 6; // juste sous le bord bas de la relique
+            const gColor = guardianData[i] ? guardianData[i].color : '#ffd700';
+            ctx.fillStyle = gColor; ctx.globalAlpha = 0.78;
+            ctx.fillText(guardianData[i].kanji || '', bx, by);
+        }
+        ctx.globalAlpha = 1; ctx.restore();
+
+        // ══════════════════════════════════════
+        // BANDE PRÉNOMS — adaptive 1 ou 2 lignes
+        // ══════════════════════════════════════
+        ctx.save();
+        const byBand = 1572;
+        const bwBand = W - 120;
+        // Mesure du texte
+        ctx.font = "28px 'Fredoka One', cursive";
+        const namesStr = mikoNames.join(' ✦ ');
+        const textW = ctx.measureText(namesStr).width;
+        let line1, line2 = null;
+        if (textW > bwBand - 20) {
+            // Split en 2 lignes de 4
+            const half = Math.ceil(mikoNames.length / 2);
+            line1 = mikoNames.slice(0, half).join(' ✦ ');
+            line2 = mikoNames.slice(half).join(' ✦ ');
+        } else {
+            line1 = namesStr;
+        }
+        const bandH = line2 ? 140 : 100;
+
+        // Fond bande
+        ctx.fillStyle = 'rgba(255,183,197,0.1)';
+        ctx.beginPath(); ctx.roundRect(60, byBand, bwBand, bandH, 22); ctx.fill();
+        ctx.strokeStyle = 'rgba(255,183,197,0.4)'; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.roundRect(60, byBand, bwBand, bandH, 22); ctx.stroke();
+
+        // Losanges décoratifs
+        ctx.fillStyle = 'rgba(255,215,0,0.5)';
+        [[60, byBand+bandH/2],[W-60, byBand+bandH/2]].forEach(([x,y]) => {
+            ctx.save(); ctx.translate(x,y); ctx.rotate(Math.PI/4);
+            ctx.fillRect(-6,-6,12,12); ctx.restore();
+        });
+        // Lignes décoratives
+        ctx.strokeStyle = 'rgba(255,215,0,0.2)'; ctx.lineWidth = 1;
+        ctx.setLineDash([4,8]);
+        ctx.beginPath(); ctx.moveTo(80, byBand+8); ctx.lineTo(W-80, byBand+8); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(80, byBand+bandH-8); ctx.lineTo(W-80, byBand+bandH-8); ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Prénoms — chaque nom dans la couleur de son gardien
+        ctx.textBaseline = 'middle';
+        ctx.font = "28px 'Fredoka One', cursive"; ctx.shadowBlur = 0;
+        const nameColors = ['#ffb7c5','#98e8d4','#fde68a','#c4b5fd','#fca5a5','#6ee7b7','#a5b4fc','#fdba74'];
+        const separator = ' ✦ ';
+        const sepW = ctx.measureText(separator).width;
+        const drawColoredNames = (names, startIdx, centerY) => {
+            // Calculer largeur totale
+            const widths = names.map(n => ctx.measureText(n).width);
+            const totalW = widths.reduce((a,b)=>a+b,0) + sepW*(names.length-1);
+            let cx = W/2 - totalW/2;
+            names.forEach((name, j) => {
+                const idx = startIdx + j;
+                ctx.fillStyle = nameColors[idx % nameColors.length];
+                ctx.textAlign = 'left';
+                ctx.fillText(name, cx, centerY);
+                cx += widths[j];
+                if (j < names.length - 1) {
+                    ctx.fillStyle = 'rgba(255,215,0,0.6)';
+                    ctx.fillText(separator, cx, centerY);
+                    cx += sepW;
+                }
+            });
+        };
+        if (line2) {
+            const half = Math.ceil(mikoNames.length / 2);
+            drawColoredNames(mikoNames.slice(0, half), 0, byBand + 38);
+            drawColoredNames(mikoNames.slice(half), half, byBand + 76);
+        } else {
+            drawColoredNames(mikoNames, 0, byBand + bandH*0.38);
+        }
+
+        // Phrase poétique — pas de timer
+        ctx.fillStyle = '#ffd700'; ctx.font = "22px 'Fredoka One', cursive";
+        ctx.shadowColor = 'rgba(255,215,0,0.4)'; ctx.shadowBlur = 8;
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText('✦ Ce jour-là, huit courageuses ont réveillé neuf Nekos ✦', W/2, byBand + bandH - 22);
+        ctx.shadowBlur = 0; ctx.restore();
+
+        // ══════════════════════════════════════
+        // ORNEMENTS COINS — 4 reliques icônes
+        // ══════════════════════════════════════
+        const cornerRelics = [
+            { key:'ken',    x: 24, y: 24, angle: -Math.PI/5 },
+            { key:'kitsune',x: W-104, y: 24, angle: Math.PI/5 },
+            { key:'mochi',  x: 24, y: H-104, angle: Math.PI/5 },
+            { key:'shogun', x: W-104, y: H-104, angle: -Math.PI/5 },
+        ];
+        // Offscreen canvas pour appliquer globalAlpha sur drawImage
+        const drawSVGAlpha = async (svgStr, x, y, w, h, angle, alpha) => {
+            const off = document.createElement('canvas');
+            off.width = w * 2; off.height = h * 2;
+            const offCtx = off.getContext('2d');
+            // Dessiner sur offscreen sans alpha
+            await new Promise(resolve => {
+                const clean = svgStr.replace(/class="[^"]*"/g,'').replace(/<svg/,`<svg xmlns="http://www.w3.org/2000/svg"`).replace(/xmlns="http:\/\/www\.w3\.org\/2000\/svg"/g,'').replace(/<svg/,'<svg xmlns="http://www.w3.org/2000/svg"');
+                const blob = new Blob([clean],{type:'image/svg+xml'});
+                const url = URL.createObjectURL(blob);
+                const img = new Image();
+                img.onload = () => {
+                    offCtx.save();
+                    offCtx.translate(w, h);
+                    if (angle) offCtx.rotate(angle);
+                    offCtx.drawImage(img, -w, -h, w*2, h*2);
+                    offCtx.restore();
+                    URL.revokeObjectURL(url);
+                    resolve();
+                };
+                img.onerror = () => { URL.revokeObjectURL(url); resolve(); };
+                img.src = url;
+            });
+            // Composer sur le canvas principal avec alpha
+            ctx.save();
+            ctx.globalAlpha = alpha;
+            ctx.drawImage(off, x, y, w, h);
+            ctx.restore();
+        };
+        const cornerPs = [];
+        for (const c of cornerRelics) {
+            const svgStr = relicSVG[c.key];
+            if (!svgStr) continue;
+            cornerPs.push(drawSVGAlpha(svgStr, c.x, c.y, 80, 80, c.angle, 0.68));
+        }
+        await Promise.all(cornerPs);
 
         // ══════════════════════════════════════
         // TAMPON 九猫 — bas droite
         // ══════════════════════════════════════
         ctx.save();
-        ctx.translate(W - 140, H - 160);
+        ctx.translate(W - 138, H - 158);
         ctx.rotate(-12 * Math.PI/180);
-        // Fond carré arrondi rose fluo
-        ctx.shadowColor = '#ff1493'; ctx.shadowBlur = 20;
+        // Ombre encre rouge (effet hanko)
+        ctx.shadowColor = '#cc0000'; ctx.shadowBlur = 0;
+        ctx.shadowOffsetX = 4; ctx.shadowOffsetY = 4;
         ctx.fillStyle = '#ff1493';
         ctx.beginPath(); ctx.roundRect(-70,-70,140,140,18); ctx.fill();
+        ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
         // Double bordure
         ctx.strokeStyle = '#fff'; ctx.lineWidth = 4;
         ctx.beginPath(); ctx.roundRect(-70,-70,140,140,18); ctx.stroke();
-        ctx.strokeStyle = 'rgba(255,255,255,0.4)'; ctx.lineWidth = 8;
+        ctx.strokeStyle = 'rgba(255,255,255,0.35)'; ctx.lineWidth = 9;
         ctx.beginPath(); ctx.roundRect(-62,-62,124,124,14); ctx.stroke();
         // Kanji
         ctx.shadowBlur = 0;
-        ctx.fillStyle = '#fff'; ctx.font = "bold 58px 'Ma Shan Zheng', cursive";
+        ctx.fillStyle = '#fff'; ctx.font = "bold 60px 'Ma Shan Zheng', cursive";
         ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillText('九', 0, -22);
-        ctx.fillText('猫', 0, 32);
+        // Texture encre hanko — légère irrégularité
+        ctx.shadowColor = '#ff1493'; ctx.shadowBlur = 3;
+        ctx.fillText('九', 0, -22); ctx.fillText('猫', 0, 34);
+        ctx.shadowBlur = 0;
+        // Petites éclaboussures d'encre
+        ctx.fillStyle = 'rgba(255,20,147,0.35)';
+        [[-52,-52,3],[-48,50,2],[50,-55,2.5],[55,48,3],[-30,-60,1.5],[40,60,2]].forEach(([tx,ty,tr]) => {
+            ctx.beginPath(); ctx.arc(tx, ty, tr, 0, Math.PI*2); ctx.fill();
+        });
         ctx.restore();
 
-        // Ornements coins
-        const drawCornerStar = (x, y, rot) => {
-            ctx.save(); ctx.translate(x,y); ctx.rotate(rot); ctx.globalAlpha = 0.4;
-            ctx.fillStyle = '#ffd700';
-            for (let s=0; s<4; s++) {
-                ctx.rotate(Math.PI/2);
-                ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(8,35); ctx.lineTo(0,28); ctx.lineTo(-8,35);
-                ctx.closePath(); ctx.fill();
-            }
-            ctx.restore();
-        };
-        drawCornerStar(55, 55, 0);
-        drawCornerStar(W-55, 55, Math.PI/4);
-        drawCornerStar(55, H-55, -Math.PI/4);
-        drawCornerStar(W-55, H-55, Math.PI/2);
+        // Colophon date japonaise bas-gauche
+        ctx.save();
+        ctx.translate(96, H - 140);
+        ctx.rotate(12 * Math.PI/180);
+        ctx.globalAlpha = 0.55;
+        const now = new Date();
+        const reiwa = now.getFullYear() - 2018;
+        const jpDate = `令和${reiwa}年${now.getMonth()+1}月${now.getDate()}日`;
+        ctx.fillStyle = '#ffd700'; ctx.font = "22px 'Ma Shan Zheng', cursive";
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(jpDate, 0, 0);
+        ctx.restore();
 
         // ══════════════════════════════════════
-        // TÉLÉCHARGEMENT
+        // TÉLÉCHARGEMENT + ÉCRAN CONFIRMATION
         // ══════════════════════════════════════
-        const stamp = document.createElement('div');
-        stamp.className = 'hanko-slam'; stamp.innerHTML = '九<br>猫';
-        const overlay = document.getElementById('mirror-overlay');
-        if (overlay) overlay.appendChild(stamp);
         playGameSFX('thud');
         if (navigator.vibrate) navigator.vibrate([200, 50, 300]);
 
+        // Hanko slam pendant génération
+        const hankoEl = document.createElement('div');
+        hankoEl.className = 'hanko-slam'; hankoEl.innerHTML = '九<br>猫';
+        hankoEl.style.cssText = 'position:fixed;top:50%;left:50%;z-index:9999;pointer-events:none;';
+        document.body.appendChild(hankoEl);
+
+        const dataUrl = canvas.toDataURL('image/png');
+
+        // Téléchargement auto
         setTimeout(() => {
             const link = document.createElement('a');
             link.download = 'Sanctuaire-des-9-Nekos.png';
-            link.href = canvas.toDataURL('image/png');
+            link.href = dataUrl;
             link.click();
             playGameSFX('pop');
-            if (stamp.parentNode) stamp.remove();
         }, 800);
 
+        // Écran de confirmation
         setTimeout(() => {
-            if (overlay) overlay.classList.remove('active');
-            [document.getElementById('mirror-cam'), document.getElementById('selfie-cam')].forEach(v => {
-                if (v && v.srcObject) { try { v.srcObject.getTracks().forEach(t => t.stop()); } catch(e){} v.srcObject = null; }
-            });
-            const sw = document.getElementById('selfie-container');
-            if (sw) sw.style.display = 'none';
-        }, 2500);
+            if (hankoEl.parentNode) hankoEl.remove();
+
+            const confirmScreen = document.createElement('div');
+            confirmScreen.id = 'estampe-confirm';
+            confirmScreen.style.cssText = 'position:fixed;inset:0;z-index:9200;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(5,0,15,0.92);opacity:0;transition:opacity 0.5s ease;gap:20px;';
+
+            // Titre
+            const title = document.createElement('p');
+            title.style.cssText = "font-family:'Ma Shan Zheng',cursive;font-size:28px;color:#ffd700;text-shadow:0 0 15px #ffd700;margin:0;letter-spacing:2px;";
+            title.textContent = '鏡の記憶';
+            confirmScreen.appendChild(title);
+            const titleFr = document.createElement('p');
+            titleFr.style.cssText = "font-family:'Fredoka One',cursive;font-size:16px;color:rgba(255,183,197,0.8);margin:-12px 0 0 0;";
+            titleFr.textContent = 'Le souvenir est scellé';
+            confirmScreen.appendChild(titleFr);
+
+            // Aperçu miniature
+            const preview = document.createElement('img');
+            preview.src = dataUrl;
+            preview.style.cssText = 'width:min(180px,40vw);border-radius:12px;border:3px solid rgba(255,215,0,0.6);box-shadow:0 0 30px rgba(255,215,0,0.3),0 0 60px rgba(255,183,197,0.2);';
+            confirmScreen.appendChild(preview);
+
+            // Bouton continuer
+            const btnOk = document.createElement('button');
+            btnOk.className = 'btn-grad pulse-btn';
+            btnOk.style.cssText = 'margin-top:8px;width:auto;padding:14px 28px;';
+            btnOk.textContent = '🌸 Notre légende est scellée !';
+            btnOk.onclick = () => {
+                confirmScreen.style.opacity = '0';
+                setTimeout(() => {
+                    confirmScreen.remove();
+                    // Continuer vers l'épilogue
+                    const btnEpilogue = document.getElementById('btn-download');
+                    if (btnEpilogue) { btnEpilogue.style.display = 'none'; }
+                    if (typeof launchEpilogue === 'function') launchEpilogue();
+                }, 500);
+            };
+            confirmScreen.appendChild(btnOk);
+
+            // Bouton reprendre
+            const btnRetake = document.createElement('button');
+            btnRetake.style.cssText = "font-family:'Fredoka One',cursive;font-size:14px;color:rgba(161,196,253,0.8);background:none;border:1px solid rgba(161,196,253,0.3);border-radius:20px;padding:8px 20px;cursor:pointer;margin-top:-8px;";
+            btnRetake.textContent = '✨ Saisir un autre reflet';
+            btnRetake.onclick = () => {
+                confirmScreen.style.opacity = '0';
+                setTimeout(() => {
+                    confirmScreen.remove();
+                    window._mirrorSnapshot = null;
+                    // Recréer le portail et relancer
+                    const newPortal = document.createElement('div');
+                    newPortal.className = 'mirror-portal';
+                    document.body.appendChild(newPortal);
+                    openMirrorAndCapture();
+                }, 400);
+            };
+            confirmScreen.appendChild(btnRetake);
+
+            document.body.appendChild(confirmScreen);
+            requestAnimationFrame(() => { confirmScreen.style.opacity = '1'; });
+        }, 1200);
     };
 
-    render().catch(e => console.error('[Estampe]', e));
+    render().catch(e => console.error('[Estampe]', e)).finally(() => { window._mirrorSnapshot = null; });
 }
-
 
 /* --- ACTE VI — ÉPILOGUE : LE BATEAU DES LANTERNES --- */
 async function launchEpilogue() {
@@ -3001,14 +3492,14 @@ async function launchEpilogue() {
         sf.style.opacity = 0; sf.style.transform = 'translateY(20px)';
         await new Promise(r => setTimeout(r, 400)); 
         sf.innerHTML = htmlStr; sf.style.opacity = 1; sf.style.transform = "translateY(0)";
-        await speakDucked(spokenJP, { rate: 0.9, volume: 0.9 });
+        await speakDucked(spokenJP, { rate: 0.78 });
         await new Promise(r => setTimeout(r, pause));
     };
     
     // Adieu du sage — voix seule
     sf.style.opacity = 0;
     await new Promise(r => setTimeout(r, 500));
-    await speakDucked("Sayonara... chiisana shugosha-tachi.", { rate: 0.6, pitch: 0.4, volume: 0.9 });
+    await speakDucked("さようなら…　小さな守護者たち。", { rate: 0.62 });
     await new Promise(r => setTimeout(r, 3000));
     
     document.getElementById('victory-cert').style.opacity = 0;
@@ -3039,15 +3530,15 @@ async function launchEpilogue() {
     }
     
     await new Promise(r => setTimeout(r, 2000));
-    await showFinalText("La nuit tombe sur le Sanctuaire... il est temps de quitter ce rivage.", "Kono kishi o hanareru toki da.", 1000);
-    await showFinalText("Suivez les lanternes par-delà les brumes du temps.", "Tōrō o oikakete.", 1000);
+    await showFinalText("La nuit tombe sur le Sanctuaire... il est temps de quitter ce rivage.", "この岸を、　離れる時だ。", 1000);
+    await showFinalText("Suivez les lanternes par-delà les brumes du temps.", "灯籠を、追いかけて。", 1000);
     
     // Dernier pétale
     const lastPetal = document.createElement('div');
     lastPetal.style.cssText = 'position:fixed;left:50%;top:-20px;width:12px;height:12px;background:#ffb7c5;border-radius:40% 60% 55% 45%;filter:drop-shadow(0 0 8px #ffb7c5);z-index:300;pointer-events:none;opacity:0.9;animation:last-petal-fall 8s ease-in forwards;';
     document.body.appendChild(lastPetal);
     
-    await showFinalText("<span style='color:#D4AF37;'>Laissez la magie s'endormir... un festin vous attend sous le toit d'Ava.</span>", "Ava no yane no shita de gochisō ga matsu.", 2000);
+    await showFinalText("<span style='color:#D4AF37;'>Laissez la magie s'endormir... un festin vous attend sous le toit d'Ava.</span>", "アヴァの屋根の下で、　ご馳走が待つ。", 2000);
     
     // Fade to black
     await new Promise(r => setTimeout(r, 3000));

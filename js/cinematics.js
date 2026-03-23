@@ -53,10 +53,14 @@ function clearInkWash() {
 
 /* --- TYPEWRITER — Texte caractère par caractère --- */
 
-async function showStoryText(htmlStr, spokenText, lang="ja-JP", rate=0.7) {
+async function showStoryText(htmlStr, spokenText, lang="ja-JP", rate=0.74) {
     if(introSkipped) return Promise.resolve();
     const st = document.getElementById('story-text');
     
+    // Silence 150ms avant chaque nouvelle phrase — respiration naturelle
+    await new Promise(r => setTimeout(r, 150));
+    if(introSkipped) return;
+
     // Fade out ancien texte
     if(st.innerHTML !== "") { 
         st.classList.add('text-fade-out'); 
@@ -70,8 +74,7 @@ async function showStoryText(htmlStr, spokenText, lang="ja-JP", rate=0.7) {
     // Lancer la voix en parallèle du typewriter
     const voicePromise = spokenText ? talkSync(spokenText, lang, rate) : Promise.resolve();
     
-    // Tokenizer : sépare le HTML en tokens (tags entiers vs caractères individuels)
-    // Ex: "Hello<br>World" → ["H","e","l","l","o","<br>","W","o","r","l","d"]
+    // Tokenizer : sépare le HTML en tokens
     const tokens = [];
     let inTag = false, currentTag = '';
     for (let i = 0; i < htmlStr.length; i++) {
@@ -82,9 +85,13 @@ async function showStoryText(htmlStr, spokenText, lang="ja-JP", rate=0.7) {
         else { tokens.push(ch); }
     }
     
-    // Compter les vrais caractères (pas les tags) pour calculer la vitesse
+    // Typewriter synchronisé sur durée TTS estimée
+    // Google JP ≈ 85ms/caractère à rate=1.0, ajusté par 1/rate
     const charCount = tokens.filter(t => !t.startsWith('<')).length;
-    const speed = Math.max(30, Math.min(80, (spokenText ? 6000 : 3000) / charCount));
+    const estTTSDuration = spokenText
+        ? Math.max(1500, spokenText.length * 85 * (1 / rate))
+        : 3000;
+    const speed = Math.max(28, Math.min(90, estTTSDuration / charCount));
     
     st.innerHTML = `<span class="tw-content"></span><span class="typewriter-cursor"></span>`;
     const twContent = st.querySelector('.tw-content');
@@ -261,9 +268,21 @@ function drawGuardianConstellation() {
     const canvas = document.getElementById('guardian-constellation');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, 500, 500);
-    
-    const count = 8; const radius = 210; const cx = 250; const cy = 250;
+
+    // Sync canvas bitmap size with its CSS rendered size (responsive fix)
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    const cssSize = Math.round(rect.width || 500);
+    canvas.width = cssSize * dpr;
+    canvas.height = cssSize * dpr;
+    ctx.scale(dpr, dpr);
+
+    ctx.clearRect(0, 0, cssSize, cssSize);
+
+    const count = 8;
+    const cx = cssSize / 2; const cy = cssSize / 2;
+    // Radius scales proportionally from original 210/500
+    const radius = Math.round(cx * 0.84);
     const points = [];
     for (let i = 0; i < count; i++) {
         const angle = ((i / count) * Math.PI * 2) - Math.PI / 2;
@@ -332,7 +351,7 @@ function growSkip() {
 function endSkip() { cancelAnimationFrame(skipAnimFrame); if(skipFillObj){ skipFillObj.style.width = '0%'; skipFillObj.style.height = '0%';} document.getElementById('skip-zone').style.display = 'none'; }
 
 function forceSkipIntro() {
-    introSkipped = true; window.speechSynthesis.cancel();
+    introSkipped = true; if (typeof cancelVoice === 'function') cancelVoice(); else window.speechSynthesis.cancel();
     document.getElementById('skip-zone').style.display = 'none';
     setCinemaEffects({ vignette: 0, grain: 0, glitch: false });
     clearInkWash();
@@ -343,7 +362,9 @@ function forceSkipIntro() {
 /* --- 🎬 CINÉMATIQUE PRINCIPALE — Arc narratif complet --- */
 
 async function launchExperience(event) {
-    window.speechSynthesis.speak(new SpeechSynthesisUtterance("")); 
+    window.speechSynthesis.speak(new SpeechSynthesisUtterance(""));
+    // Pré-charger la meilleure voix dès le clic Commencer
+    if (typeof findBestVoice === 'function') { setTimeout(findBestVoice, 100); } 
     
     if(event && event.clientX) {
         let paw = document.createElement('div'); paw.className = 'magic-paw'; paw.innerText = '🐾';
@@ -372,13 +393,13 @@ async function launchExperience(event) {
     
     // Scène Bateau — entrée slide depuis la gauche
     await playScene('layer-boat', () => { playGameSFX('woosh'); playMikoChime(6); });
-    await showStoryText("Au-delà des brumes du temps,<br>loin du monde des hommes...", "Toki no kiri o koete, hito no sekai kara tōku hanarete...", "ja-JP", 0.7);
+    await showStoryText("Au-delà des brumes du temps,<br>loin du monde des hommes...", "時の霧を越えて、　人の世界から遠く離れて…", "ja-JP", 0.68);
     if(introSkipped) return;
     await new Promise(r => setTimeout(r, 2000)); // Pause contemplative longue
     
     // Scène Koi — entrée scale up depuis le centre
     await playScene('layer-koi', () => { playGameSFX('pop'); playMikoChime(3); });
-    await showStoryText("Se cache un lieu où les esprits de l'eau<br>murmurent des secrets...", "Mizu no seirei ga himitsu o sasayaku basho ga kakusarete iru...", "ja-JP", 0.7);
+    await showStoryText("Se cache un lieu où les esprits de l'eau<br>murmurent des secrets...", "水の精霊が、秘密を囁く場所が隠されている…", "ja-JP", 0.68);
     if(introSkipped) return;
     await new Promise(r => setTimeout(r, 1800));
 
@@ -392,13 +413,13 @@ async function launchExperience(event) {
     
     // Scène Château — entrée qui monte depuis le bas
     await playScene('layer-castle', () => { playGameSFX('thud'); playMikoChime(0); setMusicMood('DECOUVERTE'); });
-    await showStoryText("Le majestueux Sanctuaire de Neko-Jinja<br>s'élevait vers les cieux.", "Sōgon na Neko-Jinja ga ten ni sobietatte ita.", "ja-JP", 0.7);
+    await showStoryText("Le majestueux Sanctuaire de Neko-Jinja<br>s'élevait vers les cieux.", "荘厳な猫神社が、　天に聳え立っていた。", "ja-JP", 0.70);
     if(introSkipped) return;
     await new Promise(r => setTimeout(r, 1500));
     
     // Scène Torii — entrée blur qui se dissipe
     await playScene('layer-torii', () => playMikoChime(2));
-    await showStoryText("Un domaine imprégné<br>de magie pure.", "Junsui na mahō ni mitasareta ryōiki.", "ja-JP", 0.7);
+    await showStoryText("Un domaine imprégné<br>de magie pure.", "純粋な魔法に満たされた、　領域。", "ja-JP", 0.65);
     if(introSkipped) return;
     await new Promise(r => setTimeout(r, 1500));
 
@@ -416,7 +437,7 @@ async function launchExperience(event) {
         startKodamaAnimations();
         setMusicMood('SACRE');
     });
-    await showStoryText("Où les anciens esprits<br>veillaient en silence.", "Kodai no seirei ga shizuka ni mimamotte ita.", "ja-JP", 0.65);
+    await showStoryText("Où les anciens esprits<br>veillaient en silence.", "古代の精霊が、　静かに見守っていた。", "ja-JP", 0.65);
     if(introSkipped) return;
     await new Promise(r => setTimeout(r, 2200)); // Longue pause — moment sacré
     
@@ -425,7 +446,7 @@ async function launchExperience(event) {
     const n = document.getElementById('neko-hero'); n.classList.remove('sleeping'); n.classList.add('cinematic-mode');
     document.getElementById('kusanagi-sword').style.display = 'block'; 
     await playScene('neko-hero', () => { playMikoChime(1); spawnGhostGuardians(); });
-    await showStoryText("Le Neko Suprême et ses huit Gardiens<br>protégeaient l'épée sacrée Kusanagi.", "Shugosha wa seinaru tsurugi, Kusanagi o mamotte imashita.", "ja-JP", 0.65);
+    await showStoryText("Le Neko Suprême et ses huit Gardiens<br>protégeaient l'épée sacrée Kusanagi.", "守護者は、聖なる剣、草薙を守っていました。", "ja-JP", 0.65);
     if(introSkipped) return;
     await new Promise(r => setTimeout(r, 1200));
 
@@ -456,7 +477,7 @@ async function launchExperience(event) {
 
     // Scène Ombre — entrée depuis le flou/lumière
     await playScene('layer-daruma', () => { document.getElementById('cinematic-daruma').classList.add('awake'); playEvilLaugh(); });
-    await showStoryText("Mais l'Ombre Millénaire s'éveilla...<br><span class='line-break'>et le sceau vola en éclats.</span>", "Shikashi, kage no seirei ga mezame, fūin wa kudake chitta...", "ja-JP", 0.55);
+    await showStoryText("Mais l'Ombre Millénaire s'éveilla...<br><span class='line-break'>et le sceau vola en éclats.</span>", "しかし…　影の精霊が目覚め、　封印は砕け散った…", "ja-JP", 0.62);
     if(introSkipped) return;
 
     if(navigator.vibrate) navigator.vibrate([100, 50, 300, 100, 500]); 
@@ -478,7 +499,7 @@ async function launchExperience(event) {
     setMusicMood('CHUTE');
     setCinemaEffects({ vignette: 0.9, grain: 0.1, glitch: false });
     
-    await showStoryText("La lumière fut engloutie par la nuit.<br><span class='line-break'>Les 9 Gardiens dispersés aux quatre vents.</span>", "Hikari wa yami ni nomare, kokonotsu no shugosha wa yomo ni chitta.", "ja-JP", 0.55);
+    await showStoryText("La lumière fut engloutie par la nuit.<br><span class='line-break'>Les 9 Gardiens dispersés aux quatre vents.</span>", "光は闇に飲まれ、　九つの守護者は四方に散った。", "ja-JP", 0.62);
     if(introSkipped) return;
 
     await new Promise(r => setTimeout(r, 2500));

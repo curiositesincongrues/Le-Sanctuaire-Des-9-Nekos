@@ -312,6 +312,7 @@
 
         // On force la progression à 9 (tous les gardiens trouvés)
         currentFound = 9;
+        for (let _i = 0; _i < 9; _i++) foundGuardians.add(_i); // debug fix: populate all guardians
 
         if (typeof resetFinalScreenState === 'function') resetFinalScreenState();
 

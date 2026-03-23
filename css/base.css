@@ -6,11 +6,60 @@
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
 html, body { width: 100%; height: 100%; overflow: hidden; }
-body { margin: 0; background: var(--bg-current); height: 100dvh; width: 100vw; overflow: hidden; color: white; transition: background 1.5s ease-in-out; overscroll-behavior: none; user-select: none; -webkit-user-select: none; font-family: 'Fredoka One', cursive;}
+body { margin: 0; background: var(--bg-current); height: 100dvh; width: 100vw; overflow: hidden; color: white; transition: background 1.5s ease-in-out; overscroll-behavior: none; user-select: none; -webkit-user-select: none; font-family: 'Fredoka One', cursive; padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); box-sizing: border-box; }
 #app { position: relative; width: 100vw; height: 100dvh; overflow: hidden; }
 /* On mobile, body gets the radial gradient matching the WebGL bg shader.
    Visible through transparent canvas (alpha:true) when WebGL fails. */
 .is-mobile body { background: radial-gradient(ellipse at 50% 35%, var(--bg-glow) 0%, var(--bg-edge) 70%); }
+
+/* ═══════════════════════════════════════════════════
+   OPTIMISATIONS MOBILE EXTÉRIEUR (soleil)
+   ═══════════════════════════════════════════════════ */
+
+/* ① WebGL canvas — luminosité + saturation boostées */
+.is-mobile #canvas-fx {
+    filter: brightness(1.4) saturate(1.2) contrast(1.05);
+}
+
+/* ② Textes narratifs — text-shadow noir renforcé pour percer le voile solaire */
+.is-mobile #final-story-box {
+    text-shadow:
+        0px 2px 4px rgba(0,0,0,1),
+        0px 4px 12px rgba(0,0,0,1),
+        0px 0px 20px rgba(0,0,0,0.9) !important;
+}
+.is-mobile .scan-text {
+    text-shadow: 0 2px 6px rgba(0,0,0,1), 0 0 20px rgba(0,0,0,0.9);
+}
+.is-mobile .game-title-3d {
+    text-shadow:
+        0px 6px 0px rgba(0,0,0,0.8),
+        0 0 30px rgba(0,0,0,0.9),
+        0 2px 4px rgba(0,0,0,1);
+}
+
+/* ③ Boutons — bordure plus épaisse + ombre externe renforcée */
+.is-mobile .btn-grad {
+    border-width: 6px;
+    box-shadow:
+        0 4px 20px rgba(0,0,0,0.6),
+        0 0 0 2px rgba(255,255,255,0.3);
+    font-size: 16px;
+}
+.is-mobile .scan-btn {
+    border-width: 2px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.6);
+    font-size: 15px;
+}
+
+/* ④ Zones tactiles — min 52px de hauteur */
+.is-mobile .btn-grad,
+.is-mobile .btn-ema,
+.is-mobile .scan-btn,
+.is-mobile .mem-btn,
+.is-mobile .drum-btn {
+    min-height: 52px;
+}
 
 #canvas-fx { position: fixed; inset: 0; width: 100vw; height: 100dvh; z-index: 1; pointer-events: none; }
 #flash { position: fixed; inset: 0; background: transparent; opacity: 0; z-index: 9000; pointer-events: none; transition: opacity 0.1s, background 0.1s; }
@@ -208,7 +257,7 @@ body.ar-mode #screen-hub { background: transparent !important; }
     position: absolute; 
     inset: 0; 
     width: 100vw;    /* On libère la largeur */
-    height: 100vh;   /* On libère la hauteur */
+    height: 100dvh;  /* On libère la hauteur — dvh exclut la barre nav Chrome mobile */
     z-index: 90; 
     overflow: visible; /* On empêche la coupure */
     pointer-events: auto; /* DOIT capter les clics pour les runes enfants */
