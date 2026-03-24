@@ -560,11 +560,21 @@ function startScan() {
         return; 
     }
 
-    // Vérifier si la librairie QR est chargée
+    // Charger html5-qrcode à la demande (pas au démarrage — 180Ko économisés)
     if (typeof Html5Qrcode === 'undefined') {
-        console.error('[Scan] Html5Qrcode non chargé! Fallback vers entrée manuelle.');
-        showManualEntry();
-        return;
+        try {
+            await new Promise((resolve, reject) => {
+                const s = document.createElement('script');
+                s.src = 'https://unpkg.com/html5-qrcode';
+                s.onload = resolve; s.onerror = reject;
+                document.head.appendChild(s);
+            });
+            console.log('[Scan] html5-qrcode chargé à la demande');
+        } catch(e) {
+            console.error('[Scan] Impossible de charger html5-qrcode');
+            showManualEntry();
+            return;
+        }
     }
 
     if (window.cameraPermission === 'denied') {

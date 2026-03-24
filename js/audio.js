@@ -648,34 +648,34 @@ let _kokoroTTS = null;
 let _kokoroCache = new Map(); // texte → AudioBuffer
 let _kokoroCurrentSource = null; // pour cancelVoice
 
-/* Toutes les phrases JP du jeu — pré-générées en background */
+/* Toutes les phrases — voix Kokoro dédiées par scène narrative */
 const KOKORO_PHRASES = [
-    // Intro
-    { text: "時の霧を越えて、　人の世界から遠く離れて…",            speed: 0.68 },
-    { text: "水の精霊が、秘密を囁く場所が隠されている…",            speed: 0.68 },
-    { text: "荘厳な猫神社が、　天に聳え立っていた。",               speed: 0.70 },
-    { text: "純粋な魔法に満たされた、　領域。",                     speed: 0.65 },
-    { text: "古代の精霊が、　静かに見守っていた。",                  speed: 0.65 },
-    { text: "守護者は、聖なる剣、草薙を守っていました。",            speed: 0.65 },
-    { text: "しかし…　影の精霊が目覚め、　封印は砕け散った…",       speed: 0.62 },
-    { text: "光は闇に飲まれ、　九つの守護者は四方に散った。",        speed: 0.62 },
-    // Outro
-    { text: "九つの守護者が、　揃いた。",                           speed: 0.80 },
-    { text: "影が…　最後に立つ。",                                  speed: 0.75 },
-    { text: "八人の巫女が聖地を、清めた。",                         speed: 0.82 },
-    { text: "光が、　再び聖地を照らした。",                         speed: 0.85 },
-    { text: "妖怪は覚えている…　一枚の花びらで、十分だ。",          speed: 0.72 },
-    { text: "守護者たちは…永遠に…あなたたちを守る。",               speed: 0.78 },
-    { text: "さようなら…　小さな守護者たち。",                      speed: 0.62 },
-    { text: "この岸を、　離れる時だ。",                              speed: 0.70 },
-    { text: "灯籠を、追いかけて。",                                  speed: 0.68 },
-    { text: "アヴァの屋根の下で、　ご馳走が待つ。",                  speed: 0.75 },
-    { text: "伝説を…　鏡に封印せよ。",                              speed: 0.72 },
-    // entry.jp variables (texts.js)
-    { text: "八人の巫女の力が、勝る！",                              speed: 0.82 },
-    { text: "旅は、終わりに近づく…",                                speed: 0.68 },
-    { text: "精霊は今も、見守っている。",                            speed: 0.70 },
-    { text: "思い出は永遠に、心に刻まれる。",                        speed: 0.72 },
+    // ── INTRO ── voix narrative progressive : river→heart→emma→bella
+    { text: "時の霧を越えて、　人の世界から遠く離れて…",            speed: 0.68, voice: "af_river"  },
+    { text: "水の精霊が、秘密を囁く場所が隠されている…",            speed: 0.68, voice: "af_river"  },
+    { text: "荘厳な猫神社が、　天に聳え立っていた。",               speed: 0.70, voice: "af_heart"  },
+    { text: "純粋な魔法に満たされた、　領域。",                     speed: 0.65, voice: "af_heart"  },
+    { text: "古代の精霊が、　静かに見守っていた。",                  speed: 0.65, voice: "bf_emma"   },
+    { text: "守護者は、聖なる剣、草薙を守っていました。",            speed: 0.65, voice: "bf_emma"   },
+    { text: "しかし…　影の精霊が目覚め、　封印は砕け散った…",       speed: 0.62, voice: "af_bella"  },
+    { text: "光は闇に飲まれ、　九つの守護者は四方に散った。",        speed: 0.62, voice: "af_bella"  },
+    // ── OUTRO ── voix par scène narrative
+    { text: "九つの守護者が、　揃いた。",                           speed: 0.80, voice: "af_kore"   }, // Mandala — mystérieux
+    { text: "影が…　最後に立つ。",                                  speed: 0.75, voice: "am_onyx"   }, // Ombre — grave
+    { text: "八人の巫女が聖地を、清めた。",                         speed: 0.82, voice: "bf_lily"   }, // Mikos — lumineux
+    { text: "光が、　再び聖地を照らした。",                         speed: 0.85, voice: "af_nicole" }, // Château — apaisé
+    { text: "妖怪は覚えている…　一枚の花びらで、十分だ。",          speed: 0.72, voice: "bm_fable"  }, // Yokai — sage
+    { text: "守護者たちは…永遠に…あなたたちを守る。",               speed: 0.78, voice: "af_heart"  }, // Neko Suprême — émouvant
+    { text: "さようなら…　小さな守護者たち。",                      speed: 0.62, voice: "af_sky"    }, // Épilogue adieu
+    { text: "この岸を、　離れる時だ。",                              speed: 0.70, voice: "af_sky"    }, // Épilogue bateau
+    { text: "灯籠を、追いかけて。",                                  speed: 0.68, voice: "af_sky"    }, // Épilogue lanternes
+    { text: "アヴァの屋根の下で、　ご馳走が待つ。",                  speed: 0.75, voice: "af_heart"  }, // Épilogue festin
+    { text: "伝説を…　鏡に封印せよ。",                              speed: 0.72, voice: "af_kore"   }, // Sceau miroir
+    // ── entry.jp variables ──
+    { text: "八人の巫女の力が、勝る！",                              speed: 0.82, voice: "bf_lily"   },
+    { text: "旅は、終わりに近づく…",                                speed: 0.68, voice: "af_sky"    },
+    { text: "精霊は今も、見守っている。",                            speed: 0.70, voice: "af_river"  },
+    { text: "思い出は永遠に、心に刻まれる。",                        speed: 0.72, voice: "af_heart"  },
 ];
 
 /* Conversion rate (speechSynthesis 0-2) → speed Kokoro (0.5-2.0) */
@@ -710,6 +710,12 @@ async function initKokoro() {
         }
 
         console.log('[Kokoro] Connexion OK — import ES module kokoro-js...');
+        const _kSt = document.getElementById('kokoro-status');
+        if (_kSt) { _kSt.textContent = '✨ Chargement voix premium...'; _kSt.style.opacity = '1'; }
+        // Indication visuelle discrète sur le bouton
+        const _kBtn = document.getElementById('btn-start');
+        if (_kBtn) { _kBtn.style.opacity = '0.7'; _kBtn.style.cursor = 'wait'; }
+        _updateSplash(15, 'Connexion au Sanctuaire...');
 
         // import() dynamique ES module — la seule façon correcte sans bundler
         // esm.sh transforme le package npm en ES module compatible navigateur
@@ -718,6 +724,7 @@ async function initKokoro() {
         if (!KokoroTTS) throw new Error('KokoroTTS non exporté');
 
         console.log('[Kokoro] Chargement modèle q8 (~80Mo)...');
+        _updateSplash(30, 'Éveil des esprits gardiens...');
 
         // onnx-community/Kokoro-82M-v1.0-ONNX = modèle public officiel sans gate
         _kokoroTTS = await KokoroTTS.from_pretrained(
@@ -727,18 +734,38 @@ async function initKokoro() {
 
         _kokoroReady = true;
         console.log('[Kokoro] ✓ Modèle prêt — démarrage pré-génération des 23 phrases');
+        const _kStR = document.getElementById('kokoro-status');
+        if (_kStR) { _kStR.textContent = '🎙 Voix premium prête !'; setTimeout(() => { _kStR.style.opacity='0'; }, 3000); }
+        // Restaurer le bouton
+        const _kBtnR = document.getElementById('btn-start');
+        if (_kBtnR) { _kBtnR.style.opacity = ''; _kBtnR.style.cursor = ''; }
+        // Signaler que Kokoro est prêt
+        window._kokoroReadyForGame = true;
+        _updateSplash(60, 'Invocation des voix des gardiens...');
         _preGenerateKokoro(); // non-bloquant
 
     } catch(e) {
         console.warn('[Kokoro] Échec:', e.message, '— speechSynthesis utilisé à la place');
+        const _kStF = document.getElementById('kokoro-status');
+        if (_kStF) { _kStF.style.opacity = '0'; }
+        const _kBtnF = document.getElementById('btn-start');
+        if (_kBtnF) { _kBtnF.style.opacity = ''; _kBtnF.style.cursor = ''; }
+        window._kokoroReadyForGame = true; // fallback speechSynthesis
         _kokoroReady = false;
         _kokoroLoading = false;
+        _updateSplash(100, 'Sanctuaire prêt ✦');
+        setTimeout(kokoroSplashDone, 800);
     }
 }
 
 /* Pré-générer toutes les phrases en background — séquentiellement */
 async function _preGenerateKokoro() {
     if (!_kokoroTTS || !_kokoroReady) return;
+    // Afficher le bouton skip après 8s (cas réseau lent)
+    setTimeout(() => {
+        const skip = document.getElementById('kokoro-skip-btn');
+        if (skip) { skip.style.display = 'block'; setTimeout(() => { skip.style.opacity='1'; }, 50); }
+    }, 8000);
     // Attendre que audioCtx soit initialisé (créé au 1er clic utilisateur)
     let waited = 0;
     while (!audioCtx && waited < 30000) {
@@ -747,11 +774,11 @@ async function _preGenerateKokoro() {
     }
     if (!audioCtx) { console.warn('[Kokoro] audioCtx jamais initialisé — abandon'); return; }
     let generated = 0;
-    for (const { text, speed } of KOKORO_PHRASES) {
+    for (const { text, speed, voice } of KOKORO_PHRASES) {
         if (_kokoroCache.has(text)) continue; // déjà prête
         try {
             const audio = await _kokoroTTS.generate(text, {
-                voice: 'af_sky', // meilleure voix douce disponible — pas de voix JP dans ce modèle
+                voice: voice || 'af_sky', // voix dédiée par scène narrative
                 speed: _rateToSpeed(speed),
             });
             // Décoder en AudioBuffer Web Audio
@@ -761,6 +788,9 @@ async function _preGenerateKokoro() {
                 _kokoroCache.set(text, buf);
                 generated++;
                 console.log(`[Kokoro] ${generated}/${KOKORO_PHRASES.length} — "${text.slice(0,20)}…"`);
+                // Progression 60→95% pendant la pré-génération
+                const pct = Math.round(60 + (generated / KOKORO_PHRASES.length) * 35);
+                _updateSplash(pct, `Voix ${generated}/${KOKORO_PHRASES.length} invoquées...`);
             }
         } catch(e) {
             console.warn('[Kokoro] Échec génération:', text.slice(0,20), e.message);
@@ -770,6 +800,8 @@ async function _preGenerateKokoro() {
         await new Promise(r => setTimeout(r, 50));
     }
     console.log(`[Kokoro] Pré-génération terminée — ${_kokoroCache.size} phrases en cache`);
+    _updateSplash(100, '✦ Le Sanctuaire vous attend ✦');
+    setTimeout(kokoroSplashDone, 1200);
 }
 
 /* Jouer un AudioBuffer Kokoro via Web Audio — même chaîne que les SFX */
@@ -802,6 +834,21 @@ function _kokoroPlay(text, opts = {}) {
         source.onended = () => { clearTimeout(timeout); finish(); };
         source.start();
     });
+}
+
+/* ── Gestion du splash screen de chargement ── */
+function _updateSplash(pct, msg) {
+    const bar = document.getElementById('kokoro-progress-bar');
+    const txt = document.getElementById('kokoro-splash-status');
+    if (bar) bar.style.width = pct + '%';
+    if (txt) txt.textContent = msg;
+}
+
+function kokoroSplashDone() {
+    const splash = document.getElementById('kokoro-splash');
+    if (!splash) return;
+    splash.style.opacity = '0';
+    setTimeout(() => { if (splash.parentNode) splash.remove(); }, 800);
 }
 
 /* Lancer initKokoro dès le chargement de la page — sans attendre le clic Commencer */

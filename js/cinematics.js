@@ -363,10 +363,24 @@ function forceSkipIntro() {
 
 async function launchExperience(event) {
     window.speechSynthesis.speak(new SpeechSynthesisUtterance(""));
-    // Pré-charger la meilleure voix dès le clic Commencer
     if (typeof findBestVoice === 'function') { setTimeout(findBestVoice, 100); }
-    // Lancer Kokoro en background — non-bloquant, fallback auto si offline
-    if (typeof initKokoro === 'function') { setTimeout(initKokoro, 500); } 
+    if (typeof initKokoro === 'function') { setTimeout(initKokoro, 500); }
+
+    // Si Kokoro charge encore, attendre qu'il soit prêt (max 15s)
+    // pour que la première phrase de l'intro soit en voix premium
+    if (typeof _kokoroLoading !== 'undefined' && _kokoroLoading && !_kokoroReady) {
+        const btn = document.getElementById('btn-start');
+        const status = document.getElementById('kokoro-status');
+        if (status) { status.textContent = '⏳ Préparation des voix...'; status.style.opacity = '1'; }
+        if (btn) btn.disabled = true;
+        let waited = 0;
+        while (_kokoroLoading && !window._kokoroReadyForGame && waited < 15000) {
+            await new Promise(r => setTimeout(r, 200));
+            waited += 200;
+        }
+        if (btn) btn.disabled = false;
+        if (status) status.style.opacity = '0';
+    } 
     
     if(event && event.clientX) {
         let paw = document.createElement('div'); paw.className = 'magic-paw'; paw.innerText = '🐾';
