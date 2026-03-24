@@ -726,7 +726,7 @@ async function initKokoro() {
 
         // onnx-community/Kokoro-82M-v1.0-ONNX = modèle public officiel sans gate
         _kokoroTTS = await KokoroTTS.from_pretrained(
-            'onnx-community/Kokoro-82M-v1.0-ONNX',
+            'onnx-community/Kokoro-82M-ONNX',
             { dtype: 'q8', device: 'wasm' }
         );
 
