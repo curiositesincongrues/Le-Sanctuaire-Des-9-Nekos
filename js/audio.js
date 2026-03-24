@@ -927,7 +927,7 @@ cancelVoice = function() {
     if (_kokoroCurrentSource) { try { _kokoroCurrentSource.stop(); } catch(e) {} _kokoroCurrentSource = null; }
     _cancelVoiceOriginal();
 };
-* --- AUDIO.JS — Musique Cinématique + SFX + Voix --- */
+/* --- AUDIO.JS — Musique Cinématique + SFX + Voix --- */
 
 async function requestWakeLock() {
     try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); }
