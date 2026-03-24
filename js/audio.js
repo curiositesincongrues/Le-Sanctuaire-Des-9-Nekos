@@ -776,20 +776,22 @@ async function _preGenerateKokoro() {
                 voice: voice || 'af_sky',
                 speed: _rateToSpeed(speed),
             });
-            const rawAudio = audio && (audio.audio || audio);
-            const pcm = rawAudio instanceof Float32Array ? rawAudio : (rawAudio && rawAudio.audio);
+            // D'après la doc officielle kokoro-js : audio.audio = Float32Array, audio.sampling_rate = number
+            const pcm = audio && audio.audio;
             const sr = (audio && audio.sampling_rate) || 24000;
+            console.log('[Kokoro] Audio reçu:', typeof pcm, pcm && pcm.length, 'sr:', sr);
             if (pcm && pcm.length > 0) {
-                _kokoroCache.set(text, { audio: pcm, sampleRate: sr });
+                _kokoroCache.set(text, { audio: new Float32Array(pcm), sampleRate: sr });
                 generated++;
                 console.log(`[Kokoro] ${generated}/${KOKORO_PHRASES.length} — "${text.slice(0,20)}…"`);
                 const pct = Math.round(60 + (generated / KOKORO_PHRASES.length) * 35);
-                _updateSplash(pct, `Voix ${generated}/${KOKORO_PHRASES.length} invoquées...`);
+                _updateSplash(pct, `Invocation des voix... ${generated}/${KOKORO_PHRASES.length} (${pct}%)`);
             }
         } catch(e) {
             console.error('[Kokoro] ERREUR génération:', text.slice(0,20), e.message, e.stack || '');
         }
-        await new Promise(r => setTimeout(r, 50));
+        // Forcer le rendu DOM — laisse le navigateur mettre à jour la barre
+        await new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
     }
     console.log(`[Kokoro] Pré-génération terminée — ${_kokoroCache.size} phrases en cache`);
     _updateSplash(100, '✦ Le Sanctuaire vous attend ✦');

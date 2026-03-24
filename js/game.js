@@ -546,7 +546,7 @@ let scanTimeout = null;
 let scanTimeout2 = null;
 let torchTrack = null;
 
-function startScan() {
+async function startScan() {
     console.log('[Scan] Démarrage du scan...');
     
     if(TEST_MODE) {
