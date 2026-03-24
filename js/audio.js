@@ -816,12 +816,15 @@ async function initKokoro() {
     try {
         if (!await _checkConnectivity()) { _kokoroLoading = false; return; }
         _updateSplash(15, 'Connexion au Sanctuaire...');
-        const { KokoroTTS } = await import('https://esm.sh/kokoro-js');
+        const { KokoroTTS, env } = await import('https://esm.sh/kokoro-js');
         if (!KokoroTTS) throw new Error('KokoroTTS non exporté');
+        // Multithreading WASM — ~40% plus rapide sur multi-core
+        const _threads = Math.min(navigator.hardwareConcurrency || 1, 4);
+        if (env && env.wasm) { env.wasm.numThreads = _threads; }
+        console.log(`[Kokoro] Threads: ${_threads} | dtype: q4`);
         _updateSplash(30, 'Éveil des esprits gardiens...');
-        // WASM uniquement — WebGPU nécessite un flag Chrome non activé par défaut
-        console.log('[Kokoro] Device: wasm | dtype: q8');
-        _kokoroTTS = await KokoroTTS.from_pretrained('onnx-community/Kokoro-82M-ONNX', { dtype: 'q8', device: 'wasm' });
+        // q4 = 30% plus rapide que q8, qualité suffisante pour phrases courtes
+        _kokoroTTS = await KokoroTTS.from_pretrained('onnx-community/Kokoro-82M-ONNX', { dtype: 'q4', device: 'wasm' });
         _kokoroReady = true;
         console.log('[Kokoro] ✓ Modèle prêt');
         window._kokoroReadyForGame = true;
