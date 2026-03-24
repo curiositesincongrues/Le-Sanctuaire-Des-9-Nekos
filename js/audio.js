@@ -689,11 +689,9 @@ function _rateToSpeed(rate) {
 async function _checkConnectivity() {
     if (!navigator.onLine) return false;
     if (typeof WebAssembly !== 'object') return false;
-    // HuggingFace refuse les requêtes depuis localhost HTTP non-sécurisé
-    // Kokoro ne fonctionne qu'en HTTPS (ex: GitHub Pages)
-    const isSecure = location.protocol === 'https:' || location.hostname === 'localhost' && false;
-    // Pour forcer le test en localhost HTTPS, commenter la ligne suivante :
-    if (!isSecure) { console.log('[Kokoro] HTTP non-sécurisé — speechSynthesis utilisé'); return false; }
+    // Kokoro fonctionne sur HTTPS et localhost (pour les tests)
+    const isSecure = location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+    if (!isSecure) { console.log('[Kokoro] Protocole non supporté — speechSynthesis utilisé'); return false; }
     try {
         const ctrl = new AbortController();
         setTimeout(() => ctrl.abort(), 2500);
@@ -726,10 +724,9 @@ async function initKokoro() {
 
         console.log('[Kokoro] Chargement modèle q8 (~80Mo)...');
 
-        // onnx-community/Kokoro-82M-v1.0 = modèle officiel kokoro-js
-        // Fonctionne sur HTTPS (GitHub Pages) — pas sur localhost HTTP
+        // onnx-community/Kokoro-82M-v1.0-ONNX = modèle public officiel sans gate
         _kokoroTTS = await KokoroTTS.from_pretrained(
-            'onnx-community/Kokoro-82M-v1.0',
+            'onnx-community/Kokoro-82M-v1.0-ONNX',
             { dtype: 'q8', device: 'wasm' }
         );
 
