@@ -772,7 +772,16 @@ async function _preGenerateKokoro() {
         await new Promise(r => setTimeout(r, 500));
         waited += 500;
     }
-    if (!audioCtx) { console.warn('[Kokoro] audioCtx jamais initialisé — abandon'); return; }
+    // audioCtx pas encore créé (avant le 1er clic) — en créer un minimal pour la génération
+    if (!audioCtx) {
+        try {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            console.log('[Kokoro] audioCtx créé pour pré-génération');
+        } catch(e) {
+            console.warn('[Kokoro] Impossible de créer audioCtx:', e.message);
+            return;
+        }
+    }
     let generated = 0;
     for (const { text, speed, voice } of KOKORO_PHRASES) {
         if (_kokoroCache.has(text)) continue; // déjà prête
