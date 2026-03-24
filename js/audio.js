@@ -408,6 +408,10 @@ function speakDucked(text, opts = {}) {
     const pitch  = opts.pitch  ?? getOptimalPitch();
     const maxMs  = opts.maxMs  ?? 10000;
 
+    // Kokoro fast-path — si phrase en cache, joue via Web Audio et return
+    if (_kokoroReady && _kokoroCache.has(text)) {
+        return _kokoroPlay(text, opts);
+    }
     return new Promise(resolve => {
         try { window.speechSynthesis.cancel(); } catch(e) {}
         enterTempleMode();
@@ -456,6 +460,10 @@ function speakDuckedFire(text, opts = {}) { speakDucked(text, opts); }
 /* ─── talkSync — voix intro ─── */
 function talkSync(txt, lang, rate=0.72) {
     if(introSkipped) return Promise.resolve();
+    // Kokoro fast-path — si phrase en cache, joue via Web Audio et return
+    if (_kokoroReady && _kokoroCache.has(txt)) {
+        return _kokoroPlay(txt, { rate });
+    }
     return new Promise(r => {
         try { window.speechSynthesis.cancel(); } catch(e) {} // état propre — même comportement que speakDucked
         enterTempleMode();
@@ -626,3 +634,184 @@ function transitionToDarkAudio() {
     if(!audioCtx) return;
     setMusicMood('RUPTURE');
 }
+
+
+/* ═══════════════════════════════════════════════════════════
+   KOKORO TTS — Voix neurale premium (si internet disponible)
+   Architecture : pré-génération background → cache AudioBuffer
+   Fallback : speechSynthesis si Kokoro indisponible
+   ═══════════════════════════════════════════════════════════ */
+
+let _kokoroReady = false;
+let _kokoroLoading = false;
+let _kokoroTTS = null;
+let _kokoroCache = new Map(); // texte → AudioBuffer
+let _kokoroCurrentSource = null; // pour cancelVoice
+
+/* Toutes les phrases JP du jeu — pré-générées en background */
+const KOKORO_PHRASES = [
+    // Intro
+    { text: "時の霧を越えて、　人の世界から遠く離れて…",            speed: 0.68 },
+    { text: "水の精霊が、秘密を囁く場所が隠されている…",            speed: 0.68 },
+    { text: "荘厳な猫神社が、　天に聳え立っていた。",               speed: 0.70 },
+    { text: "純粋な魔法に満たされた、　領域。",                     speed: 0.65 },
+    { text: "古代の精霊が、　静かに見守っていた。",                  speed: 0.65 },
+    { text: "守護者は、聖なる剣、草薙を守っていました。",            speed: 0.65 },
+    { text: "しかし…　影の精霊が目覚め、　封印は砕け散った…",       speed: 0.62 },
+    { text: "光は闇に飲まれ、　九つの守護者は四方に散った。",        speed: 0.62 },
+    // Outro
+    { text: "九つの守護者が、　揃いた。",                           speed: 0.80 },
+    { text: "影が…　最後に立つ。",                                  speed: 0.75 },
+    { text: "八人の巫女が聖地を、清めた。",                         speed: 0.82 },
+    { text: "光が、　再び聖地を照らした。",                         speed: 0.85 },
+    { text: "妖怪は覚えている…　一枚の花びらで、十分だ。",          speed: 0.72 },
+    { text: "守護者たちは…永遠に…あなたたちを守る。",               speed: 0.78 },
+    { text: "さようなら…　小さな守護者たち。",                      speed: 0.62 },
+    { text: "この岸を、　離れる時だ。",                              speed: 0.70 },
+    { text: "灯籠を、追いかけて。",                                  speed: 0.68 },
+    { text: "アヴァの屋根の下で、　ご馳走が待つ。",                  speed: 0.75 },
+    { text: "伝説を…　鏡に封印せよ。",                              speed: 0.72 },
+    // entry.jp variables (texts.js)
+    { text: "八人の巫女の力が、勝る！",                              speed: 0.82 },
+    { text: "旅は、終わりに近づく…",                                speed: 0.68 },
+    { text: "精霊は今も、見守っている。",                            speed: 0.70 },
+    { text: "思い出は永遠に、心に刻まれる。",                        speed: 0.72 },
+];
+
+/* Conversion rate (speechSynthesis 0-2) → speed Kokoro (0.5-2.0) */
+function _rateToSpeed(rate) {
+    // speechSynthesis rate=1.0 ≈ Kokoro speed=1.0
+    // On mappe linéairement — les deux ont la même échelle
+    return Math.max(0.5, Math.min(2.0, rate || 0.82));
+}
+
+/* Vérifier la connectivité réelle (pas juste navigator.onLine) */
+async function _checkConnectivity() {
+    if (!navigator.onLine) return false;
+    if (typeof WebAssembly !== 'object') return false;
+    // HuggingFace refuse les requêtes depuis localhost HTTP non-sécurisé
+    // Kokoro ne fonctionne qu'en HTTPS (ex: GitHub Pages)
+    const isSecure = location.protocol === 'https:' || location.hostname === 'localhost' && false;
+    // Pour forcer le test en localhost HTTPS, commenter la ligne suivante :
+    if (!isSecure) { console.log('[Kokoro] HTTP non-sécurisé — speechSynthesis utilisé'); return false; }
+    try {
+        const ctrl = new AbortController();
+        setTimeout(() => ctrl.abort(), 2500);
+        const r = await fetch(
+            'https://cdn.jsdelivr.net/npm/kokoro-js/package.json',
+            { method: 'HEAD', cache: 'no-store', signal: ctrl.signal }
+        );
+        return r.ok;
+    } catch { return false; }
+}
+
+/* Charger Kokoro — appelé au click Commencer, non-bloquant */
+async function initKokoro() {
+    if (_kokoroLoading || _kokoroReady) return;
+    _kokoroLoading = true;
+    try {
+        const online = await _checkConnectivity();
+        if (!online) {
+            console.log('[Kokoro] Offline — speechSynthesis utilisé');
+            _kokoroLoading = false; return;
+        }
+
+        console.log('[Kokoro] Connexion OK — import ES module kokoro-js...');
+
+        // import() dynamique ES module — la seule façon correcte sans bundler
+        // esm.sh transforme le package npm en ES module compatible navigateur
+        const { KokoroTTS } = await import('https://esm.sh/kokoro-js');
+
+        if (!KokoroTTS) throw new Error('KokoroTTS non exporté');
+
+        console.log('[Kokoro] Chargement modèle q8 (~80Mo)...');
+
+        // onnx-community/Kokoro-82M-v1.0 = modèle officiel kokoro-js
+        // Fonctionne sur HTTPS (GitHub Pages) — pas sur localhost HTTP
+        _kokoroTTS = await KokoroTTS.from_pretrained(
+            'onnx-community/Kokoro-82M-v1.0',
+            { dtype: 'q8', device: 'wasm' }
+        );
+
+        _kokoroReady = true;
+        console.log('[Kokoro] ✓ Modèle prêt — démarrage pré-génération des 23 phrases');
+        _preGenerateKokoro(); // non-bloquant
+
+    } catch(e) {
+        console.warn('[Kokoro] Échec:', e.message, '— speechSynthesis utilisé à la place');
+        _kokoroReady = false;
+        _kokoroLoading = false;
+    }
+}
+
+/* Pré-générer toutes les phrases en background — séquentiellement */
+async function _preGenerateKokoro() {
+    if (!_kokoroTTS || !_kokoroReady) return;
+    let generated = 0;
+    for (const { text, speed } of KOKORO_PHRASES) {
+        if (_kokoroCache.has(text)) continue; // déjà prête
+        try {
+            const audio = await _kokoroTTS.generate(text, {
+                voice: 'jf_alpha',
+                speed: _rateToSpeed(speed),
+            });
+            // Décoder en AudioBuffer Web Audio
+            if (audioCtx && audio && audio.audio) {
+                const buf = audioCtx.createBuffer(1, audio.audio.length, audio.sampling_rate || 24000);
+                buf.copyToChannel(audio.audio, 0);
+                _kokoroCache.set(text, buf);
+                generated++;
+                console.log(`[Kokoro] ${generated}/${KOKORO_PHRASES.length} — "${text.slice(0,20)}…"`);
+            }
+        } catch(e) {
+            console.warn('[Kokoro] Échec génération:', text.slice(0,20), e.message);
+            // Silencieux — speechSynthesis prend le relais pour cette phrase
+        }
+        // Micro-pause pour ne pas bloquer le thread principal
+        await new Promise(r => setTimeout(r, 50));
+    }
+    console.log(`[Kokoro] Pré-génération terminée — ${_kokoroCache.size} phrases en cache`);
+}
+
+/* Jouer un AudioBuffer Kokoro via Web Audio — même chaîne que les SFX */
+function _kokoroPlay(text, opts = {}) {
+    const buf = _kokoroCache.get(text);
+    if (!buf || !audioCtx) return Promise.resolve(); // ne devrait pas arriver
+
+    return new Promise(resolve => {
+        enterTempleMode();
+
+        const source = audioCtx.createBufferSource();
+        source.buffer = buf;
+        source.connect(duckGain || masterGain); // même chaîne audio
+        _kokoroCurrentSource = source;
+
+        const finish = () => {
+            _kokoroCurrentSource = null;
+            exitTempleMode();
+            resolve();
+        };
+
+        source.onended = finish;
+        // Timeout de sécurité : durée du buffer + 2s
+        const safetyMs = (buf.duration * 1000) + 2000;
+        const timeout = setTimeout(() => {
+            try { source.stop(); } catch(e) {}
+            finish();
+        }, safetyMs);
+
+        source.onended = () => { clearTimeout(timeout); finish(); };
+        source.start();
+    });
+}
+
+/* Étendre cancelVoice pour stopper aussi Kokoro */
+const _cancelVoiceOriginal = cancelVoice;
+cancelVoice = function() {
+    // Stopper la source Kokoro si active
+    if (_kokoroCurrentSource) {
+        try { _kokoroCurrentSource.stop(); } catch(e) {}
+        _kokoroCurrentSource = null;
+    }
+    _cancelVoiceOriginal();
+};

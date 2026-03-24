@@ -364,7 +364,9 @@ function forceSkipIntro() {
 async function launchExperience(event) {
     window.speechSynthesis.speak(new SpeechSynthesisUtterance(""));
     // Pré-charger la meilleure voix dès le clic Commencer
-    if (typeof findBestVoice === 'function') { setTimeout(findBestVoice, 100); } 
+    if (typeof findBestVoice === 'function') { setTimeout(findBestVoice, 100); }
+    // Lancer Kokoro en background — non-bloquant, fallback auto si offline
+    if (typeof initKokoro === 'function') { setTimeout(initKokoro, 500); } 
     
     if(event && event.clientX) {
         let paw = document.createElement('div'); paw.className = 'magic-paw'; paw.innerText = '🐾';
