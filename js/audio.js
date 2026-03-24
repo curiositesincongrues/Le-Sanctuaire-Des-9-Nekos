@@ -776,12 +776,11 @@ async function _preGenerateKokoro() {
                 voice: voice || 'af_sky',
                 speed: _rateToSpeed(speed),
             });
-            if (audio && audio.audio) {
-                // Stocker Float32Array + sampleRate — pas d'AudioBuffer ici
-                _kokoroCache.set(text, {
-                    audio: audio.audio,
-                    sampleRate: audio.sampling_rate || 24000
-                });
+            const rawAudio = audio && (audio.audio || audio);
+            const pcm = rawAudio instanceof Float32Array ? rawAudio : (rawAudio && rawAudio.audio);
+            const sr = (audio && audio.sampling_rate) || 24000;
+            if (pcm && pcm.length > 0) {
+                _kokoroCache.set(text, { audio: pcm, sampleRate: sr });
                 generated++;
                 console.log(`[Kokoro] ${generated}/${KOKORO_PHRASES.length} — "${text.slice(0,20)}…"`);
                 const pct = Math.round(60 + (generated / KOKORO_PHRASES.length) * 35);
@@ -806,7 +805,7 @@ function _kokoroPlay(text, opts = {}) {
         try {
             // Créer AudioBuffer avec le vrai audioCtx au moment du jeu
             const buf = audioCtx.createBuffer(1, cached.audio.length, cached.sampleRate);
-            buf.copyToChannel(cached.audio, 0);
+            buf.getChannelData(0).set(cached.audio);
 
             enterTempleMode();
             const source = audioCtx.createBufferSource();
