@@ -788,7 +788,7 @@ async function _preGenerateKokoro() {
                 _updateSplash(pct, `Voix ${generated}/${KOKORO_PHRASES.length} invoquées...`);
             }
         } catch(e) {
-            console.warn('[Kokoro] Échec génération:', text.slice(0,20), e.message);
+            console.error('[Kokoro] ERREUR génération:', text.slice(0,20), e.message, e.stack || '');
         }
         await new Promise(r => setTimeout(r, 50));
     }
