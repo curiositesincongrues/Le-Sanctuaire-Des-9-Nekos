@@ -7,6 +7,27 @@
     if (!location.search.includes('debug=hard')) return;
     console.log('[DEBUG] Hard mode activé');
 
+
+    async function playDebugVoice(fileName) {
+        try {
+            if (window.__debugVoice) {
+                try {
+                    window.__debugVoice.pause();
+                    window.__debugVoice.currentTime = 0;
+                } catch (e) {}
+            }
+            const a = new Audio(`./audio/voices/${fileName}?v=${Date.now()}`);
+            a.preload = 'auto';
+            a.volume = 1;
+            window.__debugVoice = a;
+            await a.play();
+            return a;
+        } catch (e) {
+            console.warn('[DEBUG VOICE] lecture impossible:', fileName, e);
+            return null;
+        }
+    }
+
     /* ============================================
        CACHE BUSTING — Force le rechargement des
        fichiers JS/CSS à chaque lancement debug
@@ -279,6 +300,7 @@
                 if (typeof setMusicMood === 'function') setMusicMood('RUPTURE');
                 if (typeof setKenBurns === 'function') setKenBurns('rupture');
                 if (typeof setCinemaEffects === 'function') setCinemaEffects({ vignette: 0.8, grain: 0.2, glitch: true });
+                playDebugVoice('outro_02.mp3');
                 break;
         }
     }
@@ -429,6 +451,7 @@
                 if (typeof allowFinalPostUI === 'function') allowFinalPostUI();
                 const btnMiroir = document.getElementById('btn-download');
                 if (btnMiroir) { btnMiroir.style.display = 'block'; btnMiroir.style.transform = 'scale(1)'; }
+                playDebugVoice('outro_11.mp3');
                 if (sf) sf.textContent = 'Scellez cette légende.';
                 break;
         }

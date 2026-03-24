@@ -88,6 +88,27 @@ const ThemeManager = {
 
 /* --- GAME.JS — Règles, Hub, Quiz, Minijeux, Final --- */
 
+
+async function playForcedVoice(fileName) {
+    try {
+        if (window.__forcedVoice) {
+            try {
+                window.__forcedVoice.pause();
+                window.__forcedVoice.currentTime = 0;
+            } catch (e) {}
+        }
+        const a = new Audio(`./audio/voices/${fileName}?v=${Date.now()}`);
+        a.preload = 'auto';
+        a.volume = 1;
+        window.__forcedVoice = a;
+        await a.play();
+        return a;
+    } catch (e) {
+        console.warn('[VOICE] lecture forcée impossible:', fileName, e);
+        return null;
+    }
+}
+
 /* --- ACTIVATION DU MIROIR (Permission caméra diégétique) --- */
 let mirrorRequested = false;
 async function activateMirrorAndNext() {
@@ -1830,10 +1851,7 @@ async function launchFinalCinematic() {
                 setMusicMood('RUPTURE');
                 setTimeout(() => { if(window.setMusicMood) setMusicMood('SACRE'); }, 2000);
             }
-            try {
-                if (entry.jp === '影が…　最後に立つ。' && typeof playVoiceFile === 'function') await playVoiceFile('outro_02.mp3');
-                else await speakDucked(entry.jp, { rate: 0.80 });
-            } catch(e) {}
+            try { speakDucked(entry.jp, { rate: 0.80 }); } catch(e) {}
         }
         await sleep(pause);
     };
@@ -2011,7 +2029,8 @@ async function launchFinalCinematic() {
         }
     } catch(e) {}
 
-    await showFinalText(exorcism[1], 100);
+    await playForcedVoice('outro_02.mp3');
+    await showFinalText({ fr: (exorcism[1] && exorcism[1].fr) ? exorcism[1].fr : 'L’Ombre se dresse une dernière fois.' }, 100);
 
     // Apparition de l'ombre
     await sleep(100);
@@ -2265,7 +2284,7 @@ async function launchFinalCinematic() {
             }
         });
 
-        // === TEXTE RITUEL — lecture MP3 + typewriter effect ===
+        // === TEXTE RITUEL — typewriter effect ===
         if (sf) {
             sf.innerHTML = '';
             sf.style.opacity = '1';
@@ -2280,20 +2299,10 @@ async function launchFinalCinematic() {
             const textSpan = document.createElement('span');
             textSpan.style.cssText = "display:block;font-family:'Fredoka One',cursive;font-size:22px;";
             sf.appendChild(textSpan);
-
-            // Lecture audio dédiée du miroir : utilise le MP3 si préchargé,
-            // sinon fallback vers speakDucked (qui utilisera le TTS seulement si aucun MP3 n'existe).
-            if (sealPrompt.jp) {
-                try {
-                    if (typeof playVoiceFile === 'function') await playVoiceFile('outro_11.mp3');
-                    else await speakDucked(sealPrompt.jp, { rate: 0.80 });
-                } catch (e) {
-                    console.warn('[FINAL] Lecture miroir impossible:', e?.message || e);
-                }
-            }
-
+            // Voix forcée MP3 (sans TTS fallback)
+            await playForcedVoice('outro_11.mp3');
             // Typewriter effect manuel
-            const phrase = sealPrompt.fr || 'Scellez cette légende.';
+            const phrase = 'Scellez cette légende.';
             let charIdx = 0;
             const typeInterval = setInterval(() => {
                 if (charIdx < phrase.length) {
