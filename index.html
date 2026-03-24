@@ -27,9 +27,9 @@
     <noscript><link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Ma+Shan+Zheng&display=swap" rel="stylesheet"></noscript>
     
     <!-- CSS DÉCOUPÉ -->
-    <link rel="stylesheet" href="css/base.css?v=940033">
-    <link rel="stylesheet" href="css/cinematics.css?v=940033">
-    <link rel="stylesheet" href="css/game.css?v=940033">
+    <link rel="stylesheet" href="css/base.css?v=940036">
+    <link rel="stylesheet" href="css/cinematics.css?v=940036">
+    <link rel="stylesheet" href="css/game.css?v=940036">
     
     <script id="bg-vs" type="x-shader/x-vertex">
         attribute vec2 aPos; varying vec2 vUv;
@@ -529,7 +529,6 @@
         <div id="story-text"></div>
         <div id="act-counter"></div>
         <button id="btn-start" class="btn-grad pulse-btn" onclick="launchExperience(event)">🌸 COMMENCER L'AVENTURE 🌸</button>
-        <div id="kokoro-status" style="font-size:11px;color:rgba(255,183,197,0.5);margin-top:8px;height:16px;font-family:'Fredoka One',cursive;letter-spacing:1px;transition:opacity 0.5s;opacity:0;"></div>
         
     </div>
 
@@ -702,13 +701,13 @@
     </div>
 
 <!-- JS DÉCOUPÉ (ordre de dépendance) -->
-<script src="js/data.js?v=940033" defer></script>
-<script src="js/texts.js?v=940033" defer></script>
-<script src="js/audio.js?v=940033" defer></script>
-<script src="js/renderer.js?v=940033" defer></script>
-<script src="js/cinematics.js?v=940033" defer></script>
-<script src="js/game.js?v=940033" defer></script>
-<script src="js/debug.js?v=940033" defer></script>
+<script src="js/data.js?v=940036" defer></script>
+<script src="js/texts.js?v=940036" defer></script>
+<script src="js/audio.js?v=940036" defer></script>
+<script src="js/renderer.js?v=940036" defer></script>
+<script src="js/cinematics.js?v=940036" defer></script>
+<script src="js/game.js?v=940036" defer></script>
+<script src="js/debug.js?v=940036" defer></script>
 
 <!-- PWA : Service Worker + Device Detection -->
 <script>
@@ -787,53 +786,22 @@ window.addEventListener('load', () => {
 });
 </script>
 
-    <!-- ── OVERLAY CHARGEMENT KOKORO ── -->
-    <div id="kokoro-splash" style="
-        position:fixed;inset:0;z-index:99999;
-        background:linear-gradient(135deg,#0d001a 0%,#1a0030 50%,#0d001a 100%);
-        display:flex;flex-direction:column;align-items:center;justify-content:center;
-        gap:28px;transition:opacity 0.8s ease;
-        font-family:'Fredoka One',cursive;
-    ">
-        <!-- Neko animé -->
-        <div style="font-size:64px;animation:kokoro-bounce 1.2s ease-in-out infinite;">🐱</div>
-        
-        <!-- Titre -->
-        <div style="text-align:center;">
-            <div style="font-size:22px;color:#ffb7c5;letter-spacing:3px;text-shadow:0 0 20px rgba(255,183,197,0.6);">
-                LE SANCTUAIRE DES 9 NEKOS
-            </div>
-            <div style="font-size:13px;color:rgba(255,183,197,0.5);margin-top:6px;letter-spacing:2px;">
-                聖域を目覚めさせよ
-            </div>
-        </div>
 
-        <!-- Barre de progression -->
+
+
+    <div id="kokoro-splash" style="position:fixed;inset:0;z-index:99999;background:linear-gradient(135deg,#0d001a 0%,#1a0030 50%,#0d001a 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;transition:opacity 0.8s ease;font-family:'Fredoka One',cursive;">
+        <div style="font-size:64px;animation:kokoro-bounce 1.2s ease-in-out infinite;">🐱</div>
+        <div style="text-align:center;">
+            <div style="font-size:22px;color:#ffb7c5;letter-spacing:3px;text-shadow:0 0 20px rgba(255,183,197,0.6);">LE SANCTUAIRE DES 9 NEKOS</div>
+            <div style="font-size:13px;color:rgba(255,183,197,0.5);margin-top:6px;letter-spacing:2px;">聖域を目覚めさせよ</div>
+        </div>
         <div style="width:min(280px,70vw);height:4px;background:rgba(255,183,197,0.15);border-radius:4px;overflow:hidden;">
             <div id="kokoro-progress-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#ffb7c5,#ffd700);border-radius:4px;transition:width 0.4s ease;"></div>
         </div>
-
-        <!-- Statut -->
-        <div id="kokoro-splash-status" style="font-size:13px;color:rgba(255,183,197,0.6);letter-spacing:1px;">
-            Éveil du Sanctuaire...
-        </div>
-
-        <!-- Bouton skip discret (apparaît après 8s) -->
-        <button id="kokoro-skip-btn" onclick="kokoroSplashDone()" style="
-            display:none;opacity:0;transition:opacity 0.5s;
-            background:transparent;border:1px solid rgba(255,183,197,0.3);
-            color:rgba(255,183,197,0.5);font-family:'Fredoka One',cursive;
-            font-size:11px;padding:6px 16px;border-radius:20px;cursor:pointer;
-            letter-spacing:1px;
-        ">Passer →</button>
+        <div id="kokoro-splash-status" style="font-size:13px;color:rgba(255,183,197,0.6);letter-spacing:1px;">Éveil du Sanctuaire...</div>
+        <button id="kokoro-skip-btn" onclick="kokoroSplashDone()" style="display:none;opacity:0;transition:opacity 0.5s;background:transparent;border:1px solid rgba(255,183,197,0.3);color:rgba(255,183,197,0.5);font-family:'Fredoka One',cursive;font-size:11px;padding:6px 16px;border-radius:20px;cursor:pointer;letter-spacing:1px;">Passer →</button>
     </div>
-
-    <style>
-        @keyframes kokoro-bounce {
-            0%,100% { transform:translateY(0) scale(1); }
-            50% { transform:translateY(-12px) scale(1.05); }
-        }
-    </style>
+    <style>@keyframes kokoro-bounce{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-12px) scale(1.05)}}</style>
 
 </body>
 </html>
