@@ -761,11 +761,11 @@ async function initKokoro() {
 /* Pré-générer toutes les phrases en background — séquentiellement */
 async function _preGenerateKokoro() {
     if (!_kokoroTTS || !_kokoroReady) return;
-    // Afficher le bouton skip après 8s (cas réseau lent)
+    // Afficher le bouton skip après 3s
     setTimeout(() => {
         const skip = document.getElementById('kokoro-skip-btn');
         if (skip) { skip.style.display = 'block'; setTimeout(() => { skip.style.opacity='1'; }, 50); }
-    }, 8000);
+    }, 3000);
     // Attendre que audioCtx soit initialisé (créé au 1er clic utilisateur)
     let waited = 0;
     while (!audioCtx && waited < 30000) {
