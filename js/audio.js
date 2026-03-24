@@ -819,7 +819,12 @@ async function initKokoro() {
         const { KokoroTTS } = await import('https://esm.sh/kokoro-js');
         if (!KokoroTTS) throw new Error('KokoroTTS non exporté');
         _updateSplash(30, 'Éveil des esprits gardiens...');
-        _kokoroTTS = await KokoroTTS.from_pretrained('onnx-community/Kokoro-82M-ONNX', { dtype: 'q8', device: 'wasm' });
+        // Détection WebGPU — 2x plus rapide que WASM si disponible
+        const _hasWebGPU = !!navigator.gpu;
+        const _device = _hasWebGPU ? 'webgpu' : 'wasm';
+        const _dtype  = _hasWebGPU ? 'fp32'   : 'q4'; // q4 WASM = 30% plus rapide
+        console.log(`[Kokoro] Device: ${_device} | dtype: ${_dtype}`);
+        _kokoroTTS = await KokoroTTS.from_pretrained('onnx-community/Kokoro-82M-ONNX', { dtype: _dtype, device: _device });
         _kokoroReady = true;
         console.log('[Kokoro] ✓ Modèle prêt');
         window._kokoroReadyForGame = true;
@@ -843,8 +848,13 @@ async function _preGenerateKokoro() {
         if (skip) { skip.style.display = 'block'; setTimeout(() => { skip.style.opacity='1'; }, 50); }
     }, 3000);
     let generated = 0;
-    for (const { text, speed, voice, tts } of KOKORO_PHRASES) {
-        if (_kokoroCache.has(text)) continue;
+    const INTRO_COUNT = 8; // Les 8 phrases intro en priorité
+    const introPhrase = KOKORO_PHRASES.slice(0, INTRO_COUNT);
+    const outroPhrase = KOKORO_PHRASES.slice(INTRO_COUNT);
+
+    // Générateur commun
+    async function _genPhrase({ text, speed, voice, tts }) {
+        if (_kokoroCache.has(text)) return;
         try {
             const audio = await _kokoroTTS.generate(tts || text, {
                 voice: voice || 'af_sky',
@@ -864,9 +874,20 @@ async function _preGenerateKokoro() {
         }
         await new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
     }
-    console.log(`[Kokoro] Terminé — ${_kokoroCache.size} phrases`);
+
+    // PHASE 1 — Intro (8 phrases) en priorité absolue
+    console.log('[Kokoro] Phase 1 : génération intro...');
+    for (const phrase of introPhrase) await _genPhrase(phrase);
+
+    // Intro prête → splash peut disparaître, le jeu peut commencer
+    console.log('[Kokoro] ✓ Intro prête — le jeu peut commencer');
     _updateSplash(100, '✦ Le Sanctuaire vous attend ✦');
-    setTimeout(kokoroSplashDone, 1200);
+    setTimeout(kokoroSplashDone, 800);
+
+    // PHASE 2 — Outro (15 phrases) en background pendant le jeu
+    console.log('[Kokoro] Phase 2 : génération outro en background...');
+    for (const phrase of outroPhrase) await _genPhrase(phrase);
+    console.log(`[Kokoro] ✓ Tout prêt — ${_kokoroCache.size}/23 phrases en cache`);
 }
 
 /* Jouer */
