@@ -685,22 +685,17 @@ function _rateToSpeed(rate) {
     return Math.max(0.5, Math.min(2.0, rate || 0.82));
 }
 
-/* Vérifier la connectivité réelle (pas juste navigator.onLine) */
+/* Vérifier la connectivité — tente directement sur HTTPS/localhost */
 async function _checkConnectivity() {
-    if (!navigator.onLine) return false;
     if (typeof WebAssembly !== 'object') return false;
-    // Kokoro fonctionne sur HTTPS et localhost (pour les tests)
-    const isSecure = location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-    if (!isSecure) { console.log('[Kokoro] Protocole non supporté — speechSynthesis utilisé'); return false; }
-    try {
-        const ctrl = new AbortController();
-        setTimeout(() => ctrl.abort(), 2500);
-        const r = await fetch(
-            'https://cdn.jsdelivr.net/npm/kokoro-js/package.json',
-            { method: 'HEAD', cache: 'no-store', signal: ctrl.signal }
-        );
-        return r.ok;
-    } catch { return false; }
+    const proto = location.protocol;
+    const host = location.hostname;
+    if (proto !== 'https:' && host !== 'localhost' && host !== '127.0.0.1') {
+        console.log('[Kokoro] Protocole non supporté — speechSynthesis utilisé');
+        return false;
+    }
+    // On tente directement — si pas de réseau l'import() échouera dans le catch
+    return true;
 }
 
 /* Charger Kokoro — appelé au click Commencer, non-bloquant */
@@ -744,12 +739,19 @@ async function initKokoro() {
 /* Pré-générer toutes les phrases en background — séquentiellement */
 async function _preGenerateKokoro() {
     if (!_kokoroTTS || !_kokoroReady) return;
+    // Attendre que audioCtx soit initialisé (créé au 1er clic utilisateur)
+    let waited = 0;
+    while (!audioCtx && waited < 30000) {
+        await new Promise(r => setTimeout(r, 500));
+        waited += 500;
+    }
+    if (!audioCtx) { console.warn('[Kokoro] audioCtx jamais initialisé — abandon'); return; }
     let generated = 0;
     for (const { text, speed } of KOKORO_PHRASES) {
         if (_kokoroCache.has(text)) continue; // déjà prête
         try {
             const audio = await _kokoroTTS.generate(text, {
-                voice: 'jf_alpha',
+                voice: 'af_sky', // meilleure voix douce disponible — pas de voix JP dans ce modèle
                 speed: _rateToSpeed(speed),
             });
             // Décoder en AudioBuffer Web Audio
