@@ -3,8 +3,35 @@
    Le Sanctuaire des 9 Nekos Sacrés
    ============================================ */
 
-const CACHE_NAME = 'neko-sanctuaire-v8-shell';
+const CACHE_NAME = 'neko-sanctuaire-v10-shell';
 const ASSETS_TO_CACHE = [
+    '/audio/voices/game_01.mp3',
+    '/audio/voices/game_02.mp3',
+    '/audio/voices/game_03.mp3',
+    '/audio/voices/game_04.mp3',
+    '/audio/voices/intro_01.mp3',
+    '/audio/voices/intro_02.mp3',
+    '/audio/voices/intro_03.mp3',
+    '/audio/voices/intro_04.mp3',
+    '/audio/voices/intro_05.mp3',
+    '/audio/voices/intro_06.mp3',
+    '/audio/voices/intro_07.mp3',
+    '/audio/voices/intro_08.mp3',
+    '/audio/voices/outro_01.mp3',
+    '/audio/voices/outro_02.mp3',
+    '/audio/voices/outro_03.mp3',
+    '/audio/voices/outro_04.mp3',
+    '/audio/voices/outro_05.mp3',
+    '/audio/voices/outro_06.mp3',
+    '/audio/voices/outro_07.mp3',
+    '/audio/voices/outro_08.mp3',
+    '/audio/voices/outro_09.mp3',
+    '/audio/voices/outro_10.mp3',
+    '/audio/voices/outro_11.mp3',
+    '/audio/voices/var_01.mp3',
+    '/audio/voices/var_02.mp3',
+    '/audio/voices/var_03.mp3',
+    '/audio/voices/var_04.mp3',
     '/',
     '/index.html',
     '/css/base.css',

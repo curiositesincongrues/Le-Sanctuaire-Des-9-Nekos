@@ -1707,7 +1707,7 @@ async function launchFinalCinematic() {
     const finale = (typeof T !== 'undefined' && T && T.finale) ? T.finale : {};
     const exorcism = Array.isArray(finale.exorcism) ? finale.exorcism : [
         { fr: 'Les 9 Gardiens sont réunis.', jp: '九つの守護者が、　揃いた。' },
-        { fr: "L'Ombre se dresse une dernière fois.", jp: '影が…　最後に立つ。' },
+        { fr: "L'Ombre se dresse une dernière fois.", jp: '影が…　最後に立つ。', flashRupture: true },
         { fr: 'Mais la magie des 8 Mikos est plus forte !', jp: '八人の巫女の力が、勝る！' }
     ];
     const victory = Array.isArray(finale.victory) ? finale.victory : [
@@ -1825,6 +1825,11 @@ async function launchFinalCinematic() {
         sf.style.transform = 'translateY(0)';
         await typewriterText(sf, entry.fr || '');
         if (entry.jp) {
+            // Flash RUPTURE pour la phrase de l'Ombre
+            if (entry.flashRupture && window.setMusicMood) {
+                setMusicMood('RUPTURE');
+                setTimeout(() => { if(window.setMusicMood) setMusicMood('SACRE'); }, 2000);
+            }
             try { speakDucked(entry.jp, { rate: 0.80 }); } catch(e) {}
         }
         await sleep(pause);
@@ -1929,6 +1934,8 @@ async function launchFinalCinematic() {
             sf.textContent = e0.fr;
             sf.style.opacity = '1';
             if (e0.jp) { try { await speakDucked('九つの守護者が、　揃いた。', { rate: 0.80 }); } catch(e) {} }
+            // OUTRO progressif — SACRE fort au début de la réunion
+            if(window.setMusicMood) setMusicMood('SACRE');
         }
 
         await sleep(4600);
@@ -3550,6 +3557,13 @@ async function launchEpilogue() {
     // Adieu du sage — voix seule
     sf.style.opacity = 0;
     await new Promise(r => setTimeout(r, 500));
+    // Épilogue — descente progressive vers silence
+    if(window.audioLayers && window.audioCtx) {
+        const now = audioCtx.currentTime;
+        audioLayers.melody.gain.setTargetAtTime(0, now, 3);
+        audioLayers.chime.gain.setTargetAtTime(0.02, now, 4);
+        audioLayers.pad.gain.setTargetAtTime(0.04, now, 5);
+    }
     await speakDucked("さようなら…　小さな守護者たち。", { rate: 0.62 });
     await new Promise(r => setTimeout(r, 3000));
     
@@ -3589,6 +3603,14 @@ async function launchEpilogue() {
     lastPetal.style.cssText = 'position:fixed;left:50%;top:-20px;width:12px;height:12px;background:#ffb7c5;border-radius:40% 60% 55% 45%;filter:drop-shadow(0 0 8px #ffb7c5);z-index:300;pointer-events:none;opacity:0.9;animation:last-petal-fall 8s ease-in forwards;';
     document.body.appendChild(lastPetal);
     
+    // Dernières phrases — musique quasi nulle, voix seule
+    if(window.audioLayers && window.audioCtx) {
+        const now = audioCtx.currentTime;
+        audioLayers.wind.gain.setTargetAtTime(0.02, now, 3);
+        audioLayers.pad.gain.setTargetAtTime(0, now, 2);
+        audioLayers.chime.gain.setTargetAtTime(0, now, 2);
+        audioLayers.melody.gain.setTargetAtTime(0, now, 2);
+    }
     await showFinalText("<span style='color:#D4AF37;'>Laissez la magie s'endormir... un festin vous attend sous le toit d'Ava.</span>", "アヴァの屋根の下で、　ご馳走が待つ。", 2000);
     
     // Fade to black

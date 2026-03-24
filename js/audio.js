@@ -335,14 +335,14 @@ function enterTempleMode() {
     if (!audioCtx || !duckGain) return;
     const now = audioCtx.currentTime;
     duckGain.gain.cancelScheduledValues(now);
-    duckGain.gain.setTargetAtTime(0.28, now, 0.15); // descente douce
+    duckGain.gain.setTargetAtTime(0.18, now, 0.2); // descente Ghibli — 0.6s douce
 }
 
 function exitTempleMode() {
     if (!audioCtx || !duckGain) return;
     const now = audioCtx.currentTime;
     duckGain.gain.cancelScheduledValues(now);
-    duckGain.gain.setTargetAtTime(1.0, now, 0.25); // remontée douce — setTargetAtTime ne cancelle rien
+    duckGain.gain.setTargetAtTime(1.0, now, 0.45); // remontée lente Ghibli — 1.4s vague naturelle
 }
 
 /* Annuler la voix proprement — toujours appeler exitTempleMode */
@@ -408,7 +408,8 @@ function speakDucked(text, opts = {}) {
     const pitch  = opts.pitch  ?? getOptimalPitch();
     const maxMs  = opts.maxMs  ?? 10000;
 
-    if (typeof _kokoroReady !== 'undefined' && _kokoroReady && _kokoroCache.has(text)) return _kokoroPlay(text, opts);
+    // MP3 fast-path — si disponible joue le fichier JP pré-généré
+    if (typeof _mp3ArrayBuffers !== 'undefined' && _mp3ArrayBuffers.has(text)) return _playMP3(text);
     return new Promise(resolve => {
         try { window.speechSynthesis.cancel(); } catch(e) {}
         enterTempleMode();
@@ -457,7 +458,8 @@ function speakDuckedFire(text, opts = {}) { speakDucked(text, opts); }
 /* ─── talkSync — voix intro ─── */
 function talkSync(txt, lang, rate=0.72) {
     if(introSkipped) return Promise.resolve();
-    if (typeof _kokoroReady !== 'undefined' && _kokoroReady && _kokoroCache.has(txt)) return _kokoroPlay(txt, { rate });
+    // MP3 fast-path
+    if (typeof _mp3ArrayBuffers !== 'undefined' && _mp3ArrayBuffers.has(txt)) return _playMP3(txt);
     return new Promise(r => {
         try { window.speechSynthesis.cancel(); } catch(e) {} // état propre — même comportement que speakDucked
         enterTempleMode();
@@ -766,155 +768,174 @@ function transitionToDarkAudio() {
     setMusicMood('RUPTURE');
 }
 
-const KOKORO_PHRASES = [
-    // Intro — phonétique anglaise qui sonne mystique/japonais pour Kokoro
-    { text: "時の霧を越えて、　人の世界から遠く離れて…",            speed: 0.68, voice: "af_river",  tts: "Toki no kiri wo koete... hito no sekai kara tooku hanarete..." },
-    { text: "水の精霊が、秘密を囁く場所が隠されている…",            speed: 0.68, voice: "af_river",  tts: "Mizu no seirei ga... himitsu wo sasayaku basho ga kakusarete iru..." },
-    { text: "荘厳な猫神社が、　天に聳え立っていた。",               speed: 0.70, voice: "af_heart",  tts: "Sougen na neko jinja ga... ten ni sobie tatte ita." },
-    { text: "純粋な魔法に満たされた、　領域。",                     speed: 0.65, voice: "af_heart",  tts: "Junsui na mahou ni mitasareta... ryouiki." },
-    { text: "古代の精霊が、　静かに見守っていた。",                  speed: 0.65, voice: "bf_emma",   tts: "Kodai no seirei ga... shizuka ni mimamotte ita." },
-    { text: "守護者は、聖なる剣、草薙を守っていました。",            speed: 0.65, voice: "bf_emma",   tts: "Shugosha wa... seinaru tsurugi... Kusanagi wo mamotte imashita." },
-    { text: "しかし…　影の精霊が目覚め、　封印は砕け散った…",       speed: 0.62, voice: "af_bella",  tts: "Shikashi... kage no seirei ga mezame... fuuin wa kudake chitta..." },
-    { text: "光は闇に飲まれ、　九つの守護者は四方に散った。",        speed: 0.62, voice: "af_bella",  tts: "Hikari wa yami ni nomare... kokonotsu no shugosha wa yomo ni chitta." },
-    // Outro
-    { text: "九つの守護者が、　揃いた。",                           speed: 0.80, voice: "af_kore",   tts: "Kokonotsu no shugosha ga... soroita." },
-    { text: "影が…　最後に立つ。",                                  speed: 0.75, voice: "am_onyx",   tts: "Kage ga... saigo ni tatsu." },
-    { text: "八人の巫女が聖地を、清めた。",                         speed: 0.82, voice: "bf_lily",   tts: "Hachinin no miko ga seichi wo... kiyometa." },
-    { text: "光が、　再び聖地を照らした。",                         speed: 0.85, voice: "af_nicole", tts: "Hikari ga... futatabi seichi wo terashita." },
-    { text: "妖怪は覚えている…　一枚の花びらで、十分だ。",          speed: 0.72, voice: "bm_fable",  tts: "Youkai wa oboete iru... hitomai no hanabira de... juubun da." },
-    { text: "守護者たちは…永遠に…あなたたちを守る。",               speed: 0.78, voice: "af_heart",  tts: "Shugosha tachi wa... eien ni... anata tachi wo mamoru." },
-    { text: "さようなら…　小さな守護者たち。",                      speed: 0.62, voice: "af_sky",    tts: "Sayounara... chiisana shugosha tachi." },
-    { text: "この岸を、　離れる時だ。",                              speed: 0.70, voice: "af_sky",    tts: "Kono kishi wo... hanareru toki da." },
-    { text: "灯籠を、追いかけて。",                                  speed: 0.68, voice: "af_sky",    tts: "Tourou wo... oikakete." },
-    { text: "アヴァの屋根の下で、　ご馳走が待つ。",                  speed: 0.75, voice: "af_heart",  tts: "Ava no yane no shita de... gochisou ga matsu." },
-    { text: "伝説を…　鏡に封印せよ。",                              speed: 0.72, voice: "af_kore",   tts: "Densetsu wo... kagami ni fuuin seyo." },
-    { text: "八人の巫女の力が、勝る！",                              speed: 0.82, voice: "bf_lily",   tts: "Hachinin no miko no chikara ga... masaru!" },
-    { text: "旅は、終わりに近づく…",                                speed: 0.68, voice: "af_sky",    tts: "Tabi wa... owari ni chikadzuku..." },
-    { text: "精霊は今も、見守っている。",                            speed: 0.70, voice: "af_river",  tts: "Seirei wa ima mo... mimamotte iru." },
-    { text: "思い出は永遠に、心に刻まれる。",                        speed: 0.72, voice: "af_heart",  tts: "Omoide wa eien ni... kokoro ni kizamareru." },
-];
 
+/* ═══════════════════════════════════════════════════════════
+   SYSTÈME VOIX MP3 — Fichiers audio individuels JP
+   Architecture : 27 fichiers MP3 dans audio/voices/
+   Fallback : speechSynthesis si MP3 non disponible
+   ═══════════════════════════════════════════════════════════ */
 
-/* Conversion rate → speed Kokoro */
-function _rateToSpeed(rate) {
-    return Math.max(0.5, Math.min(2.0, rate || 0.82));
-}
+// Map texteJP → nom de fichier MP3
+const MP3_FILES = {
+    "時の霧を越えて、　人の世界から遠く離れて…":     "intro_01.mp3",
+    "水の精霊が、秘密を囁く場所が隠されている…":     "intro_02.mp3",
+    "荘厳な猫神社が、　天に聳え立っていた。":         "intro_03.mp3",
+    "純粋な魔法に満たされた、　領域。":               "intro_04.mp3",
+    "古代の精霊が、　静かに見守っていた。":           "intro_05.mp3",
+    "守護者は、聖なる剣、草薙を守っていました。":     "intro_06.mp3",
+    "しかし…　影の精霊が目覚め、　封印は砕け散った…": "intro_07.mp3",
+    "光は闇に飲まれ、　九つの守護者は四方に散った。": "intro_08.mp3",
+    "九つの守護者が、　揃いた。":                     "outro_01.mp3",
+    "影が…　最後に立つ。":                           "outro_02.mp3",
+    "八人の巫女が聖地を、清めた。":                   "outro_03.mp3",
+    "光が、　再び聖地を照らした。":                   "outro_04.mp3",
+    "妖怪は覚えている…　一枚の花びらで、十分だ。":   "outro_05.mp3",
+    "守護者たちは…永遠に…あなたたちを守る。":        "outro_06.mp3",
+    "さようなら…　小さな守護者たち。":               "outro_07.mp3",
+    "この岸を、　離れる時だ。":                       "outro_08.mp3",
+    "灯籠を、追いかけて。":                           "outro_09.mp3",
+    "アヴァの屋根の下で、　ご馳走が待つ。":           "outro_10.mp3",
+    "伝説を…　鏡に封印せよ。":                       "outro_11.mp3",
+    "光が、　再び照らす。":                           "game_01.mp3",
+    "友情が…影を清めた。":                           "game_02.mp3",
+    "守護者たちが、感謝する。":                       "game_03.mp3",
+    "勝利は、封印された。":                           "game_04.mp3",
+    "八人の巫女の力が、勝る！":                       "var_01.mp3",
+    "旅は、終わりに近づく…":                         "var_02.mp3",
+    "精霊は今も、見守っている。":                     "var_03.mp3",
+    "思い出は永遠に、心に刻まれる。":                 "var_04.mp3",
+};
 
-/* Vérifier connectivité */
-async function _checkConnectivity() {
-    if (typeof WebAssembly !== 'object') return false;
-    const proto = location.protocol;
-    const host = location.hostname;
-    if (proto !== 'https:' && host !== 'localhost' && host !== '127.0.0.1') return false;
-    return true;
-}
+// Cache des ArrayBuffers bruts — décodés en AudioBuffer au moment du jeu avec le vrai audioCtx
+const _mp3ArrayBuffers = new Map();
+let _mp3Ready = false;
+let _mp3CurrentSource = null;
 
-/* Charger Kokoro */
-async function initKokoro() {
-    if (typeof _kokoroLoading !== 'undefined' && (_kokoroLoading || _kokoroReady)) return;
-    _kokoroLoading = true;
+async function initVoiceMP3() {
+    const introFiles = [
+        "intro_01.mp3", "intro_02.mp3", "intro_03.mp3", "intro_04.mp3",
+        "intro_05.mp3", "intro_06.mp3", "intro_07.mp3", "intro_08.mp3"
+    ];
     try {
-        if (!await _checkConnectivity()) { _kokoroLoading = false; return; }
-        _updateSplash(15, 'Connexion au Sanctuaire...');
-        const { KokoroTTS, env } = await import('https://esm.sh/kokoro-js');
-        if (!KokoroTTS) throw new Error('KokoroTTS non exporté');
-        // Multithreading WASM — ~40% plus rapide sur multi-core
-        const _threads = Math.min(navigator.hardwareConcurrency || 1, 4);
-        if (env && env.wasm) { env.wasm.numThreads = _threads; }
-        console.log(`[Kokoro] Threads: ${_threads} | dtype: q4`);
-        _updateSplash(30, 'Éveil des esprits gardiens...');
-        // q4 = 30% plus rapide que q8, qualité suffisante pour phrases courtes
-        _kokoroTTS = await KokoroTTS.from_pretrained('onnx-community/Kokoro-82M-ONNX', { dtype: 'q4', device: 'wasm' });
-        _kokoroReady = true;
-        console.log('[Kokoro] ✓ Modèle prêt');
-        window._kokoroReadyForGame = true;
-        _updateSplash(60, 'Invocation des voix des gardiens...');
-        _preGenerateKokoro();
-    } catch(e) {
-        console.warn('[Kokoro] Échec:', e.message);
-        _kokoroLoading = false;
-        _kokoroReady = false;
-        window._kokoroReadyForGame = true;
-        _updateSplash(100, 'Sanctuaire prêt ✦');
+        _updateSplash(20, 'Éveil des voix...');
+        let loaded = 0;
+        for (const file of introFiles) {
+            try {
+                const resp = await fetch('audio/voices/' + file);
+                if (!resp.ok) continue;
+                const arrayBuf = await resp.arrayBuffer();
+                const text = Object.keys(MP3_FILES).find(k => MP3_FILES[k] === file);
+                // Stocker l'ArrayBuffer brut — pas d'AudioBuffer ici
+                // Le décodage se fait au moment du jeu avec le vrai audioCtx
+                if (text) _mp3ArrayBuffers.set(text, arrayBuf);
+                loaded++;
+                const pct = Math.round(20 + (loaded / introFiles.length) * 75);
+                _updateSplash(pct, `Éveil des voix... ${loaded}/${introFiles.length}`);
+            } catch(e) { /* silencieux */ }
+        }
+        _mp3Ready = true;
+        _updateSplash(100, '✦ Le Sanctuaire vous attend ✦');
+        console.log(`[MP3] ✓ ${loaded}/8 voix intro prêtes`);
         setTimeout(kokoroSplashDone, 800);
+        _preloadRemainingMP3();
+    } catch(e) {
+        console.warn('[MP3] Échec:', e.message);
+        _updateSplash(100, 'Sanctuaire prêt ✦');
+        setTimeout(kokoroSplashDone, 500);
     }
 }
 
-/* Pré-générer */
-async function _preGenerateKokoro() {
-    if (!_kokoroTTS || !_kokoroReady) return;
-    setTimeout(() => {
-        const skip = document.getElementById('kokoro-skip-btn');
-        if (skip) { skip.style.display = 'block'; setTimeout(() => { skip.style.opacity='1'; }, 50); }
-    }, 3000);
-    let generated = 0;
-    const INTRO_COUNT = 8; // Les 8 phrases intro en priorité
-    const introPhrase = KOKORO_PHRASES.slice(0, INTRO_COUNT);
-    const outroPhrase = KOKORO_PHRASES.slice(INTRO_COUNT);
-
-    // Générateur commun
-    async function _genPhrase({ text, speed, voice, tts }) {
-        if (_kokoroCache.has(text)) return;
+/* Charger les autres fichiers en background */
+async function _preloadRemainingMP3() {
+    const allFiles = Object.values(MP3_FILES);
+    const introFiles = ["intro_01.mp3","intro_02.mp3","intro_03.mp3","intro_04.mp3",
+                        "intro_05.mp3","intro_06.mp3","intro_07.mp3","intro_08.mp3"];
+    const remaining = allFiles.filter(f => !introFiles.includes(f));
+    for (const file of remaining) {
+        const text = Object.keys(MP3_FILES).find(k => MP3_FILES[k] === file);
+        if (!text || _mp3ArrayBuffers.has(text)) continue;
         try {
-            const audio = await _kokoroTTS.generate(tts || text, {
-                voice: voice || 'af_sky',
-                speed: _rateToSpeed(speed),
-            });
-            const pcm = audio && audio.audio;
-            const sr = (audio && audio.sampling_rate) || 24000;
-            if (pcm && pcm.length > 0) {
-                _kokoroCache.set(text, { audio: new Float32Array(pcm), sampleRate: sr });
-                generated++;
-                console.log(`[Kokoro] ${generated}/${KOKORO_PHRASES.length} — "${text.slice(0,15)}…"`);
-                const pct = Math.round(60 + (generated / KOKORO_PHRASES.length) * 35);
-                _updateSplash(pct, `Invocation des voix... ${generated}/${KOKORO_PHRASES.length} (${pct}%)`);
+            const resp = await fetch('audio/voices/' + file);
+            if (!resp.ok) continue;
+            const arrayBuf = await resp.arrayBuffer();
+            _mp3ArrayBuffers.set(text, arrayBuf);
+        } catch(e) { /* silencieux */ }
+        await new Promise(r => setTimeout(r, 100));
+    }
+    console.log(`[MP3] ✓ Tout prêt — ${_mp3ArrayBuffers.size}/27 voix chargées`);
+}
+
+/* Obtenir ou créer l'AudioContext */
+function _getAudioCtx() {
+    if (typeof audioCtx !== 'undefined' && audioCtx) return audioCtx;
+    return new (window.AudioContext || window.webkitAudioContext)();
+}
+
+/* Jouer un fichier MP3 depuis le cache */
+async function _playMP3(text) {
+    const arrayBuf = _mp3ArrayBuffers.get(text);
+    if (!arrayBuf) return;
+    const ctx = (typeof audioCtx !== 'undefined' && audioCtx)
+        ? audioCtx
+        : new (window.AudioContext || window.webkitAudioContext)();
+    try {
+        const audioBuf = await ctx.decodeAudioData(arrayBuf.slice(0));
+        return new Promise(resolve => {
+            try {
+                enterTempleMode();
+
+                // Nœud source
+                const source = ctx.createBufferSource();
+                source.buffer = audioBuf;
+                _mp3CurrentSource = source;
+
+                // Gain voix +2dB (1.26) pour homogénéité INTRO/OUTRO
+                const voiceGain = ctx.createGain();
+                voiceGain.gain.value = 1.26;
+
+                // Fade-in 120ms + fade-out 200ms
+                const fadeGain = ctx.createGain();
+                const now = ctx.currentTime;
+                const dur = audioBuf.duration;
+                fadeGain.gain.setValueAtTime(0, now);
+                fadeGain.gain.linearRampToValueAtTime(1.0, now + 0.12);
+                fadeGain.gain.setValueAtTime(1.0, now + Math.max(0, dur - 0.2));
+                fadeGain.gain.linearRampToValueAtTime(0, now + dur);
+
+                // Reverb léger — wetGain à 0.08 pendant la voix
+                if (typeof wetGain !== 'undefined' && wetGain) {
+                    wetGain.gain.cancelScheduledValues(now);
+                    wetGain.gain.setTargetAtTime(0.08, now, 0.05);
+                    wetGain.gain.setTargetAtTime(0.0, now + dur - 0.1, 0.08);
+                }
+
+                // Chaîne : source → voiceGain → fadeGain → duckGain
+                source.connect(voiceGain);
+                voiceGain.connect(fadeGain);
+                fadeGain.connect(duckGain || masterGain || ctx.destination);
+
+                const finish = () => {
+                    _mp3CurrentSource = null;
+                    if (typeof wetGain !== 'undefined' && wetGain) {
+                        wetGain.gain.setTargetAtTime(0.0, ctx.currentTime, 0.08);
+                    }
+                    exitTempleMode();
+                    resolve();
+                };
+                const timeout = setTimeout(() => { try { source.stop(); } catch(e) {} finish(); }, (dur * 1000) + 1200);
+                source.onended = () => { clearTimeout(timeout); finish(); };
+                source.start();
+            } catch(e) {
+                console.warn('[MP3] Erreur lecture:', e.message);
+                exitTempleMode(); resolve();
             }
-        } catch(e) {
-            console.error('[Kokoro] ERREUR:', text.slice(0,15), e.message);
-        }
-        await new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
+        });
+    } catch(e) {
+        console.warn('[MP3] Erreur décodage:', e.message);
     }
-
-    // PHASE 1 — Intro (8 phrases) en priorité absolue
-    console.log('[Kokoro] Phase 1 : génération intro...');
-    for (const phrase of introPhrase) await _genPhrase(phrase);
-
-    // Intro prête → splash peut disparaître, le jeu peut commencer
-    console.log('[Kokoro] ✓ Intro prête — le jeu peut commencer');
-    _updateSplash(100, '✦ Le Sanctuaire vous attend ✦');
-    setTimeout(kokoroSplashDone, 800);
-
-    // PHASE 2 — Outro (15 phrases) en background pendant le jeu
-    console.log('[Kokoro] Phase 2 : génération outro en background...');
-    for (const phrase of outroPhrase) await _genPhrase(phrase);
-    console.log(`[Kokoro] ✓ Tout prêt — ${_kokoroCache.size}/23 phrases en cache`);
 }
 
-/* Jouer */
-function _kokoroPlay(text, opts = {}) {
-    const cached = _kokoroCache.get(text);
-    if (!cached || !audioCtx) return Promise.resolve();
-    return new Promise(resolve => {
-        try {
-            const buf = audioCtx.createBuffer(1, cached.audio.length, cached.sampleRate);
-            buf.getChannelData(0).set(cached.audio);
-            enterTempleMode();
-            const source = audioCtx.createBufferSource();
-            source.buffer = buf;
-            source.connect(duckGain || masterGain);
-            _kokoroCurrentSource = source;
-            const finish = () => { _kokoroCurrentSource = null; exitTempleMode(); resolve(); };
-            const timeout = setTimeout(() => { try { source.stop(); } catch(e) {} finish(); }, (buf.duration * 1000) + 2000);
-            source.onended = () => { clearTimeout(timeout); finish(); };
-            source.start();
-        } catch(e) {
-            console.warn('[Kokoro] Erreur lecture:', e.message);
-            exitTempleMode(); resolve();
-        }
-    });
-}
-
-/* Splash */
+/* Splash screen */
 function _updateSplash(pct, msg) {
     const bar = document.getElementById('kokoro-progress-bar');
     const txt = document.getElementById('kokoro-splash-status');
@@ -928,23 +949,16 @@ function kokoroSplashDone() {
     setTimeout(() => { if (splash.parentNode) splash.remove(); }, 800);
 }
 
-/* Variables globales Kokoro */
-let _kokoroReady = false;
-let _kokoroLoading = false;
-let _kokoroTTS = null;
-let _kokoroCache = new Map();
-let _kokoroCurrentSource = null;
-
 /* Lancer au chargement */
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => setTimeout(initKokoro, 1000));
+    document.addEventListener('DOMContentLoaded', () => setTimeout(initVoiceMP3, 500));
 } else {
-    setTimeout(initKokoro, 1000);
+    setTimeout(initVoiceMP3, 500);
 }
 
 /* Étendre cancelVoice */
 const _cancelVoiceOriginal = cancelVoice;
 cancelVoice = function() {
-    if (_kokoroCurrentSource) { try { _kokoroCurrentSource.stop(); } catch(e) {} _kokoroCurrentSource = null; }
+    if (_mp3CurrentSource) { try { _mp3CurrentSource.stop(); } catch(e) {} _mp3CurrentSource = null; }
     _cancelVoiceOriginal();
 };

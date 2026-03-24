@@ -324,7 +324,7 @@ const TEXTS_EMBEDDED = {
       },
       {
         "fr": "Les Gardiens veillent sur vous à jamais.",
-        "jp": "守護者たちは…　永遠に、あなたたちを守る。"
+        "jp": "守護者たちは…永遠に…あなたたちを守る。"
       }
     ],
     "sealPrompt": {

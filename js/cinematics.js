@@ -414,6 +414,8 @@ async function launchExperience(event) {
     
     // Scène Château — entrée qui monte depuis le bas
     await playScene('layer-castle', () => { playGameSFX('thud'); playMikoChime(0); setMusicMood('DECOUVERTE'); });
+    // Phrase 3 — VOYAGE s'enrichit, pad apparaît
+    if(window.audioLayers) { const now = audioCtx.currentTime; audioLayers.pad.gain.setTargetAtTime(0.08, now, 1.5); }
     await showStoryText("Le majestueux Sanctuaire de Neko-Jinja<br>s'élevait vers les cieux.", "荘厳な猫神社が、　天に聳え立っていた。", "ja-JP", 0.70);
     if(introSkipped) return;
     await new Promise(r => setTimeout(r, 1500));
@@ -438,6 +440,8 @@ async function launchExperience(event) {
         startKodamaAnimations();
         setMusicMood('SACRE');
     });
+    // Phrase 5 — Transition SACRE, clochettes et mélodie
+    if(window.setMusicMood) setMusicMood('SACRE');
     await showStoryText("Où les anciens esprits<br>veillaient en silence.", "古代の精霊が、　静かに見守っていた。", "ja-JP", 0.65);
     if(introSkipped) return;
     await new Promise(r => setTimeout(r, 2200)); // Longue pause — moment sacré
@@ -478,6 +482,8 @@ async function launchExperience(event) {
 
     // Scène Ombre — entrée depuis le flou/lumière
     await playScene('layer-daruma', () => { document.getElementById('cinematic-daruma').classList.add('awake'); playEvilLaugh(); });
+    // Phrase 7 — RUPTURE : bascule au moment exact de la voix
+    if(window.setMusicMood) setMusicMood('RUPTURE');
     await showStoryText("Mais l'Ombre Millénaire s'éveilla...<br><span class='line-break'>et le sceau vola en éclats.</span>", "しかし…　影の精霊が目覚め、　封印は砕け散った…", "ja-JP", 0.62);
     if(introSkipped) return;
 
