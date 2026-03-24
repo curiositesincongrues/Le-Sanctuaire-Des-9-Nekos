@@ -328,7 +328,7 @@ const TEXTS_EMBEDDED = {
       }
     ],
     "sealPrompt": {
-      "fr": "Scellez cette légende dans le Miroir.",
+      "fr": "Scellez cette légende.",
       "jp": "伝説を…　鏡に封印せよ。"
     }
   },

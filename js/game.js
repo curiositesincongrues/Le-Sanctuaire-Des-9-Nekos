@@ -1,3 +1,4 @@
+console.log('GAME JS VERSION NEW');
 /* --- THEME MANAGER — Le Sanctuaire des 9 Nekos --- */
 
 const ThemeManager = {
@@ -1716,7 +1717,7 @@ async function launchFinalCinematic() {
         { fr: 'Les Gardiens vous remercient pour votre courage.', jp: '守護者たちが、感謝する。' },
         { fr: 'Le parchemin a scellé votre victoire.', jp: '勝利は、封印された。' }
     ];
-    const sealPrompt = finale.sealPrompt || { fr: 'Scellez cette légende dans le Miroir.', jp: '伝説を…　鏡に封印せよ。' };
+    const sealPrompt = finale.sealPrompt || { fr: 'Scellez cette légende.', jp: '伝説を…　鏡に封印せよ。' };
 
     const stage = document.getElementById('final-circ-nekos');
     const sf = document.getElementById('final-story-box');
@@ -2170,7 +2171,6 @@ async function launchFinalCinematic() {
     } catch(e) {}
     await spawnNekoSupreme(sf, sleep);
 
-    await showFinalText(sealPrompt, 400);
     try { setMusicMood('MIROIR'); } catch(e) {}
 
     if (btnMirror) {
@@ -2272,14 +2272,14 @@ async function launchFinalCinematic() {
             // Kanji discret au-dessus
             const kanjiSub = document.createElement('div');
             kanjiSub.style.cssText = "font-family:'Ma Shan Zheng',cursive;font-size:14px;color:rgba(255,215,0,0.45);letter-spacing:3px;margin-bottom:12px;";
-            kanjiSub.textContent = '伝説を鏡に封印せよ';
+            kanjiSub.textContent = '伝説を…　鏡に封印せよ。';
             sf.appendChild(kanjiSub);
             // Texte principal via typewriter
             const textSpan = document.createElement('span');
             textSpan.style.cssText = "display:block;font-family:'Fredoka One',cursive;font-size:22px;";
             sf.appendChild(textSpan);
             // Typewriter effect manuel
-            const phrase = sealPrompt.fr || 'Scellez cette légende dans le Miroir.';
+            const phrase = sealPrompt.fr || 'Scellez cette légende.';
             let charIdx = 0;
             const typeInterval = setInterval(() => {
                 if (charIdx < phrase.length) {

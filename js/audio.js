@@ -1,3 +1,4 @@
+console.log('GAME JS VERSION NEW');
 /* --- AUDIO.JS — Musique Cinématique + SFX + Voix --- */
 
 async function requestWakeLock() {
