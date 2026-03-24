@@ -1830,7 +1830,10 @@ async function launchFinalCinematic() {
                 setMusicMood('RUPTURE');
                 setTimeout(() => { if(window.setMusicMood) setMusicMood('SACRE'); }, 2000);
             }
-            try { speakDucked(entry.jp, { rate: 0.80 }); } catch(e) {}
+            try {
+                if (entry.jp === '影が…　最後に立つ。' && typeof playVoiceFile === 'function') await playVoiceFile('outro_02.mp3');
+                else await speakDucked(entry.jp, { rate: 0.80 });
+            } catch(e) {}
         }
         await sleep(pause);
     };
@@ -2262,7 +2265,7 @@ async function launchFinalCinematic() {
             }
         });
 
-        // === TEXTE RITUEL — typewriter effect ===
+        // === TEXTE RITUEL — lecture MP3 + typewriter effect ===
         if (sf) {
             sf.innerHTML = '';
             sf.style.opacity = '1';
@@ -2277,6 +2280,18 @@ async function launchFinalCinematic() {
             const textSpan = document.createElement('span');
             textSpan.style.cssText = "display:block;font-family:'Fredoka One',cursive;font-size:22px;";
             sf.appendChild(textSpan);
+
+            // Lecture audio dédiée du miroir : utilise le MP3 si préchargé,
+            // sinon fallback vers speakDucked (qui utilisera le TTS seulement si aucun MP3 n'existe).
+            if (sealPrompt.jp) {
+                try {
+                    if (typeof playVoiceFile === 'function') await playVoiceFile('outro_11.mp3');
+                    else await speakDucked(sealPrompt.jp, { rate: 0.80 });
+                } catch (e) {
+                    console.warn('[FINAL] Lecture miroir impossible:', e?.message || e);
+                }
+            }
+
             // Typewriter effect manuel
             const phrase = sealPrompt.fr || 'Scellez cette légende.';
             let charIdx = 0;

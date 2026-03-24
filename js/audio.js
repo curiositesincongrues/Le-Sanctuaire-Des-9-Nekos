@@ -814,7 +814,9 @@ let _mp3CurrentSource = null;
 async function initVoiceMP3() {
     const introFiles = [
         "intro_01.mp3", "intro_02.mp3", "intro_03.mp3", "intro_04.mp3",
-        "intro_05.mp3", "intro_06.mp3", "intro_07.mp3", "intro_08.mp3"
+        "intro_05.mp3", "intro_06.mp3", "intro_07.mp3", "intro_08.mp3",
+        // Précharger aussi les 2 voix finales critiques dès le splash
+        "outro_02.mp3", "outro_11.mp3"
     ];
     try {
         _updateSplash(20, 'Éveil des voix...');
@@ -866,6 +868,43 @@ async function _preloadRemainingMP3() {
 }
 
 /* Obtenir ou créer l'AudioContext */
+
+
+async function playVoiceFile(file) {
+    try {
+        const text = Object.keys(MP3_FILES).find(k => MP3_FILES[k] === file);
+        if (text && _mp3ArrayBuffers.has(text)) return await _playMP3(text);
+        const resp = await fetch('audio/voices/' + file, { cache: 'no-store' });
+        if (!resp.ok) throw new Error('HTTP ' + resp.status + ' for ' + file);
+        const arrayBuf = await resp.arrayBuffer();
+        const ctx = (typeof audioCtx !== 'undefined' && audioCtx)
+            ? audioCtx
+            : new (window.AudioContext || window.webkitAudioContext)();
+        if (ctx.state === 'suspended') { try { await ctx.resume(); } catch(e) {} }
+        const audioBuf = await ctx.decodeAudioData(arrayBuf.slice(0));
+        return await new Promise(resolve => {
+            try {
+                enterTempleMode();
+                const source = ctx.createBufferSource();
+                source.buffer = audioBuf;
+                _mp3CurrentSource = source;
+                const gain = ctx.createGain();
+                gain.gain.value = 1.26;
+                source.connect(gain);
+                gain.connect((typeof duckGain !== 'undefined' && duckGain) || masterGain || ctx.destination);
+                source.onended = () => { _mp3CurrentSource = null; exitTempleMode(); resolve(); };
+                source.start();
+            } catch (e) {
+                console.warn('[MP3] Lecture directe impossible:', e.message);
+                exitTempleMode();
+                resolve();
+            }
+        });
+    } catch (e) {
+        console.warn('[MP3] Fichier direct introuvable:', file, e.message);
+    }
+}
+
 function _getAudioCtx() {
     if (typeof audioCtx !== 'undefined' && audioCtx) return audioCtx;
     return new (window.AudioContext || window.webkitAudioContext)();
