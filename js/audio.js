@@ -819,23 +819,9 @@ async function initKokoro() {
         const { KokoroTTS } = await import('https://esm.sh/kokoro-js');
         if (!KokoroTTS) throw new Error('KokoroTTS non exporté');
         _updateSplash(30, 'Éveil des esprits gardiens...');
-        // Détection WebGPU avec fallback automatique
-        const _hasWebGPU = !!navigator.gpu;
-        let _kokoroTTS_loaded = false;
-        if (_hasWebGPU) {
-            try {
-                console.log('[Kokoro] Device: webgpu | dtype: fp32 — tentative...');
-                _kokoroTTS = await KokoroTTS.from_pretrained('onnx-community/Kokoro-82M-ONNX', { dtype: 'fp32', device: 'webgpu' });
-                _kokoroTTS_loaded = true;
-                console.log('[Kokoro] ✓ WebGPU OK');
-            } catch(e) {
-                console.warn('[Kokoro] WebGPU échoué, fallback WASM:', e.message);
-            }
-        }
-        if (!_kokoroTTS_loaded) {
-            console.log('[Kokoro] Device: wasm | dtype: q8');
-            _kokoroTTS = await KokoroTTS.from_pretrained('onnx-community/Kokoro-82M-ONNX', { dtype: 'q8', device: 'wasm' });
-        }
+        // WASM uniquement — WebGPU nécessite un flag Chrome non activé par défaut
+        console.log('[Kokoro] Device: wasm | dtype: q8');
+        _kokoroTTS = await KokoroTTS.from_pretrained('onnx-community/Kokoro-82M-ONNX', { dtype: 'q8', device: 'wasm' });
         _kokoroReady = true;
         console.log('[Kokoro] ✓ Modèle prêt');
         window._kokoroReadyForGame = true;
