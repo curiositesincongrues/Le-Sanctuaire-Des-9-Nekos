@@ -645,7 +645,7 @@ function transitionToDarkAudio() {
 let _kokoroReady = false;
 let _kokoroLoading = false;
 let _kokoroTTS = null;
-let _kokoroCache = new Map(); // texte → AudioBuffer
+let _kokoroCache = new Map(); // texte → { audio: Float32Array, sampleRate: number }
 let _kokoroCurrentSource = null; // pour cancelVoice
 
 /* Toutes les phrases — voix Kokoro dédiées par scène narrative */
@@ -766,46 +766,30 @@ async function _preGenerateKokoro() {
         const skip = document.getElementById('kokoro-skip-btn');
         if (skip) { skip.style.display = 'block'; setTimeout(() => { skip.style.opacity='1'; }, 50); }
     }, 3000);
-    // Attendre que audioCtx soit initialisé (créé au 1er clic utilisateur)
-    let waited = 0;
-    while (!audioCtx && waited < 30000) {
-        await new Promise(r => setTimeout(r, 500));
-        waited += 500;
-    }
-    // audioCtx pas encore créé (avant le 1er clic) — en créer un minimal pour la génération
-    if (!audioCtx) {
-        try {
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            console.log('[Kokoro] audioCtx créé pour pré-génération');
-        } catch(e) {
-            console.warn('[Kokoro] Impossible de créer audioCtx:', e.message);
-            return;
-        }
-    }
+    // Stocker les Float32Array bruts — AudioBuffer créé au moment du jeu
+    // avec le vrai audioCtx (évite tout problème de compatibilité de contexte)
     let generated = 0;
     for (const { text, speed, voice } of KOKORO_PHRASES) {
         if (_kokoroCache.has(text)) continue; // déjà prête
         try {
             const audio = await _kokoroTTS.generate(text, {
-                voice: voice || 'af_sky', // voix dédiée par scène narrative
+                voice: voice || 'af_sky',
                 speed: _rateToSpeed(speed),
             });
-            // Décoder en AudioBuffer Web Audio
-            if (audioCtx && audio && audio.audio) {
-                const buf = audioCtx.createBuffer(1, audio.audio.length, audio.sampling_rate || 24000);
-                buf.copyToChannel(audio.audio, 0);
-                _kokoroCache.set(text, buf);
+            if (audio && audio.audio) {
+                // Stocker Float32Array + sampleRate — pas d'AudioBuffer ici
+                _kokoroCache.set(text, {
+                    audio: audio.audio,
+                    sampleRate: audio.sampling_rate || 24000
+                });
                 generated++;
                 console.log(`[Kokoro] ${generated}/${KOKORO_PHRASES.length} — "${text.slice(0,20)}…"`);
-                // Progression 60→95% pendant la pré-génération
                 const pct = Math.round(60 + (generated / KOKORO_PHRASES.length) * 35);
                 _updateSplash(pct, `Voix ${generated}/${KOKORO_PHRASES.length} invoquées...`);
             }
         } catch(e) {
             console.warn('[Kokoro] Échec génération:', text.slice(0,20), e.message);
-            // Silencieux — speechSynthesis prend le relais pour cette phrase
         }
-        // Micro-pause pour ne pas bloquer le thread principal
         await new Promise(r => setTimeout(r, 50));
     }
     console.log(`[Kokoro] Pré-génération terminée — ${_kokoroCache.size} phrases en cache`);
@@ -815,33 +799,35 @@ async function _preGenerateKokoro() {
 
 /* Jouer un AudioBuffer Kokoro via Web Audio — même chaîne que les SFX */
 function _kokoroPlay(text, opts = {}) {
-    const buf = _kokoroCache.get(text);
-    if (!buf || !audioCtx) return Promise.resolve(); // ne devrait pas arriver
+    const cached = _kokoroCache.get(text);
+    if (!cached || !audioCtx) return Promise.resolve();
 
     return new Promise(resolve => {
-        enterTempleMode();
+        try {
+            // Créer AudioBuffer avec le vrai audioCtx au moment du jeu
+            const buf = audioCtx.createBuffer(1, cached.audio.length, cached.sampleRate);
+            buf.copyToChannel(cached.audio, 0);
 
-        const source = audioCtx.createBufferSource();
-        source.buffer = buf;
-        source.connect(duckGain || masterGain); // même chaîne audio
-        _kokoroCurrentSource = source;
+            enterTempleMode();
+            const source = audioCtx.createBufferSource();
+            source.buffer = buf;
+            source.connect(duckGain || masterGain);
+            _kokoroCurrentSource = source;
 
-        const finish = () => {
-            _kokoroCurrentSource = null;
+            const finish = () => {
+                _kokoroCurrentSource = null;
+                exitTempleMode();
+                resolve();
+            };
+            const safetyMs = (buf.duration * 1000) + 2000;
+            const timeout = setTimeout(() => { try { source.stop(); } catch(e) {} finish(); }, safetyMs);
+            source.onended = () => { clearTimeout(timeout); finish(); };
+            source.start();
+        } catch(e) {
+            console.warn('[Kokoro] Erreur lecture:', e.message);
             exitTempleMode();
             resolve();
-        };
-
-        source.onended = finish;
-        // Timeout de sécurité : durée du buffer + 2s
-        const safetyMs = (buf.duration * 1000) + 2000;
-        const timeout = setTimeout(() => {
-            try { source.stop(); } catch(e) {}
-            finish();
-        }, safetyMs);
-
-        source.onended = () => { clearTimeout(timeout); finish(); };
-        source.start();
+        }
     });
 }
 
