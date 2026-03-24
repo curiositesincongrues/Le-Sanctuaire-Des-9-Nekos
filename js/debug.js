@@ -9,19 +9,17 @@
 
     /* ============================================
        CACHE BUSTING — Force le rechargement des
-       fichiers CSS à chaque lancement debug
-       + nettoyage SW/cache sans réinjecter les JS
+       fichiers JS/CSS à chaque lancement debug
        ============================================ */
     (function bustCache() {
         const ts = Date.now();
 
-        // Fichiers CSS à recharger dynamiquement
+        // Fichiers à recharger dynamiquement
         const cssFiles = ['css/game.css', 'css/cinematics.css', 'css/base.css'];
 
         // Rechargement CSS — remplacer les <link> existants
         cssFiles.forEach(href => {
-            const fileName = href.split('/').pop().split('?')[0];
-            const existing = document.querySelector(`link[href*="${fileName}"]`);
+            const existing = document.querySelector(`link[href*="${href.split('/').pop().split('?')[0]}"]`);
             if (existing) {
                 const fresh = document.createElement('link');
                 fresh.rel = 'stylesheet';
@@ -30,7 +28,6 @@
                 setTimeout(() => existing.remove(), 500);
             }
         });
-
         // IMPORTANT :
         // On ne réinjecte PAS les JS ici.
         // Ils sont déjà chargés par index.html.
@@ -38,15 +35,14 @@
         // "Identifier ... has already been declared"
         console.log('[DEBUG] JS cache-bust désactivé pour éviter le double chargement');
 
-        // Invalider / mettre à jour le Service Worker
+        // Invalider le Service Worker
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistrations().then(regs => {
                 regs.forEach(reg => {
-                    reg.update();
+                    reg.update(); // force check + téléchargement du nouveau SW
                     console.log('[DEBUG] SW update forcé');
                 });
             });
-
             // Vider les caches SW
             if ('caches' in window) {
                 caches.keys().then(names => {
@@ -189,15 +185,18 @@
        ============================================ */
 
     function forceScene(sceneIndex) {
+        // Kill everything running
         introSkipped = true;
-        if (window.speechSynthesis) window.speechSynthesis.cancel();
-        if (typeof heartInterval !== 'undefined') clearInterval(heartInterval);
-        if (typeof quizInterval !== 'undefined') clearInterval(quizInterval);
+        if(window.speechSynthesis) window.speechSynthesis.cancel();
+        if(typeof heartInterval !== 'undefined') clearInterval(heartInterval);
+        if(typeof quizInterval !== 'undefined') clearInterval(quizInterval);
 
+        // Hide ALL screens, only show narrative
         document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
         const narrative = document.getElementById('screen-narrative');
         if (narrative) narrative.classList.add('active');
 
+        // Clear UI text and intro elements
         const storyText = document.getElementById('story-text');
         if (storyText) {
             storyText.innerHTML = `[DEBUG] Scène ${sceneIndex} forcée...`;
@@ -209,149 +208,132 @@
             if (el) el.style.display = 'none';
         });
         document.querySelectorAll('.bg-kanji, #intro-eyes').forEach(el => el.style.display = 'none');
+
+        // Hide ALL cinematic layers
         document.querySelectorAll('.cinematic-layer').forEach(el => el.classList.remove('show-layer'));
 
+        // Reset entities
         const nekoHero = document.getElementById('neko-hero');
-        if (nekoHero) {
-            nekoHero.style.display = 'none';
-            nekoHero.style.opacity = '0';
-        }
-
+        if (nekoHero) { nekoHero.style.display = 'none'; nekoHero.style.opacity = '0'; }
         const daruma = document.getElementById('cinematic-daruma');
         if (daruma) daruma.classList.remove('awake');
-
         const sword = document.getElementById('kusanagi-sword');
-        if (sword) {
-            sword.classList.remove('kusanagi-break');
-            sword.style.display = 'none';
-        }
+        if(sword) { sword.classList.remove('kusanagi-break'); sword.style.display = 'none'; }
         
+        // Hide UI items like miko belt
         const belt = document.getElementById('miko-belt');
-        if (belt) belt.classList.remove('visible');
+        if(belt) belt.classList.remove('visible');
 
-        sceneIndex = parseInt(sceneIndex, 10);
+        sceneIndex = parseInt(sceneIndex);
 
+        // Execute specific Scene state
         switch (sceneIndex) {
-            case 1:
-                {
-                    const layer1 = document.getElementById('layer-boat');
-                    if (layer1) layer1.classList.add('show-layer');
-                    if (typeof setSakuraMood === 'function') setSakuraMood('VOYAGE');
-                    if (typeof setMusicMood === 'function') setMusicMood('VOYAGE');
-                    if (typeof setKenBurns === 'function') setKenBurns('voyage');
-                    if (typeof setCinemaEffects === 'function') setCinemaEffects({ vignette: 0.45, grain: 0.05 });
-                }
+            case 1: // Bateau
+                const layer1 = document.getElementById('layer-boat');
+                if (layer1) layer1.classList.add('show-layer');
+                if (typeof setSakuraMood === 'function') setSakuraMood('VOYAGE');
+                if (typeof setMusicMood === 'function') setMusicMood('VOYAGE');
+                if (typeof setKenBurns === 'function') setKenBurns('voyage');
+                if (typeof setCinemaEffects === 'function') setCinemaEffects({ vignette: 0.45, grain: 0.05 });
                 break;
-            case 2:
-                {
-                    const layer2 = document.getElementById('layer-koi');
-                    if (layer2) layer2.classList.add('show-layer');
-                    if (typeof setSakuraMood === 'function') setSakuraMood('VOYAGE');
-                    if (typeof setMusicMood === 'function') setMusicMood('VOYAGE');
-                    if (typeof setKenBurns === 'function') setKenBurns('voyage');
-                }
+            case 2: // Koi
+                const layer2 = document.getElementById('layer-koi');
+                if (layer2) layer2.classList.add('show-layer');
+                if (typeof setSakuraMood === 'function') setSakuraMood('VOYAGE');
+                if (typeof setMusicMood === 'function') setMusicMood('VOYAGE');
+                if (typeof setKenBurns === 'function') setKenBurns('voyage');
                 break;
-            case 3:
-                {
-                    const layer3 = document.getElementById('layer-castle');
-                    if (layer3) layer3.classList.add('show-layer');
-                    if (typeof setSakuraMood === 'function') setSakuraMood('DECOUVERTE');
-                    if (typeof setMusicMood === 'function') setMusicMood('DECOUVERTE');
-                    if (typeof setKenBurns === 'function') setKenBurns('decouverte');
-                }
+            case 3: // Château
+                const layer3 = document.getElementById('layer-castle');
+                if (layer3) layer3.classList.add('show-layer');
+                if (typeof setSakuraMood === 'function') setSakuraMood('DECOUVERTE');
+                if (typeof setMusicMood === 'function') setMusicMood('DECOUVERTE');
+                if (typeof setKenBurns === 'function') setKenBurns('decouverte');
                 break;
-            case 4:
-                {
-                    const layer4 = document.getElementById('layer-torii');
-                    if (layer4) layer4.classList.add('show-layer');
-                    if (typeof setSakuraMood === 'function') setSakuraMood('DECOUVERTE');
-                    if (typeof setMusicMood === 'function') setMusicMood('DECOUVERTE');
-                    if (typeof setKenBurns === 'function') setKenBurns('decouverte');
-                }
+            case 4: // Torii
+                const layer4 = document.getElementById('layer-torii');
+                if (layer4) layer4.classList.add('show-layer');
+                if (typeof setSakuraMood === 'function') setSakuraMood('DECOUVERTE');
+                if (typeof setMusicMood === 'function') setMusicMood('DECOUVERTE');
+                if (typeof setKenBurns === 'function') setKenBurns('decouverte');
                 break;
-            case 5:
-                {
-                    const layer5 = document.getElementById('layer-noface');
-                    if (layer5) layer5.classList.add('show-layer');
-                    if (typeof setSakuraMood === 'function') setSakuraMood('SACRE');
-                    if (typeof setMusicMood === 'function') setMusicMood('SACRE');
-                    if (typeof setKenBurns === 'function') setKenBurns('sacre');
-                }
+            case 5: // Kodamas
+                const layer5 = document.getElementById('layer-noface');
+                if (layer5) layer5.classList.add('show-layer');
+                if (typeof setSakuraMood === 'function') setSakuraMood('SACRE');
+                if (typeof setMusicMood === 'function') setMusicMood('SACRE');
+                if (typeof setKenBurns === 'function') setKenBurns('sacre');
                 break;
-            case 6:
-                if (nekoHero) {
-                    nekoHero.style.display = 'flex';
-                    nekoHero.style.opacity = '1';
-                }
+            case 6: // Neko et Kusanagi
+                if (nekoHero) { nekoHero.style.display = 'flex'; nekoHero.style.opacity = '1'; }
                 if (sword) sword.style.display = 'block';
                 if (typeof setSakuraMood === 'function') setSakuraMood('SACRE');
                 if (typeof setMusicMood === 'function') setMusicMood('SACRE');
                 if (typeof setKenBurns === 'function') setKenBurns('neko');
                 break;
-            case 7:
-                {
-                    const layer7 = document.getElementById('layer-daruma');
-                    if (layer7) layer7.classList.add('show-layer');
-                    if (daruma) daruma.classList.add('awake');
-                    if (typeof setSakuraMood === 'function') setSakuraMood('DARUMA');
-                    if (typeof setMusicMood === 'function') setMusicMood('RUPTURE');
-                    if (typeof setKenBurns === 'function') setKenBurns('rupture');
-                    if (typeof setCinemaEffects === 'function') setCinemaEffects({ vignette: 0.8, grain: 0.2, glitch: true });
-                }
+            case 7: // L'Ombre
+                const layer7 = document.getElementById('layer-daruma');
+                if (layer7) layer7.classList.add('show-layer');
+                if (daruma) daruma.classList.add('awake');
+                if (typeof setSakuraMood === 'function') setSakuraMood('DARUMA');
+                if (typeof setMusicMood === 'function') setMusicMood('RUPTURE');
+                if (typeof setKenBurns === 'function') setKenBurns('rupture');
+                if (typeof setCinemaEffects === 'function') setCinemaEffects({ vignette: 0.8, grain: 0.2, glitch: true });
                 break;
         }
     }
 
     function forceQuiz(index) {
-        if (window.speechSynthesis) window.speechSynthesis.cancel();
-        if (typeof heartInterval !== 'undefined') clearInterval(heartInterval);
-        if (typeof quizInterval !== 'undefined') clearInterval(quizInterval);
-        currentFound = parseInt(index, 10);
+        if(window.speechSynthesis) window.speechSynthesis.cancel();
+        if(typeof heartInterval !== 'undefined') clearInterval(heartInterval);
+        if(typeof quizInterval !== 'undefined') clearInterval(quizInterval);
+        currentFound = parseInt(index);
         if (typeof setupQuiz === 'function') setupQuiz();
     }
 
     function forceOutro(type) {
         introSkipped = true;
-        if (window.speechSynthesis) window.speechSynthesis.cancel();
-        if (typeof heartInterval !== 'undefined') clearInterval(heartInterval);
-        if (typeof quizInterval !== 'undefined') clearInterval(quizInterval);
+        if(window.speechSynthesis) window.speechSynthesis.cancel();
+        if(typeof heartInterval !== 'undefined') clearInterval(heartInterval);
+        if(typeof quizInterval !== 'undefined') clearInterval(quizInterval);
 
         document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
         document.querySelectorAll('.cinematic-layer').forEach(el => el.classList.remove('show-layer'));
         
         const belt = document.getElementById('miko-belt');
-        if (belt) belt.classList.remove('visible');
+        if(belt) belt.classList.remove('visible');
 
+        // On force la progression à 9 (tous les gardiens trouvés)
         currentFound = 9;
-        for (let _i = 0; _i < 9; _i++) foundGuardians.add(_i);
+        for (let _i = 0; _i < 9; _i++) foundGuardians.add(_i); // debug fix: populate all guardians
 
         if (typeof resetFinalScreenState === 'function') resetFinalScreenState();
 
         if (type === 'final') {
             const finalScreen = document.getElementById('screen-final');
-            if (finalScreen) finalScreen.classList.add('active');
-
+            if(finalScreen) finalScreen.classList.add('active');
+            // Init audio complet si pas encore fait (mode debug saute initSfx normalement)
             const launchWithAudio = () => {
                 if (typeof initSfx === 'function' && !audioCtx) {
-                    try { initSfx(); } catch (e) {}
+                    try { initSfx(); } catch(e) {}
                 }
                 if (audioCtx && audioCtx.state === 'suspended') {
                     audioCtx.resume().catch(() => {});
                 }
                 if (typeof setMusicMood === 'function') {
-                    try { setMusicMood('VOYAGE'); } catch (e) {}
+                    try { setMusicMood('VOYAGE'); } catch(e) {}
                 }
                 if (typeof launchFinalCinematic === 'function') launchFinalCinematic();
             };
             launchWithAudio();
-        } else if (type === 'cert') {
+        } 
+        else if (type === 'cert') {
             if (typeof allowFinalPostUI === 'function') allowFinalPostUI();
-
             const finalScreen = document.getElementById('screen-final');
-            if (finalScreen) finalScreen.classList.add('active');
+            if(finalScreen) finalScreen.classList.add('active');
             
             const cert = document.getElementById('victory-cert');
-            if (cert) {
+            if(cert) {
                 cert.style.display = 'block';
                 cert.style.transform = 'scale(1)';
                 cert.style.opacity = '1';
@@ -364,9 +346,11 @@
             }
             
             if (typeof setSakuraMood === 'function') setSakuraMood('AUBE');
-        } else if (type === 'epilogue') {
+        } 
+        else if (type === 'epilogue') {
             const finalScreen = document.getElementById('screen-final');
-            if (finalScreen) finalScreen.classList.add('active');
+            if(finalScreen) finalScreen.classList.add('active');
+            
             if (typeof launchEpilogue === 'function') launchEpilogue();
         }
     }
@@ -378,44 +362,34 @@
         introSkipped = true;
         if (window.speechSynthesis) window.speechSynthesis.cancel();
         document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
-        currentFound = 9;
-        for (let _i = 0; _i < 9; _i++) foundGuardians.add(_i);
+        currentFound = 9; for(let _i=0;_i<9;_i++) foundGuardians.add(_i);
 
         const finalScreen = document.getElementById('screen-final');
         if (finalScreen) finalScreen.classList.add('active');
 
-        if (typeof initSfx === 'function' && !audioCtx) {
-            try { initSfx(); } catch (e) {}
-        }
-        if (audioCtx && audioCtx.state === 'suspended') {
-            audioCtx.resume().catch(() => {});
-        }
-        if (typeof setMusicMood === 'function') {
-            try { setMusicMood('VOYAGE'); } catch (e) {}
-        }
+        // Init audio
+        if (typeof initSfx === 'function' && !audioCtx) { try { initSfx(); } catch(e) {} }
+        if (audioCtx && audioCtx.state === 'suspended') { audioCtx.resume().catch(() => {}); }
+        if (typeof setMusicMood === 'function') { try { setMusicMood('VOYAGE'); } catch(e) {} }
 
         const sf = document.getElementById('final-story-box');
         const sleep = ms => new Promise(r => setTimeout(r, ms));
 
+        // Reset visual state
         const stage = document.getElementById('final-circ-nekos');
-        if (stage) {
-            stage.innerHTML = '';
-            stage.style.opacity = '1';
-            stage.style.visibility = 'visible';
-        }
-
+        if (stage) { stage.innerHTML = ''; stage.style.opacity = '1'; stage.style.visibility = 'visible'; }
         const existing = document.getElementById('mikos-scene');
         if (existing) existing.remove();
 
-        switch (type) {
+        switch(type) {
             case 'neko':
                 if (typeof setSakuraMood === 'function') setSakuraMood('FINAL');
                 if (typeof launchFinalCinematic === 'function') launchFinalCinematic();
                 break;
-
             case 'ombre':
                 if (typeof setSakuraMood === 'function') setSakuraMood('DARUMA');
                 if (typeof ThemeManager !== 'undefined') ThemeManager.apply('daruma', 600);
+                // Lancer juste la scène ombre
                 (async () => {
                     const daruma = document.getElementById('final-daruma');
                     if (daruma && daruma.parentNode !== finalScreen) finalScreen.appendChild(daruma);
@@ -427,51 +401,41 @@
                     }
                 })();
                 break;
-
             case 'mikos':
                 if (typeof setSakuraMood === 'function') setSakuraMood('REUNION');
                 (async () => {
                     if (typeof spawnMikosScene === 'function') await spawnMikosScene(sf, sleep);
                 })();
                 break;
-
             case 'castle':
                 if (typeof setSakuraMood === 'function') setSakuraMood('AUBE');
                 (async () => {
                     if (typeof spawnCastleVictory === 'function') await spawnCastleVictory(sf, sleep);
                 })();
                 break;
-
             case 'yokai':
                 if (typeof setSakuraMood === 'function') setSakuraMood('REUNION');
                 (async () => {
                     if (typeof spawnYokaiScene === 'function') await spawnYokaiScene(sf, sleep);
                 })();
                 break;
-
             case 'nekosupreme':
                 if (typeof setSakuraMood === 'function') setSakuraMood('VICTOIRE');
                 (async () => {
                     if (typeof spawnNekoSupreme === 'function') await spawnNekoSupreme(sf, sleep);
                 })();
                 break;
-
             case 'miroir':
                 if (typeof allowFinalPostUI === 'function') allowFinalPostUI();
-                {
-                    const btnMiroir = document.getElementById('btn-download');
-                    if (btnMiroir) {
-                        btnMiroir.style.display = 'block';
-                        btnMiroir.style.transform = 'scale(1)';
-                    }
-                }
+                const btnMiroir = document.getElementById('btn-download');
+                if (btnMiroir) { btnMiroir.style.display = 'block'; btnMiroir.style.transform = 'scale(1)'; }
                 if (sf) sf.textContent = 'Scellez cette légende.';
                 break;
         }
-
         console.log(`[DEBUG] Outro scene: ${type}`);
     }
 
+    
     overlay.addEventListener('click', (e) => {
         const link = e.target.closest('.debug-link');
         if (!link) return;
@@ -481,18 +445,19 @@
         const type = link.dataset.type;
         console.log('[DEBUG] Action fired:', action, index || type);
         
-        if (typeof audioCtx !== 'undefined' && audioCtx.state === 'suspended') {
+        // Try to resume Audio Context
+        if(typeof audioCtx !== 'undefined' && audioCtx.state === 'suspended') {
             audioCtx.resume();
         }
 
-        switch (action) {
-            case 'scene':
-                forceScene(index);
+        switch(action) {
+            case 'scene': 
+                forceScene(index); 
                 break;
-
             case 'rules':
                 if (typeof transitionScreen === 'function') {
                     if (typeof currentRule !== 'undefined') currentRule = 1;
+                    // Afficher rule-1 et cacher les autres
                     for (let r = 1; r <= 4; r++) {
                         const el = document.getElementById(`rule-${r}`);
                         if (el) el.style.display = r === 1 ? 'flex' : 'none';
@@ -500,28 +465,23 @@
                     transitionScreen('screen-rules', '📜');
                 }
                 break;
-
             case 'oath':
                 if (typeof transitionScreen === 'function') {
                     transitionScreen('screen-oath', '✨');
-                    setTimeout(() => {
-                        if (typeof initGummyPaws === 'function') initGummyPaws();
-                    }, 1200);
+                    setTimeout(() => { if (typeof initGummyPaws === 'function') initGummyPaws(); }, 1200);
                 }
                 break;
-
             case 'hub':
-                currentFound = index !== undefined ? parseInt(index, 10) : (typeof currentFound !== 'undefined' ? currentFound : 0);
+                currentFound = index !== undefined ? parseInt(index) : (typeof currentFound !== 'undefined' ? currentFound : 0);
                 if (typeof enterHub === 'function') enterHub();
                 break;
-
             case 'game':
                 forceQuiz(index);
                 break;
-
             case 'outro':
                 forceOutro(type);
                 break;
+
         }
     });
 
@@ -531,7 +491,7 @@
     
     let isPaused = false;
     let freezeStyle = null;
-    const originalRAF = window.requestAnimationFrame;
+    let originalRAF = window.requestAnimationFrame;
     let rafRunning = true;
     const pendingFrames = new Set();
 
@@ -547,13 +507,13 @@
     function pauseRAF() {
         rafRunning = false;
         const s = document.getElementById('debug-raf-status');
-        if (s) s.style.color = '#e94560';
+        if(s) s.style.color = '#e94560';
     }
 
     function resumeRAF() {
         rafRunning = true;
         const s = document.getElementById('debug-raf-status');
-        if (s) s.style.color = '#00b894';
+        if(s) s.style.color = '#00b894';
         pendingFrames.forEach(({ cb }) => originalRAF.call(window, cb));
         pendingFrames.clear();
     }
@@ -565,26 +525,31 @@
         pauseBtn.classList.add('paused');
         pauseBtn.innerHTML = '▶️ RESUME ALL';
 
+        /* CSS freeze */
         freezeStyle = document.createElement('style');
         freezeStyle.id = 'debug-freeze-style';
         freezeStyle.textContent = '*, *::before, *::after { animation-play-state: paused !important; transition: none !important; }';
         document.head.appendChild(freezeStyle);
 
+        /* GSAP */
         if (typeof gsap !== 'undefined' && gsap.globalTimeline) {
             gsap.globalTimeline.pause();
             const s = document.getElementById('debug-gsap-status');
-            if (s) s.style.color = '#e94560';
+            if(s) s.style.color = '#e94560';
         }
 
+        /* WebGL RAF */
         pauseRAF();
 
+        /* WebAudio & TTS */
         if (typeof audioCtx !== 'undefined' && audioCtx && audioCtx.state === 'running') {
             audioCtx.suspend();
             const s = document.getElementById('debug-audio-status');
-            if (s) s.style.color = '#e94560';
+            if(s) s.style.color = '#e94560';
         }
+        if(window.speechSynthesis) window.speechSynthesis.pause();
 
-        if (window.speechSynthesis) window.speechSynthesis.pause();
+        /* Videos */
         document.querySelectorAll('video').forEach(v => v.pause());
     }
 
@@ -593,26 +558,31 @@
         pauseBtn.classList.remove('paused');
         pauseBtn.innerHTML = '⏸️ SUPER PAUSE';
 
+        /* CSS unfreeze */
         if (freezeStyle) {
             freezeStyle.remove();
             freezeStyle = null;
         }
 
+        /* GSAP */
         if (typeof gsap !== 'undefined' && gsap.globalTimeline) {
             gsap.globalTimeline.resume();
             const s = document.getElementById('debug-gsap-status');
-            if (s) s.style.color = '#00b894';
+            if(s) s.style.color = '#00b894';
         }
 
+        /* WebGL RAF */
         resumeRAF();
 
+        /* WebAudio & TTS */
         if (typeof audioCtx !== 'undefined' && audioCtx && audioCtx.state === 'suspended') {
             audioCtx.resume();
             const s = document.getElementById('debug-audio-status');
-            if (s) s.style.color = '#00b894';
+            if(s) s.style.color = '#00b894';
         }
+        if(window.speechSynthesis) window.speechSynthesis.resume();
 
-        if (window.speechSynthesis) window.speechSynthesis.resume();
+        /* Videos */
         document.querySelectorAll('video').forEach(v => v.play().catch(() => {}));
     }
 
@@ -634,9 +604,9 @@
         const sa = document.getElementById('debug-audio-status');
         const sg = document.getElementById('debug-gsap-status');
         
-        if (sr) sr.style.color = '#00b894';
-        if (sa) sa.style.color = typeof audioCtx !== 'undefined' ? '#00b894' : '#666';
-        if (sg) sg.style.color = typeof gsap !== 'undefined' ? '#00b894' : '#666';
+        if(sr) sr.style.color = '#00b894';
+        if(sa) sa.style.color = typeof audioCtx !== 'undefined' ? '#00b894' : '#666';
+        if(sg) sg.style.color = typeof gsap !== 'undefined' ? '#00b894' : '#666';
     }, 1000);
 
     console.log('[DEBUG] Module chargé. Ctrl+Shift+P pour pause/resume global.');

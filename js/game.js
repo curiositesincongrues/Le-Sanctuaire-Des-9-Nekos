@@ -1,4 +1,3 @@
-console.log('GAME JS VERSION NEW');
 /* --- THEME MANAGER — Le Sanctuaire des 9 Nekos --- */
 
 const ThemeManager = {
