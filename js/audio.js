@@ -802,6 +802,13 @@ function _kokoroPlay(text, opts = {}) {
     });
 }
 
+/* Lancer initKokoro dès le chargement de la page — sans attendre le clic Commencer */
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => setTimeout(initKokoro, 1000));
+} else {
+    setTimeout(initKokoro, 1000);
+}
+
 /* Étendre cancelVoice pour stopper aussi Kokoro */
 const _cancelVoiceOriginal = cancelVoice;
 cancelVoice = function() {
