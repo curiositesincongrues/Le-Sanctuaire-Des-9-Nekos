@@ -48,11 +48,11 @@ function initSfx() {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
     /* --- Chaîne : audioLayers/sfxBus → masterGain → duckGain → templeFilter → dry/wet → destination --- */
-    masterGain = audioCtx.createGain(); masterGain.gain.value = 0.55; // headroom mobile
+    masterGain = audioCtx.createGain(); masterGain.gain.value = 0.44; // headroom mobile
     duckGain   = audioCtx.createGain(); duckGain.gain.value   = 1.0;
     dryGain    = audioCtx.createGain(); dryGain.gain.value    = 1.0;
     wetGain    = audioCtx.createGain(); wetGain.gain.value    = 0.0;
-    sfxBus     = audioCtx.createGain(); sfxBus.gain.value     = 1.0;
+    sfxBus     = audioCtx.createGain(); sfxBus.gain.value     = 0.30;
 
     templeFilter = audioCtx.createBiquadFilter();
     templeFilter.type = 'lowpass'; templeFilter.frequency.value = 20000; templeFilter.Q.value = 0.5;
@@ -61,7 +61,7 @@ function initSfx() {
     templeReverb.buffer = createTempleImpulse(audioCtx, 3.0, 2.5);
 
     templeDelay = audioCtx.createDelay(1.0); templeDelay.delayTime.value = 0.08;
-    templeDelayGain = audioCtx.createGain(); templeDelayGain.gain.value = 0.15;
+    templeDelayGain = audioCtx.createGain(); templeDelayGain.gain.value = 0.028;
 
     /* Chaîne principale */
     masterGain.connect(duckGain);
@@ -88,7 +88,7 @@ function initSfx() {
 
     /* === LAYER 2 : PAD === */
     audioLayers.pad = audioCtx.createGain(); audioLayers.pad.gain.value = 0; audioLayers.pad.connect(masterGain);
-    padGain = audioCtx.createGain(); padGain.gain.value = 0.12; padGain.connect(audioLayers.pad);
+    padGain = audioCtx.createGain(); padGain.gain.value = 0.03; padGain.connect(audioLayers.pad);
     const padLFO = audioCtx.createOscillator();
     const padLFOGain = audioCtx.createGain();
     padLFO.type = 'sine'; padLFO.frequency.value = 0.025;
@@ -99,17 +99,17 @@ function initSfx() {
 
     /* === LAYER 3 : CHIMES === */
     audioLayers.chime = audioCtx.createGain(); audioLayers.chime.gain.value = 0; audioLayers.chime.connect(masterGain);
-    chimeGain = audioCtx.createGain(); chimeGain.gain.value = 0.08; chimeGain.connect(audioLayers.chime);
+    chimeGain = audioCtx.createGain(); chimeGain.gain.value = 0.022; chimeGain.connect(audioLayers.chime);
 
     /* === LAYER 4 : MÉLODIE === */
     audioLayers.melody = audioCtx.createGain(); audioLayers.melody.gain.value = 0; audioLayers.melody.connect(masterGain);
-    melodyGain = audioCtx.createGain(); melodyGain.gain.value = 0.1; melodyGain.connect(audioLayers.melody);
+    melodyGain = audioCtx.createGain(); melodyGain.gain.value = 0.040; melodyGain.connect(audioLayers.melody);
 
     /* === LAYER 5 : TAIKO === */
-    taikoGain = audioCtx.createGain(); taikoGain.gain.value = 0; taikoGain.connect(masterGain);
+    taikoGain = audioCtx.createGain(); taikoGain.gain.value = 0.022; taikoGain.connect(masterGain);
 
     /* === LAYER 6 : SUB DRONE === */
-    subDroneGain = audioCtx.createGain(); subDroneGain.gain.value = 0; subDroneGain.connect(masterGain);
+    subDroneGain = audioCtx.createGain(); subDroneGain.gain.value = 0.020; subDroneGain.connect(masterGain);
     subDrone = audioCtx.createOscillator(); subDrone.type = 'sine'; subDrone.frequency.value = 40;
     const subFilter = audioCtx.createBiquadFilter(); subFilter.type = 'lowpass'; subFilter.frequency.value = 80;
     subDrone.connect(subFilter); subFilter.connect(subDroneGain); subDrone.start();
@@ -225,8 +225,81 @@ function playTaikoHit() {
 }
 
 let currentMusicMood = null;
+let introMusicEl = null;
+
+function _rampGainNode(gainNode, target, dur = 1.5) {
+    if (!audioCtx || !gainNode) return;
+    const now = audioCtx.currentTime;
+    try {
+        gainNode.cancelScheduledValues(now);
+        gainNode.linearRampToValueAtTime(target, now + dur);
+    } catch (e) {}
+}
+
+function muteProceduralMusic(dur = 1.2) {
+    if (!audioCtx || !window.audioLayers) return;
+    _chimeGen++; _melodyGen++;
+    if (taikoInterval) { clearInterval(taikoInterval); taikoInterval = null; }
+    try { _rampGainNode(audioLayers.wind.gain, 0, dur); } catch (e) {}
+    try { _rampGainNode(audioLayers.pad.gain, 0, dur); } catch (e) {}
+    try { _rampGainNode(audioLayers.chime.gain, 0, dur); } catch (e) {}
+    try { _rampGainNode(audioLayers.melody.gain, 0, dur); } catch (e) {}
+    try { _rampGainNode(taikoGain.gain, 0, dur); } catch (e) {}
+    try { _rampGainNode(subDroneGain.gain, 0, dur); } catch (e) {}
+    currentMusicMood = null;
+}
+
+async function playIntroMusicTrack() {
+    try {
+        window.__useIntroMusicOverride = true;
+        muteProceduralMusic(0.4);
+
+        if (introMusicEl) {
+            try { introMusicEl.pause(); } catch (e) {}
+            introMusicEl = null;
+        }
+
+        const src = './audio/intro_music_75s.mp3?v=3';
+        const a = new Audio(src);
+        a.preload = 'auto';
+        a.loop = false;
+        a.volume = 0.28;
+        introMusicEl = a;
+        window.__introMusicEl = a;
+        await a.play();
+        console.log('[INTRO MUSIC] started', src);
+        return a;
+    } catch (e) {
+        console.warn('[INTRO MUSIC] play failed', e);
+        return null;
+    }
+}
+
+function stopIntroMusicTrack(fadeMs = 1200) {
+    window.__useIntroMusicOverride = false;
+    if (!introMusicEl) return;
+    const a = introMusicEl;
+    const startVol = a.volume || 0.28;
+    const stepMs = 50;
+    const steps = Math.max(1, Math.round(fadeMs / stepMs));
+    let n = 0;
+    const timer = setInterval(() => {
+        n += 1;
+        try { a.volume = Math.max(0, startVol * (1 - n / steps)); } catch (e) {}
+        if (n >= steps) {
+            clearInterval(timer);
+            try { a.pause(); a.currentTime = 0; } catch (e) {}
+            if (introMusicEl === a) introMusicEl = null;
+            if (window.__introMusicEl === a) window.__introMusicEl = null;
+        }
+    }, stepMs);
+}
 
 function setMusicMood(scene) {
+    if (window.__useIntroMusicOverride && ['VOYAGE','DECOUVERTE','SACRE','RUPTURE','CHUTE'].includes(scene)) {
+        console.log('[Music Mood] blocked by intro override:', scene);
+        return;
+    }
     if (!audioCtx) return;
     currentMusicMood = scene;
     const now = audioCtx.currentTime;
@@ -250,8 +323,8 @@ function setMusicMood(scene) {
         scheduleChime(5000, 2000);
 
     } else if (scene === 'DECOUVERTE') {
-        ramp(audioLayers.wind.gain, 0.18); ramp(audioLayers.pad.gain, 0.08);
-        ramp(audioLayers.chime.gain, 0.06); ramp(audioLayers.melody.gain, 0);
+        ramp(audioLayers.wind.gain, 0.14); ramp(audioLayers.pad.gain, 0.05);
+        ramp(audioLayers.chime.gain, 0.028); ramp(audioLayers.melody.gain, 0);
         ramp(taikoGain.gain, 0); ramp(subDroneGain.gain, 0);
         windLFO.frequency.value = 0.12; windFilter.frequency.value = 350;
         createPadChord([130.81, 196.00, 174.61]);
@@ -259,14 +332,14 @@ function setMusicMood(scene) {
         scheduleChime(3000, 1200);
 
     } else if (scene === 'SACRE') {
-        ramp(audioLayers.wind.gain, 0.12); ramp(audioLayers.pad.gain, 0.12);
-        ramp(audioLayers.chime.gain, 0.08); ramp(audioLayers.melody.gain, 0.10);
-        ramp(taikoGain.gain, 0.08); ramp(subDroneGain.gain, 0);
+        ramp(audioLayers.wind.gain, 0.10); ramp(audioLayers.pad.gain, 0.06);
+        ramp(audioLayers.chime.gain, 0.035); ramp(audioLayers.melody.gain, 0.05);
+        ramp(taikoGain.gain, 0.018); ramp(subDroneGain.gain, 0);
         windLFO.frequency.value = 0.08; windFilter.frequency.value = 400;
         createPadChord([130.81, 196.00, 174.61, 220.00]);
         currentChimeScale = YO_SCALE;
-        if (melodyGain) melodyGain.gain.value = 0.12;
-        if (chimeGain) chimeGain.gain.value = 0.09;
+        if (melodyGain) melodyGain.gain.value = 0.05;
+        if (chimeGain) chimeGain.gain.value = 0.03;
         currentMelodyNotes = [523.25, 654.06, 784.00, 1046.5, 1308.13, 1046.5, 784.00, 654.06];
         melodyIndex = 0; _lastMelodyNotes = [];
         scheduleChime(1800, 600);
@@ -274,9 +347,9 @@ function setMusicMood(scene) {
         taikoInterval = setInterval(playTaikoHit, 3500);
 
     } else if (scene === 'RUPTURE') {
-        ramp(audioLayers.wind.gain, 0.26); ramp(audioLayers.pad.gain, 0);
-        ramp(audioLayers.chime.gain, 0.04); ramp(audioLayers.melody.gain, 0);
-        ramp(taikoGain.gain, 0.15); ramp(subDroneGain.gain, 0.10);
+        ramp(audioLayers.wind.gain, 0.18); ramp(audioLayers.pad.gain, 0);
+        ramp(audioLayers.chime.gain, 0.018); ramp(audioLayers.melody.gain, 0);
+        ramp(taikoGain.gain, 0.022); ramp(subDroneGain.gain, 0.020);
         windLFO.frequency.value = 0.4; windFilter.frequency.value = 800;
         currentChimeScale = IN_SCALE; chimePatternIdx = 0;
         scheduleChime(1600, 700);
@@ -291,14 +364,14 @@ function setMusicMood(scene) {
         subDrone.frequency.linearRampToValueAtTime(30, now + 5);
 
     } else if (scene === 'VICTOIRE') {
-        ramp(audioLayers.wind.gain, 0.05); ramp(audioLayers.pad.gain, 0.15);
-        ramp(audioLayers.chime.gain, 0.12); ramp(audioLayers.melody.gain, 0.14);
+        ramp(audioLayers.wind.gain, 0.04); ramp(audioLayers.pad.gain, 0.07);
+        ramp(audioLayers.chime.gain, 0.04); ramp(audioLayers.melody.gain, 0.05);
         ramp(taikoGain.gain, 0); ramp(subDroneGain.gain, 0);
         windLFO.frequency.value = 0.06; windFilter.frequency.value = 500;
         createPadChord([261.63, 329.63, 392.00, 523.25]);
         currentChimeScale = YO_SCALE;
-        if (melodyGain) melodyGain.gain.value = 0.22;
-        if (chimeGain) chimeGain.gain.value = 0.15;
+        if (melodyGain) melodyGain.gain.value = 0.06;
+        if (chimeGain) chimeGain.gain.value = 0.04;
         currentMelodyNotes = [880.00, 1046.5, 1174.66, 1318.51, 1046.5, 880.00, 784.00, 880.00];
         melodyIndex = 0; _lastMelodyNotes = [];
         scheduleChime(1200, 500);
@@ -306,7 +379,7 @@ function setMusicMood(scene) {
 
     } else if (scene === 'MIROIR') {
         ramp(audioLayers.wind.gain, 0.02, 3); ramp(audioLayers.pad.gain, 0, 3);
-        ramp(audioLayers.chime.gain, 0.02, 3); ramp(audioLayers.melody.gain, 0, 3);
+        ramp(audioLayers.chime.gain, 0.012, 3); ramp(audioLayers.melody.gain, 0, 3);
         ramp(taikoGain.gain, 0, 3); ramp(subDroneGain.gain, 0, 3);
         windLFO.frequency.value = 0.03; windFilter.frequency.value = 150;
         currentChimeScale = YO_SCALE;

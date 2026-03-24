@@ -352,6 +352,7 @@ function endSkip() { cancelAnimationFrame(skipAnimFrame); if(skipFillObj){ skipF
 
 function forceSkipIntro() {
     introSkipped = true; if (typeof cancelVoice === 'function') cancelVoice(); else window.speechSynthesis.cancel();
+    if (typeof stopIntroMusicTrack === 'function') stopIntroMusicTrack(700);
     document.getElementById('skip-zone').style.display = 'none';
     setCinemaEffects({ vignette: 0, grain: 0, glitch: false });
     clearInkWash();
@@ -380,6 +381,9 @@ async function launchExperience(event) {
     if(eyes) { eyes.style.transition = 'opacity 0.5s ease'; eyes.style.opacity = 0; setTimeout(() => { eyes.style.display = 'none'; }, 500); }
     
     initSfx();
+    if (typeof playIntroMusicTrack === 'function') {
+        try { await playIntroMusicTrack(); } catch (e) {}
+    }
     await new Promise(r => setTimeout(r, 800));
     if(introSkipped) return;
     

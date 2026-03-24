@@ -101,6 +101,14 @@ async function playForcedVoice(fileName) {
         a.preload = 'auto';
         a.volume = 1;
         window.__forcedVoice = a;
+        const musicEl = window.__outroMusicEl;
+        let restoreTimer = null;
+        if (musicEl) {
+            try { musicEl.volume = 0.16; } catch (e) {}
+            a.addEventListener('ended', () => {
+                try { musicEl.volume = 0.28; } catch (e) {}
+            }, { once: true });
+        }
         await a.play();
         return a;
     } catch (e) {
@@ -108,6 +116,44 @@ async function playForcedVoice(fileName) {
         return null;
     }
 }
+
+
+let __outroMusicEl = null;
+
+async function playOutroMusicTrack() {
+    try {
+        if (__outroMusicEl) {
+            try { __outroMusicEl.pause(); } catch (e) {}
+            __outroMusicEl = null;
+        }
+        const a = new Audio('./audio/outro_music_90s.mp3?v=2');
+        a.preload = 'auto';
+        a.loop = false;
+        a.volume = 0.28;
+        __outroMusicEl = a;
+        window.__outroMusicEl = a;
+        await a.play();
+        return a;
+    } catch (e) {
+        console.warn('[OUTRO MUSIC] play failed:', e);
+        return null;
+    }
+}
+
+function fadeOutroMusic(target = 0.16, fadeMs = 600) {
+    const a = __outroMusicEl;
+    if (!a) return;
+    const startVol = typeof a.volume === 'number' ? a.volume : 0.28;
+    const stepMs = 50;
+    const steps = Math.max(1, Math.round(fadeMs / stepMs));
+    let n = 0;
+    const timer = setInterval(() => {
+        n += 1;
+        try { a.volume = startVol + (target - startVol) * (n / steps); } catch (e) {}
+        if (n >= steps) clearInterval(timer);
+    }, stepMs);
+}
+
 
 /* --- ACTIVATION DU MIROIR (Permission caméra diégétique) --- */
 let mirrorRequested = false;
@@ -1803,6 +1849,7 @@ async function launchFinalCinematic() {
 
     currentMusicMood = null;
     try { setMusicMood('VICTOIRE'); } catch(e) {}
+    try { await playOutroMusicTrack(); } catch(e) {}
 
     const sleep = (ms) => new Promise(r => setTimeout(r, ms));
     // setOutroMood défini globalement
@@ -2193,6 +2240,7 @@ async function launchFinalCinematic() {
     await spawnNekoSupreme(sf, sleep);
 
     try { setMusicMood('MIROIR'); } catch(e) {}
+    try { fadeOutroMusic(0.18, 1200); } catch(e) {}
 
     if (btnMirror) {
         // Cacher le btn-grad original — on crée une scène dédiée
