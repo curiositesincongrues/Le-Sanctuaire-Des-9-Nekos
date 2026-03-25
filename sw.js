@@ -1,130 +1,134 @@
 /* ============================================
-   SERVICE WORKER — Cache PWA
-   Le Sanctuaire des 9 Nekos Sacrés
+   SERVICE WORKER — Cache PWA stable (Sprint 1)
    ============================================ */
 
-const CACHE_NAME = 'neko-sanctuaire-v10-shell';
-const ASSETS_TO_CACHE = [
-    '/audio/voices/game_01.mp3',
-    '/audio/voices/game_02.mp3',
-    '/audio/voices/game_03.mp3',
-    '/audio/voices/game_04.mp3',
-    '/audio/voices/intro_01.mp3',
-    '/audio/voices/intro_02.mp3',
-    '/audio/voices/intro_03.mp3',
-    '/audio/voices/intro_04.mp3',
-    '/audio/voices/intro_05.mp3',
-    '/audio/voices/intro_06.mp3',
-    '/audio/voices/intro_07.mp3',
-    '/audio/voices/intro_08.mp3',
-    '/audio/voices/outro_01.mp3',
-    '/audio/voices/outro_02.mp3',
-    '/audio/voices/outro_03.mp3',
-    '/audio/voices/outro_04.mp3',
-    '/audio/voices/outro_05.mp3',
-    '/audio/voices/outro_06.mp3',
-    '/audio/voices/outro_07.mp3',
-    '/audio/voices/outro_08.mp3',
-    '/audio/voices/outro_09.mp3',
-    '/audio/voices/outro_10.mp3',
-    '/audio/voices/outro_11.mp3',
-    '/audio/voices/var_01.mp3',
-    '/audio/voices/var_02.mp3',
-    '/audio/voices/var_03.mp3',
-    '/audio/voices/var_04.mp3',
-    '/',
-    '/index.html',
-    '/css/base.css',
-    '/css/cinematics.css',
-    '/css/game.css',
-    '/js/data.js',
-    '/js/audio.js',
-    '/js/renderer.js',
-    '/js/cinematics.js',
-    '/js/game.js',
-    '/js/texts.js',
-    '/js/debug.js',
-    '/texts.json',
-    '/manifest.json',
-    '/icons/icon-192x192.png',
-    '/icons/icon-512x512.png'
+const CACHE_VERSION = 'v11';
+const SHELL_CACHE = `neko-shell-${CACHE_VERSION}`;
+const RUNTIME_CACHE = `neko-runtime-${CACHE_VERSION}`;
+
+const SHELL_ASSETS = [
+    '',
+    'index.html',
+    'manifest.json',
+    'texts.json',
+    'css/base.css',
+    'css/cinematics.css',
+    'css/game.css',
+    'js/state.js',
+    'js/storage.js',
+    'js/data.js',
+    'js/texts.js',
+    'js/audio.js',
+    'js/renderer.js',
+    'js/cinematics.js',
+    'js/game.js',
+    'js/debug.js',
+    'js/app.js',
+    'icons/icon-192x192.png',
+    'icons/icon-512x512.png'
 ];
 
-// Fonts externes à cacher au premier chargement
-const FONT_URLS = [
-    'https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap',
-    'https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap'
-];
+function scopeUrl(path = '') {
+    return new URL(path, self.registration.scope).toString();
+}
 
-// Installation — pré-cache des assets locaux
+function isSameOrigin(requestUrl) {
+    return new URL(requestUrl).origin === self.location.origin;
+}
+
+function isHTMLRequest(request) {
+    return request.mode === 'navigate' || (request.headers.get('accept') || '').includes('text/html');
+}
+
+function isStaticAsset(pathname) {
+    return /\.(?:js|css|json|png|jpg|jpeg|webp|svg|mp3|wav|ogg)$/i.test(pathname);
+}
+
 self.addEventListener('install', event => {
-    event.waitUntil(
-        caches.open(CACHE_NAME).then(cache => {
-            console.log('[SW] Pré-cache des assets');
-            return cache.addAll(ASSETS_TO_CACHE);
-        }).then(() => self.skipWaiting())
-    );
+    event.waitUntil((async () => {
+        const cache = await caches.open(SHELL_CACHE);
+        await cache.addAll(SHELL_ASSETS.map(scopeUrl));
+        await self.skipWaiting();
+    })());
 });
 
-// Activation — nettoyage des anciens caches
 self.addEventListener('activate', event => {
-    event.waitUntil(
-        caches.keys().then(names =>
-            Promise.all(names.filter(n => n !== CACHE_NAME).map(n => caches.delete(n)))
-        ).then(() => self.clients.claim())
-    );
+    event.waitUntil((async () => {
+        const names = await caches.keys();
+        await Promise.all(
+            names
+                .filter(name => ![SHELL_CACHE, RUNTIME_CACHE].includes(name))
+                .map(name => caches.delete(name))
+        );
+        await self.clients.claim();
+    })());
 });
 
-// Fetch — cache-first pour les assets locaux, network-first pour les CDN
-self.addEventListener('fetch', event => {
-    const url = new URL(event.request.url);
-    
-    // Assets locaux JS/CSS → network-first (évite cache périmé après refresh)
-    // HTML + icons → cache-first (stable)
-    if (url.origin === location.origin) {
-        const isJSorCSS = url.pathname.endsWith('.js') || url.pathname.endsWith('.css');
-        if (isJSorCSS) {
-            // Network-first : toujours essayer le réseau, fallback cache
-            event.respondWith(
-                fetch(event.request).then(response => {
-                    if (response.ok) {
-                        const clone = response.clone();
-                        caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
-                    }
-                    return response;
-                }).catch(() => caches.match(event.request))
-            );
-        } else {
-            // Cache-first pour HTML, images, manifest
-            event.respondWith(
-                caches.match(event.request).then(cached => {
-                    if (cached) return cached;
-                    return fetch(event.request).then(response => {
-                        if (response.ok) {
-                            const clone = response.clone();
-                            caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
-                        }
-                        return response;
-                    }).catch(() => cached);
-                })
-            );
+async function networkFirst(request, cacheName) {
+    const cache = await caches.open(cacheName);
+    try {
+        const response = await fetch(request);
+        if (response && response.ok) {
+            cache.put(request, response.clone());
         }
+        return response;
+    } catch (err) {
+        const cached = await cache.match(request);
+        if (cached) return cached;
+        throw err;
+    }
+}
+
+async function staleWhileRevalidate(request, cacheName, event) {
+    const cache = await caches.open(cacheName);
+    const cached = await cache.match(request);
+    const networkPromise = fetch(request)
+        .then(response => {
+            if (response && response.ok) cache.put(request, response.clone());
+            return response;
+        })
+        .catch(() => null);
+
+    if (cached) {
+        if (event && typeof event.waitUntil === 'function') event.waitUntil(networkPromise);
+        return cached;
+    }
+
+    const networkResponse = await networkPromise;
+    if (networkResponse) return networkResponse;
+    return cache.match(request);
+}
+
+async function cacheFirst(request, cacheName) {
+    const cache = await caches.open(cacheName);
+    const cached = await cache.match(request);
+    if (cached) return cached;
+    const response = await fetch(request);
+    if (response && response.ok) cache.put(request, response.clone());
+    return response;
+}
+
+
+self.addEventListener('fetch', event => {
+    const { request } = event;
+    if (request.method !== 'GET') return;
+
+    const url = new URL(request.url);
+    if (!isSameOrigin(request.url)) return;
+
+    if (isHTMLRequest(request)) {
+        event.respondWith(networkFirst(request, SHELL_CACHE));
         return;
     }
-    
-    // Fonts Google + CDN → network-first, cache en fallback
-    if (url.hostname.includes('googleapis.com') || url.hostname.includes('gstatic.com') || 
-        url.hostname.includes('cdnjs.cloudflare.com') || url.hostname.includes('unpkg.com') ||
-        url.hostname.includes('cdn.jsdelivr.net')) {
-        event.respondWith(
-            fetch(event.request).then(response => {
-                if (response.ok) {
-                    const clone = response.clone();
-                    caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
-                }
-                return response;
-            }).catch(() => caches.match(event.request))
-        );
+
+    if (isStaticAsset(url.pathname)) {
+        if (/\.(?:mp3|wav|ogg|png|jpg|jpeg|webp|svg)$/i.test(url.pathname)) {
+            event.respondWith(cacheFirst(request, RUNTIME_CACHE));
+            return;
+        }
+        event.respondWith(staleWhileRevalidate(request, RUNTIME_CACHE, event));
         return;
     }
+
+    event.respondWith(networkFirst(request, RUNTIME_CACHE));
 });

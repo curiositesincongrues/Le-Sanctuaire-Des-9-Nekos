@@ -169,7 +169,10 @@ const guardianData = [
     { qr: "qr_yamato",    n: "", e: "🏯", q: "", a: [], r: 0, type: "memory", instr: "", kanji: "大和", color: "#e2e8f0", dark: "#94a3b8" }
 ];
 
-let currentFound = 0; let foundGuardians = new Set(); let hpOni = 0; let audioCtx, masterGain;
+let currentFound = (window.GameState && Number.isFinite(Number(window.GameState.currentFound))) ? Number(window.GameState.currentFound) : 0;
+let foundGuardians = new Set((window.GameState && Array.isArray(window.GameState.foundGuardians)) ? window.GameState.foundGuardians : []);
+let hpOni = (window.GameState && Number.isFinite(Number(window.GameState.hpOni))) ? Number(window.GameState.hpOni) : 0;
+let audioCtx = null, masterGain = null;
 let mainOscillators = []; let html5QrcodeScanner = null;
 let hasGyro = false;
 let audioLayers = { wind: null, chime: null, pad: null, melody: null };

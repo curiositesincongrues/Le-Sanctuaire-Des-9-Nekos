@@ -701,20 +701,26 @@
     </div>
 
 <!-- JS DÉCOUPÉ (ordre de dépendance) -->
-<script src="js/data.js?v=940048" defer></script>
-<script src="js/texts.js?v=940048" defer></script>
-<script src="js/audio.js?v=940048" defer></script>
-<script src="js/renderer.js?v=940048" defer></script>
-<script src="js/cinematics.js?v=940048" defer></script>
-<script src="js/game.js?v=940048" defer></script>
-<script src="js/debug.js?v=940048" defer></script>
+<script src="js/state.js?v=940050" defer></script>
+<script src="js/storage.js?v=940050" defer></script>
+<script src="js/data.js?v=940050" defer></script>
+<script src="js/texts.js?v=940050" defer></script>
+<script src="js/audio.js?v=940050" defer></script>
+<script src="js/renderer.js?v=940050" defer></script>
+<script src="js/cinematics.js?v=940050" defer></script>
+<script src="js/hub.js?v=940050" defer></script>
+<script src="js/scan.js?v=940050" defer></script>
+<script src="js/reveal.js?v=940050" defer></script>
+<script src="js/game.js?v=940050" defer></script>
+<script src="js/debug.js?v=940050" defer></script>
+<script src="js/app.js?v=940050" defer></script>
 
 <!-- PWA : Service Worker + Device Detection -->
 <script>
 /* Service Worker Registration */
 if ('serviceWorker' in navigator && (location.protocol === 'http:' || location.protocol === 'https:')) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
+        navigator.serviceWorker.register('./sw.js?v=940049')
             .then(reg => console.log('[PWA] SW enregistré:', reg.scope))
             .catch(err => console.log('[PWA] SW erreur:', err));
     });
@@ -765,6 +771,10 @@ document.addEventListener('visibilitychange', () => {
 });
 
 
+
+document.addEventListener('DOMContentLoaded', () => {
+    if (typeof bootApp === 'function') bootApp();
+});
 
 /* Mobile Shell bootstrap */
 window.__SANCTUARY_SHELL_CONFIG__ = {

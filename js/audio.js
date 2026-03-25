@@ -45,10 +45,16 @@ function createTempleImpulse(ctx, duration, decay) {
 }
 
 function initSfx() {
+    if (audioCtx) {
+        if (window.GameState) GameState.isAudioReady = true;
+        return audioCtx;
+    }
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    window.audioCtx = audioCtx;
 
     /* --- Chaîne : audioLayers/sfxBus → masterGain → duckGain → templeFilter → dry/wet → destination --- */
     masterGain = audioCtx.createGain(); masterGain.gain.value = 0.44; // headroom mobile
+    window.masterGain = masterGain;
     duckGain   = audioCtx.createGain(); duckGain.gain.value   = 1.0;
     dryGain    = audioCtx.createGain(); dryGain.gain.value    = 1.0;
     wetGain    = audioCtx.createGain(); wetGain.gain.value    = 0.0;
@@ -124,6 +130,9 @@ function initSfx() {
     /* Warm-up TTS déjà fait dans cinematics.js */
 }
 
+
+window.initAudio = initSfx;
+window.getAudioContext = function () { return audioCtx; };
 function createPadChord(freqs) {
     padOscs.forEach(o => { try { o.stop(); } catch(e){} });
     padOscs = [];
