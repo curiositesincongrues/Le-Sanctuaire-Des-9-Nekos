@@ -2,7 +2,7 @@
    SERVICE WORKER — Cache PWA stable (Sprint 1)
    ============================================ */
 
-const CACHE_VERSION = 'v11';
+const CACHE_VERSION = 'v12-audio-premium';
 const SHELL_CACHE = `neko-shell-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `neko-runtime-${CACHE_VERSION}`;
 
