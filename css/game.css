@@ -1291,38 +1291,69 @@
 }
 .discovery-card {
     position:relative; z-index:2;
-    width:min(92vw, 420px);
-    padding:28px 24px 24px;
-    border-radius:28px;
-    border:1px solid rgba(255,255,255,.08);
-    background:linear-gradient(180deg, rgba(27,12,40,.86), rgba(10,3,18,.92));
-    box-shadow:0 24px 80px rgba(0,0,0,.35), 0 0 0 1px rgba(255,255,255,.03) inset;
+    width:min(92vw, 430px);
+    padding:32px 26px 26px;
+    border-radius:30px;
+    border:1px solid rgba(255,255,255,.09);
+    background:
+        linear-gradient(180deg, rgba(28,12,42,.88), rgba(10,3,18,.95)),
+        radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--reveal-color) 16%, transparent), transparent 56%);
+    box-shadow:0 24px 80px rgba(0,0,0,.38), 0 0 0 1px rgba(255,255,255,.04) inset;
     text-align:center;
     transform:translateY(18px) scale(.98);
     transition:transform .42s ease;
+    overflow:hidden;
+}
+.discovery-card::before {
+    content:''; position:absolute; inset:0; pointer-events:none;
+    background:radial-gradient(circle at 50% 18%, rgba(255,255,255,.06), transparent 40%);
+    opacity:.9;
 }
 .discovery-overlay.show .discovery-card { transform:translateY(0) scale(1); }
-.discovery-halo { position:relative; width:210px; height:210px; margin:0 auto 16px; display:flex; align-items:center; justify-content:center; }
+.discovery-halo { position:relative; width:220px; height:220px; margin:0 auto 14px; display:flex; align-items:center; justify-content:center; opacity:0; transform:scale(.92); }
 .discovery-halo-ring {
     position:absolute; inset:0; border-radius:50%;
-    background:conic-gradient(from 0deg, var(--reveal-color), var(--reveal-dark), #fff, var(--reveal-color));
-    filter:blur(10px); opacity:.65; animation:discoveryHaloSpin 4.5s linear infinite;
+    background:conic-gradient(from 0deg, var(--reveal-color), var(--reveal-dark), rgba(255,255,255,.9), var(--reveal-color));
+    filter:blur(12px); opacity:.52; animation:discoveryHaloSpin 6s linear infinite;
 }
-.discovery-relic { position:relative; z-index:1; width:168px; height:168px; filter:drop-shadow(0 0 28px var(--reveal-color)); }
-.discovery-relic svg { width:168px; height:168px; }
+.discovery-relic { position:relative; z-index:1; width:172px; height:172px; filter:drop-shadow(0 0 30px var(--reveal-color)); }
+.discovery-relic svg { width:172px; height:172px; }
 .discovery-name {
-    font-family:'Ma Shan Zheng',cursive; font-size:48px; color:var(--reveal-color);
-    text-shadow:0 0 24px color-mix(in srgb, var(--reveal-color) 65%, transparent);
+    font-family:'Fredoka One',cursive; font-size:42px; line-height:1.05; color:#fff6db;
+    letter-spacing:.2px; text-shadow:0 0 24px color-mix(in srgb, var(--reveal-color) 45%, transparent);
+    margin-top:2px; opacity:0; transform:translateY(8px);
 }
-.discovery-kanji-small { font-family:'Ma Shan Zheng',cursive; color:var(--reveal-dark); font-size:22px; margin:2px 0 14px; }
-.discovery-text { min-height:72px; color:rgba(255,255,255,.86); line-height:1.65; font-size:17px; margin-bottom:20px; }
+.discovery-kanji-small { font-family:'Ma Shan Zheng',cursive; color:var(--reveal-dark); font-size:24px; margin:4px 0 14px; opacity:0; transform:translateY(8px); }
+.discovery-text {
+    min-height:84px; margin-bottom:20px;
+    display:flex; flex-direction:column; gap:8px; align-items:center; justify-content:center;
+}
+.discovery-line {
+    margin:0; max-width:30ch; color:rgba(255,255,255,.9); line-height:1.55; font-size:17px;
+    font-family:'Fredoka One',cursive; letter-spacing:.15px; opacity:0; transform:translateY(10px);
+}
 .ritual-cta {
     border:none; border-radius:999px; padding:14px 28px; cursor:pointer;
-    font-family:'Ma Shan Zheng',cursive; font-size:20px; color:white;
+    font-family:'Fredoka One',cursive; font-size:18px; color:white; letter-spacing:.2px;
     background:linear-gradient(135deg, var(--reveal-dark, #8b5cf6), var(--reveal-color, #f472b6));
     box-shadow:0 12px 30px rgba(0,0,0,.22);
+    opacity:0; transform:translateY(10px);
 }
 .ritual-cta:hover { transform:translateY(-1px) scale(1.01); }
+.discovery-overlay.staged .discovery-halo { animation:revealStudioIn .55s cubic-bezier(.2,.9,.2,1) .28s forwards; }
+.discovery-overlay.staged .discovery-name { animation:revealTextIn .44s ease .78s forwards; }
+.discovery-overlay.staged .discovery-kanji-small { animation:revealTextIn .44s ease .94s forwards; }
+.discovery-overlay.staged .discovery-line-1 { animation:revealTextIn .42s ease 1.12s forwards; }
+.discovery-overlay.staged .discovery-line-2 { animation:revealTextIn .42s ease 1.32s forwards; }
+.discovery-overlay.staged .ritual-cta { animation:revealTextIn .42s ease 1.56s forwards; }
+@keyframes revealStudioIn {
+    from { opacity:0; transform:scale(.92); }
+    to { opacity:1; transform:scale(1); }
+}
+@keyframes revealTextIn {
+    from { opacity:0; transform:translateY(10px); }
+    to { opacity:1; transform:translateY(0); }
+}
 .milestone-overlay {
     position:fixed; inset:0; z-index:9600; display:flex; align-items:center; justify-content:center;
     opacity:0; transition:opacity .28s ease; pointer-events:none;

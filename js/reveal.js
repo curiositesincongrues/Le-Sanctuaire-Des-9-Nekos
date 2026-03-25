@@ -1,21 +1,81 @@
 /* ============================================
-   REVEAL.JS — Révélation et retour hub (Sprint 2)
+   REVEAL.JS — Révélation et retour hub (Sprint 3.3)
    ============================================ */
 (function () {
+    const REVEAL_LINES = {
+        Hanako: [
+            "Le souffle de Hanako revient.",
+            "Le sanctuaire retrouve sa douceur."
+        ],
+        Raijin: [
+            "L'éclair de Raijin fend le silence.",
+            "Le sanctuaire s'illumine à nouveau."
+        ],
+        Kagerou: [
+            "Ce qui était invisible se révèle enfin.",
+            "L'ombre de Kagerou s'efface."
+        ],
+        Amaterasu: [
+            "La lumière d'Amaterasu se lève.",
+            "Le sanctuaire renaît dans l'éclat."
+        ],
+        Tamamo: [
+            "Une flamme ancienne renaît.",
+            "Le sanctuaire s'embrase de vie."
+        ],
+        Goemon: [
+            "La terre s'éveille en silence.",
+            "Le sanctuaire devient plus fort."
+        ],
+        Mugen: [
+            "Le voile des rêves se dissipe.",
+            "Le chemin devient plus clair."
+        ],
+        Hibiki: [
+            "Une onde traverse le sanctuaire.",
+            "Les esprits répondent à l'appel."
+        ],
+        Yamato: [
+            "La lame sacrée se relève.",
+            "L'équilibre revient dans le sanctuaire."
+        ]
+    };
+
+    function getRevealLines(guardian) {
+        if (!guardian) return ["Le sanctuaire s'éveille.", "Une présence oubliée revient."];
+        const mapped = REVEAL_LINES[guardian.n];
+        if (mapped) return mapped;
+
+        const fallback = String(guardian.discovery || '').trim();
+        if (!fallback) return ["Le sanctuaire s'éveille.", `La présence de ${guardian.n} revient.`];
+
+        const parts = fallback.split(/\.\.\.|(?<=[.!?])\s+/).map(s => s.trim()).filter(Boolean);
+        return [parts[0] || fallback, parts[1] || `La présence de ${guardian.n} revient.`];
+    }
+
+    function buildDiscoveryText(lines) {
+        const [line1, line2] = Array.isArray(lines) ? lines : [String(lines || ''), ''];
+        return `
+            <p class="discovery-line discovery-line-1">${line1 || ''}</p>
+            <p class="discovery-line discovery-line-2">${line2 || ''}</p>
+        `;
+    }
+
     function buildGuardianOverlay(idx, options = {}) {
         const g = guardianData[idx];
         const color = g.color || '#ffb7c5';
         const dark = g.dark || '#ff1493';
         const kanji = g.kanji || '';
-        const text = options.text || g.discovery || `L'âme de ${g.n} est libérée...`;
-        const ctaLabel = options.ctaLabel || "✨ Continuer";
+        const lines = options.lines || getRevealLines(g);
+        const ctaLabel = options.ctaLabel || "Retour au sanctuaire";
+        const mode = options.mode || 'postwin';
 
         const old = document.getElementById('discovery-overlay');
         if (old) old.remove();
 
         const overlay = document.createElement('div');
         overlay.id = 'discovery-overlay';
-        overlay.className = 'discovery-overlay';
+        overlay.className = `discovery-overlay discovery-overlay-${mode}`;
         overlay.style.setProperty('--reveal-color', color);
         overlay.style.setProperty('--reveal-dark', dark);
         overlay.innerHTML = `
@@ -28,32 +88,24 @@
                 </div>
                 <div class="discovery-name">${g.n}</div>
                 <div class="discovery-kanji-small">${kanji}</div>
-                <div class="discovery-text"></div>
+                <div class="discovery-text">${buildDiscoveryText(lines)}</div>
                 <button class="ritual-cta discovery-cta">${ctaLabel}</button>
             </div>
         `;
         document.body.appendChild(overlay);
-        requestAnimationFrame(() => overlay.classList.add('show'));
+
+        requestAnimationFrame(() => {
+            overlay.classList.add('show');
+            requestAnimationFrame(() => overlay.classList.add('staged'));
+        });
 
         setTimeout(() => {
             try { playGameSFX('chime_portal'); } catch (e) {}
-            if (navigator.vibrate) navigator.vibrate([80, 40, 120]);
-        }, 350);
-
-        const textEl = overlay.querySelector('.discovery-text');
-        setTimeout(() => {
-            let i = 0;
-            const chars = String(text).split('');
-            const tw = setInterval(() => {
-                if (!textEl) return clearInterval(tw);
-                textEl.textContent += chars[i] || '';
-                i++;
-                if (i >= chars.length) clearInterval(tw);
-            }, 26);
-        }, 900);
+            if (navigator.vibrate) navigator.vibrate([60, 30, 90]);
+        }, 180);
 
         overlay.querySelector('.discovery-cta')?.addEventListener('click', () => {
-            overlay.classList.remove('show');
+            overlay.classList.remove('show', 'staged');
             setTimeout(() => {
                 overlay.remove();
                 if (typeof options.onContinue === 'function') options.onContinue();
@@ -64,8 +116,16 @@
     }
 
     function showDiscoveryScreen(idx) {
+        const guardian = guardianData[idx];
+        const instruction = String(guardian?.instr || '').trim();
+        const lines = instruction
+            ? [instruction, "Relève l'épreuve pour réveiller le gardien."]
+            : ["Le sanctuaire retient son souffle.", "Relève l'épreuve pour réveiller le gardien."];
+
         return buildGuardianOverlay(idx, {
-            ctaLabel: "✨ Que l'épreuve commence...",
+            mode: 'challenge',
+            lines,
+            ctaLabel: "Que l'épreuve commence",
             onContinue: () => {
                 stopScan();
                 clearInterval(heartInterval);
@@ -76,13 +136,12 @@
 
     function showPostWinReveal(idx) {
         return buildGuardianOverlay(idx, {
-            text: guardianData[idx].discovery || `L'âme de ${guardianData[idx].n} est libérée...`,
-            ctaLabel: '✨ Retour au sanctuaire',
+            mode: 'postwin',
+            lines: getRevealLines(guardianData[idx]),
+            ctaLabel: 'Retour au sanctuaire',
             onContinue: () => animateSoulToHub(idx)
         });
     }
-
-
 
     function winGame() {
         const wonIndex = currentFound;
