@@ -1,72 +1,332 @@
-# 🌸 LE SANCTUAIRE DES 9 NEKOS
+# 🐾 Le Sanctuaire des 9 Mikos
 
-**Un petit jeu de piste pour s'amuser — Web, mobile et un peu de papier.**
-
-> *Au-delà des brumes du temps, loin du monde des hommes, un sanctuaire oublié attend ses gardiennes...*
-
----
-
-## 🎮 L'idée du jeu
-
-C'est un petit projet hybride pour une fête d'anniversaire avec **8 joueuses de 9 ans**. L'idée est de mêler le monde réel et l'écran : les enfants cherchent des **Nekos** cachés un peu partout. En scannant les qr code dessus, elles réveillent les **9 Nekos** (les chats gardiens) qui s'étaient perdus.
-
-L'ambiance visuelle s'inspire de l'encre de Chine et des dessins animés, avec quelque chose d'assez simple et doux.
-
-### 🌑 Le petit scénario
-Le Sceau de Nacre a été brisé par **L'ombre**, une entité un peu trop envahissante faite de suie et d'oubli. Pour ne pas disparaître, les **9 Nekos Gardiens** se sont cachés dans notre monde sous la forme de dessins et qr codes à flasher. 
-
-Les joueuses sont des Mikos (apprenties prêtresses) qui doivent retrouver ces chats, réussir leurs petits défis rituels et ramener un peu de lumière dans le sanctuaire.
+> _Il existe un lieu que l’on ne trouve pas sur les cartes._  
+> _Un lieu où le silence enseigne, où les présences observent, et où chaque pas est une question._
 
 ---
 
-## 🛠️ Côté technique
+## 🌙 Origine
 
-C'est un projet fait par amour du code et par curiosité, pour voir ce qu'on peut créer simplement :
-*   **Pas d'images ni de MP3 :** Tout ce qu'on voit (les chats, les reliques) est dessiné en SVG ou en CSS. Les sons sont créés par le navigateur via la Web Audio API. 
-*   **Fonctionne sans réseau :** Une fois la page chargée, le jeu tourne tout seul. Même le scanner de QR codes fonctionne sans Wi-Fi, car toute la logique de reconnaissance est déjà stockée dans le téléphone.
+**Le Sanctuaire des 9 Mikos** est né d’une intention très simple et très personnelle :
 
----
+offrir un espace de découverte à ma fille,  
+un moyen de la faire voyager à travers le numérique  
+sans passer par un téléphone,  
+sans bruit, sans flux constant, sans distraction.
 
-## 🎨 L'aspect visuel
+Un lieu calme.  
+Un lieu choisi.
 
-### L'ombre
-C'est une forme d'encre qui bouge un peu comme une goutte de liquide noir. Ses yeux sont comme des petites fenêtres qui montrent des étoiles à l'intérieur. On a utilisé des mélanges de flous pour donner cet effet de matière vivante et visqueuse.
+Ce projet est devenu, peu à peu :
+- un jeu  
+- un support d’apprentissage  
+- un terrain d’expérimentation  
 
-### L'ambiance et les textures
-On a cherché à créer une atmosphère de "conte de fées ancien" :
-*   **Papier Washi :** Le fond du jeu a un grain qui rappelle le papier traditionnel japonais.
-*   **Couleurs :** Tout tourne autour du noir de l'encre, du blanc nacre et d'une touche de "Menthe Glacée" pour le côté magique et froid.
-*   **Pétales de Sakura :** Des petits pétales tombent doucement sur l'écran. Ils changent de couleur ou de vitesse selon l'humeur de l'histoire (calme, mystère ou danger).
-*   **Lueurs douces :** Les objets importants brillent discrètement pour contraster avec la profondeur de l'encre.
-
-### Les 9 Jeux et leurs Reliques
-Chaque code QR libère un jeu spécifique. Les illustrations **SVG "Sumi-e"** (à l'encre) représentent les reliques que les Nekos protègent :
-
-| Jeu | Relique (SVG) | Ce qu'on fait | Mécanique |
-|:---|:---|:---|:---|
-| **Ken** | ⚔️ Le Katana | Avoir du courage | **Slash** : Glisser le doigt |
-| **Shinobi** | 🎭 Le Masque | Rester immobile | **Statue** : Ne plus bouger |
-| **Mochi** | 🍡 Le Mochi | Être patiente | **Hold** : Rester appuyé |
-| **Sumo** | 🥁 Le Tambour | Donner de l'énergie | **Mash** : Taper vite |
-| **Kitsune** | 🔔 La Clochette | Écouters les sons | **Memory** : Retrouver les paires |
-| **Sensu** | 🪭 L'Éventail | Souffler le nuage | **Swipe** : Balayer l'écran |
-| **Kasa** | ☂️ L'Ombrelle | Protéger les esprits | **Catch** : Rattraper les objets |
-| **Hanko** | 📜 Le Parchemin | Apprendre la sagesse | **Scratch** : Gratter l'encre |
-| **Chime** | 🏮 La Lanterne | Suivre le rythme | **Rhythm** : Taper en cadence |
+Chaque élément est pensé avec une idée simple :  
+faire du numérique un espace d’exploration, pas de consommation.
 
 ---
 
-## 🏗️ Organisation des fichiers
+## 🐾 Le Sanctuaire
 
-```text
-neko-sanctuaire/
-├── index.html          # La page principale
-├── sw.js               # Le script pour jouer sans réseau
-├── css/
-│   ├── base.css        # La mise en page
-│   ├── cinematics.css  # L'ombre et les pétales
-│   └── game.css        # Le style des épreuves
-└── js/
-    ├── audio.js        # Les sons faits "maison"
-    ├── logic.js        # Le déroulement du jeu
-    └── data.js         # Les dessins SVG et les infos des Nekos
+Le sanctuaire n’est pas un niveau.  
+C’est un lieu.
+
+Un espace ouvert, fragmenté, presque vivant,  
+où rien n’impose un chemin.
+
+Le joueur ne suit pas une histoire.  
+Il rencontre des situations.
+
+On n’y gagne rien.  
+On y comprend.
+
+---
+
+## 🐱 Les 9 Mikos
+
+Ils sont neuf.
+
+Neuf entités.  
+Neuf systèmes.  
+Neuf manières d’interagir avec le monde.
+
+Chaque Miko est :
+- une mécanique  
+- une règle  
+- une contrainte  
+- une idée  
+
+Ils n’expliquent pas.  
+Ils mettent en situation.
+
+---
+
+## 🎮 Mécaniques de jeu
+
+### Actions de base
+- se déplacer  
+- entrer dans une zone  
+- déclencher une interaction  
+- observer  
+- recommencer  
+
+### Variations
+Chaque Miko modifie une règle :
+
+- condition  
+- timing  
+- mémoire  
+- position  
+- séquence  
+- causalité  
+
+---
+
+## 🔁 Boucle de jeu
+
+1. explorer  
+2. rencontrer un Miko  
+3. essayer  
+4. observer  
+5. ajuster  
+6. comprendre  
+
+---
+
+## 🏗️ Architecture
+
+### Organisation
+
+- `core/`  
+- `entities/`  
+- `systems/`  
+- `scenes/`  
+- `assets/`  
+
+---
+
+## 🧭 Schéma d’architecture
+
+```
+          [ Player ]
+               |
+               v
+        +--------------+
+        |  Entities    |
+        | (Mikos, etc) |
+        +--------------+
+               |
+               v
+        +--------------+
+        |   Systems    |
+        | interactions |
+        | rules        |
+        +--------------+
+               |
+               v
+        +--------------+
+        |   Scenes     |
+        | environment  |
+        +--------------+
+               |
+               v
+        +--------------+
+        |   Core       |
+        | game state   |
+        +--------------+
+```
+
+---
+
+## ⚙️ Logique
+
+- les entités existent  
+- les systèmes les font agir  
+- les scènes les organisent  
+- le core maintient la cohérence  
+
+---
+
+## 🐾 Fiches Mikos
+
+Chaque Miko est un module pédagogique.
+
+---
+
+### 🐱 Miko 1 : Le Gardien
+
+**Intention**  
+Introduire la notion de condition.
+
+**Mécanique**  
+Une action ne fonctionne que si une condition est remplie.
+
+**Logique**
+```js
+if (condition) {
+  trigger();
+}
+```
+
+---
+
+### 🐱 Miko 2 : Le Patient
+
+**Intention**  
+Comprendre le temps.
+
+**Mécanique**  
+Attendre déclenche un événement.
+
+**Logique**
+```js
+setTimeout(() => {
+  activate();
+}, delay);
+```
+
+---
+
+### 🐱 Miko 3 : Le Mémoire
+
+**Intention**  
+Introduire l’état.
+
+**Mécanique**  
+Le système se souvient.
+
+**Logique**
+```js
+state.visited = true;
+```
+
+---
+
+### 🐱 Miko 4 : Le Miroir
+
+**Intention**  
+Cause et effet.
+
+**Mécanique**  
+Une action influence une autre.
+
+---
+
+### 🐱 Miko 5 : Le Seuil
+
+**Intention**  
+Positionnement.
+
+**Mécanique**  
+Entrer dans une zone déclenche.
+
+---
+
+### 🐱 Miko 6 : Le Cycle
+
+**Intention**  
+Boucles.
+
+**Mécanique**  
+Un comportement se répète.
+
+---
+
+### 🐱 Miko 7 : Le Choix
+
+**Intention**  
+Branches logiques.
+
+**Mécanique**  
+Plusieurs résultats possibles.
+
+---
+
+### 🐱 Miko 8 : Le Silence
+
+**Intention**  
+Absence de feedback.
+
+**Mécanique**  
+Le joueur doit interpréter.
+
+---
+
+### 🐱 Miko 9 : Le Sanctuaire
+
+**Intention**  
+Assembler les systèmes.
+
+**Mécanique**  
+Tout coexiste.
+
+---
+
+## 🧠 Intention pédagogique
+
+- comprendre des systèmes simples  
+- structurer du code  
+- expérimenter librement  
+- apprendre sans pression  
+
+---
+
+## 🌱 Processus
+
+- itération  
+- test  
+- simplification  
+- évolution  
+
+---
+
+## 🕯️ Philosophie
+
+- simplicité  
+- lisibilité  
+- modularité  
+- expérimentation  
+
+---
+
+## 🌌 Vision
+
+- un numérique calme  
+- un jeu qui enseigne  
+- un code qui se comprend  
+
+---
+
+## 🚧 État
+
+Projet en évolution constante.
+
+---
+
+## 🤝 Contribution
+
+- observer  
+- tester  
+- simplifier  
+- partager  
+
+---
+
+## 📜 Licence
+
+Ce projet s’inscrit dans une démarche libre.
+
+Il peut être utilisé, modifié, exploré et partagé librement,  
+dans le respect de l’esprit du projet :  
+apprendre, transmettre, expérimenter.
+
+---
+
+## 🌙 Mot de fin
+
+> _Les Mikos ne donnent pas de réponses._  
+> _Ils créent des situations._  
+
+> _Et dans ces situations,_  
+> _quelque chose peut être compris._
