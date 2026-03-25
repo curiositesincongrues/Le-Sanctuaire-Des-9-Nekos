@@ -1396,3 +1396,72 @@
 }
 :root[data-shrine-level="3"] .slot.unlocked { box-shadow:0 0 20px rgba(255,215,0,.18), inset 0 0 12px rgba(255,255,255,.04); }
 @keyframes rewardDust { from { transform:translateY(0); } to { transform:translateY(26px); } }
+
+
+/* ===== Rituel de Réinitialisation ===== */
+.compass-sakura-trigger { cursor: pointer; user-select: none; -webkit-user-select: none; touch-action: manipulation; }
+.compass-sakura-trigger.ritual-armed { animation: ritual-sakura-pulse 0.35s ease; }
+@keyframes ritual-sakura-pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+
+.debug-ritual-overlay {
+  position: fixed; inset: 0; z-index: 11000;
+  display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(circle at 50% 30%, rgba(255,183,197,0.12), rgba(10,6,18,0.92) 55%, rgba(4,2,10,0.97));
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 24px;
+}
+.debug-ritual-panel {
+  width: min(92vw, 440px);
+  padding: 24px 22px 20px;
+  border-radius: 26px;
+  border: 2px solid rgba(255,183,197,0.45);
+  background: linear-gradient(180deg, rgba(34,10,38,0.96), rgba(16,6,24,0.96));
+  box-shadow: 0 24px 80px rgba(0,0,0,0.55), 0 0 34px rgba(255,183,197,0.12), inset 0 0 26px rgba(255,255,255,0.03);
+  color: #fff; text-align: center;
+}
+.debug-ritual-kanji {
+  font-family: 'Ma Shan Zheng', cursive;
+  font-size: 34px; line-height: 1; color: var(--sakura); opacity: 0.9;
+  text-shadow: 0 0 16px rgba(255,183,197,0.4); margin-bottom: 10px;
+}
+.debug-ritual-title {
+  font-family: 'Fredoka One', cursive;
+  font-size: clamp(24px, 4.8vw, 31px);
+  color: #fff; margin: 0 0 10px; letter-spacing: 0.4px;
+  text-shadow: 0 0 18px rgba(255,183,197,0.16);
+}
+.debug-ritual-copy {
+  font-family: 'Fredoka One', cursive;
+  font-size: 15px; line-height: 1.6; color: rgba(255,255,255,0.92);
+  margin: 0 auto 18px; max-width: 320px;
+}
+.debug-ritual-note {
+  font-family: 'Fredoka One', cursive;
+  font-size: 12px; line-height: 1.45; color: rgba(255,183,197,0.85);
+  margin: 0 auto 18px; max-width: 320px; opacity: 0.9;
+}
+.debug-ritual-actions { display: grid; gap: 12px; }
+.debug-ritual-btn {
+  appearance: none; border: 0; border-radius: 999px; padding: 14px 18px;
+  font-family: 'Fredoka One', cursive; font-size: 15px; letter-spacing: 0.2px; cursor: pointer;
+  transition: transform 0.16s ease, box-shadow 0.16s ease, opacity 0.16s ease;
+}
+.debug-ritual-btn:hover { transform: translateY(-1px); }
+.debug-ritual-btn:active { transform: translateY(1px) scale(0.99); }
+.debug-ritual-btn--purify {
+  color: #2d0a20; background: linear-gradient(180deg, #ffe3eb, #ffb7c5);
+  box-shadow: 0 10px 24px rgba(255,183,197,0.22);
+}
+.debug-ritual-btn--refresh {
+  color: #fff; background: linear-gradient(180deg, rgba(255,215,0,0.24), rgba(122,86,0,0.58));
+  border: 1px solid rgba(255,215,0,0.35);
+}
+.debug-ritual-btn--close {
+  color: rgba(255,255,255,0.92); background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+}

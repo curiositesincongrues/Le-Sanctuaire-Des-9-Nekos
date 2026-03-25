@@ -3,6 +3,9 @@
    ============================================ */
 (function () {
     let tooltipTimeout = null;
+    let ritualTapCount = 0;
+    let ritualLastTapAt = 0;
+    let ritualOverlayEl = null;
 
     function updateHeartBeat() {
         hubTimer++;
@@ -40,6 +43,7 @@
 
         transitionScreen('screen-hub');
 
+        bindHiddenRitualTrigger();
         const grid = document.getElementById('grid-nekos');
         if (!grid) return;
         grid.innerHTML = "";
@@ -124,11 +128,106 @@
         }
     }
 
+
+
+    function getRitualTrigger() {
+        return document.getElementById('compass-sakura-trigger');
+    }
+
+    function closeResetRitual() {
+        if (ritualOverlayEl && ritualOverlayEl.parentNode) ritualOverlayEl.parentNode.removeChild(ritualOverlayEl);
+        ritualOverlayEl = null;
+    }
+
+    async function handleRitualAction(action) {
+        if (action === 'purify') {
+            try { if (typeof playGameSFX === 'function') playGameSFX('correct'); } catch (_) {}
+            if (typeof resetProgress === 'function') resetProgress();
+            closeResetRitual();
+            if (window.enterHub) window.enterHub();
+            else enterHub();
+            return;
+        }
+        if (action === 'refresh') {
+            try { if (typeof playGameSFX === 'function') playGameSFX('correct'); } catch (_) {}
+            if (typeof resetWorldState === 'function') await resetWorldState();
+            window.location.href = window.location.pathname + '?v=' + Date.now();
+            return;
+        }
+        closeResetRitual();
+    }
+
+    function openResetRitual() {
+        closeResetRitual();
+        const overlay = document.createElement('div');
+        overlay.className = 'debug-ritual-overlay';
+        overlay.innerHTML = `
+            <div class="debug-ritual-panel" role="dialog" aria-modal="true" aria-labelledby="ritual-reset-title">
+                <div class="debug-ritual-kanji">再生</div>
+                <h3 id="ritual-reset-title" class="debug-ritual-title">Rituel de Réinitialisation</h3>
+                <p class="debug-ritual-copy">Le sanctuaire peut être purifié pour recommencer l'aventure depuis le début.</p>
+                <p class="debug-ritual-note">Purifier le sanctuaire efface la progression. Rafraîchir le monde efface aussi les anciens caches avant de relancer le jeu.</p>
+                <div class="debug-ritual-actions">
+                    <button class="debug-ritual-btn debug-ritual-btn--purify" data-ritual-action="purify">Purifier le sanctuaire</button>
+                    <button class="debug-ritual-btn debug-ritual-btn--refresh" data-ritual-action="refresh">Rafraîchir le monde</button>
+                    <button class="debug-ritual-btn debug-ritual-btn--close" data-ritual-action="close">Fermer</button>
+                </div>
+            </div>`;
+        overlay.addEventListener('click', (ev) => {
+            if (ev.target === overlay) closeResetRitual();
+        });
+        overlay.querySelectorAll('[data-ritual-action]').forEach(btn => {
+            btn.addEventListener('click', (ev) => {
+                const action = ev.currentTarget.getAttribute('data-ritual-action');
+                handleRitualAction(action);
+            });
+        });
+        document.body.appendChild(overlay);
+        ritualOverlayEl = overlay;
+    }
+
+    function registerRitualTap() {
+        const now = Date.now();
+        ritualTapCount = (now - ritualLastTapAt <= 800) ? (ritualTapCount + 1) : 1;
+        ritualLastTapAt = now;
+
+        const trigger = getRitualTrigger();
+        if (trigger) {
+            trigger.classList.remove('ritual-armed');
+            void trigger.offsetWidth;
+            trigger.classList.add('ritual-armed');
+        }
+
+        if (ritualTapCount >= 10) {
+            ritualTapCount = 0;
+            ritualLastTapAt = 0;
+            openResetRitual();
+        }
+    }
+
+    function bindHiddenRitualTrigger() {
+        const trigger = getRitualTrigger();
+        if (!trigger || trigger.dataset.ritualBound === '1') return;
+        trigger.dataset.ritualBound = '1';
+        trigger.addEventListener('click', registerRitualTap);
+        trigger.addEventListener('keydown', (ev) => {
+            if (ev.key === 'Enter' || ev.key === ' ') {
+                ev.preventDefault();
+                registerRitualTap();
+            }
+        });
+    }
+
     window.HubModule = {
         updateHeartBeat,
         enterHub,
         updateMikoBelt,
         showBeltTooltip,
         handleSlotClick,
+        openResetRitual,
+        closeResetRitual,
     };
+
+    window.openResetRitual = openResetRitual;
+    window.closeResetRitual = closeResetRitual;
 })();
