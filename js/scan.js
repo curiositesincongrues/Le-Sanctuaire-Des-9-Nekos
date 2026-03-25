@@ -120,7 +120,6 @@
                         if (navigator.vibrate) navigator.vibrate([50, 30, 100]);
 
                         if (status) status.textContent = '✦ Sceau déchiffré ! ✦';
-                        showDiscoveryScreen(currentFound);
 
                         const flash = document.getElementById('flash');
                         if (flash) {
@@ -132,8 +131,12 @@
                             }, 400);
                         }
 
-                        // Sprint 2: on laisse l’overlay de découverte piloter l’entrée dans l’épreuve.
-                        stopScan();
+                        // Correctif Sprint 3.2 : le scan lance l’épreuve, le reveal arrive après la réussite.
+                        setTimeout(() => {
+                            stopScan();
+                            clearInterval(heartInterval);
+                            setupQuiz();
+                        }, 900);
                     } else {
                         circle?.classList.add('scan-wrong');
                         playWrong();

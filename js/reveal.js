@@ -2,12 +2,13 @@
    REVEAL.JS — Révélation et retour hub (Sprint 2)
    ============================================ */
 (function () {
-    function showDiscoveryScreen(idx) {
+    function buildGuardianOverlay(idx, options = {}) {
         const g = guardianData[idx];
         const color = g.color || '#ffb7c5';
         const dark = g.dark || '#ff1493';
         const kanji = g.kanji || '';
-        const discoveryText = g.discovery || `L'âme de ${g.n} est libérée...`;
+        const text = options.text || g.discovery || `L'âme de ${g.n} est libérée...`;
+        const ctaLabel = options.ctaLabel || "✨ Continuer";
 
         const old = document.getElementById('discovery-overlay');
         if (old) old.remove();
@@ -28,12 +29,12 @@
                 <div class="discovery-name">${g.n}</div>
                 <div class="discovery-kanji-small">${kanji}</div>
                 <div class="discovery-text"></div>
-                <button class="ritual-cta discovery-cta">✨ Que l'épreuve commence...</button>
+                <button class="ritual-cta discovery-cta">${ctaLabel}</button>
             </div>
         `;
         document.body.appendChild(overlay);
-
         requestAnimationFrame(() => overlay.classList.add('show'));
+
         setTimeout(() => {
             try { playGameSFX('chime_portal'); } catch (e) {}
             if (navigator.vibrate) navigator.vibrate([80, 40, 120]);
@@ -42,7 +43,7 @@
         const textEl = overlay.querySelector('.discovery-text');
         setTimeout(() => {
             let i = 0;
-            const chars = discoveryText.split('');
+            const chars = String(text).split('');
             const tw = setInterval(() => {
                 if (!textEl) return clearInterval(tw);
                 textEl.textContent += chars[i] || '';
@@ -55,12 +56,32 @@
             overlay.classList.remove('show');
             setTimeout(() => {
                 overlay.remove();
+                if (typeof options.onContinue === 'function') options.onContinue();
+            }, 320);
+        });
+
+        return overlay;
+    }
+
+    function showDiscoveryScreen(idx) {
+        return buildGuardianOverlay(idx, {
+            ctaLabel: "✨ Que l'épreuve commence...",
+            onContinue: () => {
                 stopScan();
                 clearInterval(heartInterval);
                 setupQuiz();
-            }, 320);
+            }
         });
     }
+
+    function showPostWinReveal(idx) {
+        return buildGuardianOverlay(idx, {
+            text: guardianData[idx].discovery || `L'âme de ${guardianData[idx].n} est libérée...`,
+            ctaLabel: '✨ Retour au sanctuaire',
+            onContinue: () => animateSoulToHub(idx)
+        });
+    }
+
 
 
     function winGame() {
@@ -87,8 +108,8 @@
         if (instr) instr.innerText = 'RÉUSSI !';
         setTimeout(() => {
             if (foundGuardians.size >= 9) launchFinalCinematic();
-            else animateSoulToHub(wonIndex);
-        }, 1500);
+            else showPostWinReveal(wonIndex);
+        }, 1100);
     }
 
     function animateSoulToHub(idx) {
@@ -155,6 +176,7 @@
 
     window.RevealModule = {
         showDiscoveryScreen,
+        showPostWinReveal,
         winGame,
         animateSoulToHub,
         setOutroMood,
