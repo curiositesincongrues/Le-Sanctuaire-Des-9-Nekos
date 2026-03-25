@@ -30,6 +30,7 @@
     <link rel="stylesheet" href="css/base.css?v=940048">
     <link rel="stylesheet" href="css/cinematics.css?v=940048">
     <link rel="stylesheet" href="css/game.css?v=940048">
+    <link rel="stylesheet" href="css/scanner.css?v=2">
     
     <script id="bg-vs" type="x-shader/x-vertex">
         attribute vec2 aPos; varying vec2 vUv;
@@ -117,38 +118,160 @@
 
 <div id="qr-reader-container">
     <div id="qr-reader"></div>
-    <!-- Overlay magique -->
+    
+    <!-- Overlay magique — L'Œil du Sanctuaire -->
     <div id="scan-overlay">
+        <!-- Vignette forêt mystique -->
         <div class="scan-vignette"></div>
-        <div class="scan-circle">
-            <div class="scan-ring"></div>
-            <div class="scan-ring scan-ring-inner"></div>
-            <div class="scan-particles">
-                <div class="scan-particle sp-s1"></div>
-                <div class="scan-particle sp-s2"></div>
-                <div class="scan-particle sp-s3"></div>
-                <div class="scan-particle sp-s4"></div>
-                <div class="scan-particle sp-s5"></div>
-                <div class="scan-particle sp-s6"></div>
+        
+        <!-- Bouton fermer kawaii en haut à droite -->
+        <button class="scan-close-btn" id="btn-cancel-scan" onclick="stopScan()">
+            <span class="close-icon">✕</span>
+        </button>
+        
+        <!-- Étoiles scintillantes -->
+        <div class="scan-stars">
+            <span class="scan-star" style="top:8%; left:12%;">✦</span>
+            <span class="scan-star" style="top:15%; right:18%;">✧</span>
+            <span class="scan-star" style="top:25%; left:8%;">✦</span>
+            <span class="scan-star" style="bottom:30%; right:10%;">✧</span>
+            <span class="scan-star" style="bottom:20%; left:15%;">✦</span>
+            <span class="scan-star" style="top:40%; right:5%;">✧</span>
+        </div>
+        
+        <!-- Lucioles flottantes -->
+        <div class="scan-fireflies">
+            <div class="scan-firefly"></div>
+            <div class="scan-firefly"></div>
+            <div class="scan-firefly"></div>
+            <div class="scan-firefly"></div>
+            <div class="scan-firefly"></div>
+            <div class="scan-firefly"></div>
+        </div>
+        
+        <!-- Pollen / spores montantes -->
+        <div class="scan-pollen-container">
+            <div class="scan-pollen"></div>
+            <div class="scan-pollen"></div>
+            <div class="scan-pollen"></div>
+            <div class="scan-pollen"></div>
+            <div class="scan-pollen"></div>
+            <div class="scan-pollen"></div>
+            <div class="scan-pollen"></div>
+            <div class="scan-pollen"></div>
+        </div>
+        
+        <!-- Mini Nekos flottants -->
+        <div class="scan-mini-nekos">
+            <!-- Neko en bas à droite -->
+            <div class="scan-mini-neko">
+                <svg viewBox="0 0 60 50" width="45" height="38">
+                    <path d="M8,20 L15,5 L22,18 Z" fill="#ffb7c5"/>
+                    <path d="M38,18 L45,5 L52,20 Z" fill="#ffb7c5"/>
+                    <ellipse cx="30" cy="30" rx="24" ry="20" fill="#ffb7c5"/>
+                    <ellipse cx="22" cy="28" rx="4" ry="5" fill="#1a051d"/>
+                    <ellipse cx="38" cy="28" rx="4" ry="5" fill="#1a051d"/>
+                    <circle cx="23" cy="27" r="1.5" fill="white"/>
+                    <circle cx="39" cy="27" r="1.5" fill="white"/>
+                    <ellipse cx="30" cy="35" rx="2" ry="1.5" fill="#ff9eb5"/>
+                    <path d="M26,38 Q30,42 34,38" fill="none" stroke="#1a051d" stroke-width="1.5"/>
+                    <circle cx="14" cy="34" r="4" fill="#ff6b9d" opacity="0.4"/>
+                    <circle cx="46" cy="34" r="4" fill="#ff6b9d" opacity="0.4"/>
+                </svg>
+            </div>
+            <!-- Neko en bas à gauche (miroir) -->
+            <div class="scan-mini-neko">
+                <svg viewBox="0 0 60 50" width="40" height="34">
+                    <path d="M8,20 L15,5 L22,18 Z" fill="#ffd700"/>
+                    <path d="M38,18 L45,5 L52,20 Z" fill="#ffd700"/>
+                    <ellipse cx="30" cy="30" rx="24" ry="20" fill="#ffeaa7"/>
+                    <ellipse cx="22" cy="28" rx="4" ry="5" fill="#1a051d"/>
+                    <ellipse cx="38" cy="28" rx="4" ry="5" fill="#1a051d"/>
+                    <circle cx="23" cy="27" r="1.5" fill="white"/>
+                    <circle cx="39" cy="27" r="1.5" fill="white"/>
+                    <ellipse cx="30" cy="35" rx="2" ry="1.5" fill="#ffcc00"/>
+                    <path d="M26,38 Q30,42 34,38" fill="none" stroke="#1a051d" stroke-width="1.5"/>
+                    <circle cx="14" cy="34" r="4" fill="#ffaa00" opacity="0.4"/>
+                    <circle cx="46" cy="34" r="4" fill="#ffaa00" opacity="0.4"/>
+                </svg>
+            </div>
+            <!-- Petit neko en haut -->
+            <div class="scan-mini-neko">🐱</div>
+        </div>
+        
+        <!-- Pattes kawaii autour du QR -->
+        <div class="scan-paws">
+            <span class="scan-paw top-left">🐾</span>
+            <span class="scan-paw top-right">🐾</span>
+            <span class="scan-paw bottom-left">🐾</span>
+            <span class="scan-paw bottom-right">🐾</span>
+        </div>
+        
+        <!-- Kodama Guide (gauche) -->
+        <div class="scan-kodama">
+            <div class="kodama-new-head">
+                <div class="kodama-new-left-eye"></div>
+                <div class="kodama-new-right-eye"></div>
+            </div>
+            <div class="kodama-new-body">
+                <div class="kodama-new-left-arm"></div>
+                <div class="kodama-new-right-arm"></div>
             </div>
         </div>
-        <p class="scan-text" id="scan-status">Approchez le miroir du sceau...</p>
-        <div class="scan-buttons">
-            <button class="scan-btn" id="btn-torch" onclick="toggleTorch()">🔦 Éclairer</button>
-            <button class="scan-btn" id="btn-manual" onclick="showManualEntry()" style="display:none;">✏️ Entrer le code</button>
-            <button class="scan-btn scan-btn-cancel" onclick="stopScan()">✕ Fermer</button>
+        
+        <!-- Bulle de dialogue du Kodama -->
+        <div class="kodama-bubble" id="kodama-bubble">
+            <p id="kodama-text">Je cherche le sceau...</p>
         </div>
+        
+        <!-- Miroir Sacré -->
+        <div class="scan-mirror">
+            <div class="mirror-frame"></div>
+            <div class="mirror-ring"></div>
+            <div class="mirror-ring mirror-ring-inner"></div>
+            <div class="mirror-surface"></div>
+            <!-- Petites fleurs sur le cadre -->
+            <span class="mirror-deco top">🌸</span>
+            <span class="mirror-deco bottom">✨</span>
+            <span class="mirror-deco left">⭐</span>
+            <span class="mirror-deco right">🌸</span>
+        </div>
+        
+        <!-- Statut et instructions -->
+        <p class="scan-text" id="scan-status">✨ Révèle l'aura du Gardien... ✨</p>
+        
+        <!-- Indicateur de zoom -->
+        <div id="zoom-indicator">
+            <div id="zoom-fill"></div>
+        </div>
+        
+        <!-- Hint de zoom -->
+        <div class="zoom-hint">
+            <span class="zoom-hint-icon">👆👆</span>
+            <span class="zoom-hint-text">Pincez pour zoomer</span>
+        </div>
+        
+        <!-- Boutons d'action en bas -->
+        <div class="scan-buttons-bottom">
+            <button class="scan-btn kawaii" id="btn-torch" onclick="toggleTorch()" style="display:none;">
+                <span>🔦</span> Éclairer
+            </button>
+            <button class="scan-btn kawaii" id="btn-manual" onclick="showManualEntry()" style="display:none;">
+                <span>✏️</span> Code secret
+            </button>
+        </div>
+        
         <!-- Entrée manuelle -->
         <div id="manual-entry" style="display:none;">
-            <p style="color:var(--sakura); font-size:14px; margin-bottom:10px;">Entrez le code inscrit sous le sceau :</p>
-            <input type="text" id="manual-code" maxlength="6" placeholder="NK01" autocomplete="off" 
-                style="width:120px; padding:12px; font-size:24px; text-align:center; border-radius:10px; border:2px solid var(--gold); background:rgba(0,0,0,0.7); color:var(--gold); font-family:'Fredoka One',cursive; letter-spacing:4px;">
-            <button class="scan-btn" onclick="submitManualCode()" style="margin-top:10px;">🌸 Valider</button>
+            <p class="manual-entry-title">✨ Entre le code magique ✨</p>
+            <input type="text" id="manual-code" maxlength="6" placeholder="NK01" autocomplete="off">
+            <button class="scan-btn kawaii validate" onclick="submitManualCode()">🌸 Valider</button>
         </div>
+        
         <!-- Résultat de scan -->
         <div id="scan-result" style="display:none;">
             <div id="scan-result-icon" style="font-size:60px;"></div>
-            <p id="scan-result-text" style="color:var(--gold); font-size:20px; margin-top:10px;"></p>
+            <p id="scan-result-text"></p>
         </div>
     </div>
 </div>
@@ -598,7 +721,6 @@
         <div style="margin-top:5px; font-size:18px; font-weight:bold; text-shadow: 0 1px 3px black;">Gardiens libérés : <span id="found-count" style="color:var(--gold)">0</span> / 9</div>
         <div id="hub-progress-container"><div id="hub-progress-bar"></div></div>
         <button id="btn-scan" class="btn-grad" onclick="startScan()">🔮 SONDER L'AURA</button>
-        <button id="btn-cancel-scan" class="btn-grad" style="display:none; background: #555; color:white; border-color: #777;" onclick="stopScan()">❌ ANNULER LA VISION</button>
     </div>
 
     <!-- CEINTURE DE MIKO (Inventaire) -->

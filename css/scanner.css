@@ -1,0 +1,659 @@
+/* ============================================
+   SCANNER.CSS — L'Œil du Sanctuaire v4.0
+   ✨ Version KAWAII FINALE ✨
+   ============================================ */
+
+/* Variables Kawaii */
+:root {
+    --kodama-green: #8ab878;
+    --kodama-glow: rgba(168, 213, 162, 0.6);
+    --kawaii-pink: #ffb7c5;
+    --kawaii-gold: #ffd700;
+    --kawaii-purple: #d4a5ff;
+}
+
+/* ═══════════════════════════════════════════════════
+   QR / AR MODE
+   ═══════════════════════════════════════════════════ */
+#qr-reader-container { touch-action: none; }
+body.ar-mode #qr-reader { overflow: hidden; }
+body.ar-mode #qr-reader video { 
+    transition: transform 0.15s ease-out;
+    transform-origin: center center;
+}
+
+/* Vignette forêt enchantée */
+.scan-vignette {
+    background: 
+        radial-gradient(circle at center, transparent 30%, rgba(90,40,80,0.25) 55%, rgba(40,15,50,0.6) 100%),
+        linear-gradient(to top, rgba(168,213,162,0.1) 0%, transparent 30%) !important;
+}
+
+/* ═══════════════════════════════════════════════════
+   BOUTON FERMER KAWAII
+   ═══════════════════════════════════════════════════ */
+.scan-close-btn {
+    position: absolute;
+    top: max(20px, env(safe-area-inset-top));
+    right: 20px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.9);
+    background: linear-gradient(135deg, #ff6b9d 0%, #ff85a8 50%, #ffa0bb 100%);
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    font-family: sans-serif;
+    cursor: pointer;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 
+        0 3px 12px rgba(255,107,157,0.6),
+        0 0 15px rgba(255,183,197,0.4),
+        inset 0 1px 2px rgba(255,255,255,0.4);
+    transition: all 0.2s ease;
+    animation: close-btn-pulse 2s ease-in-out infinite;
+}
+
+.scan-close-btn:hover,
+.scan-close-btn:active {
+    transform: scale(1.15);
+    box-shadow: 
+        0 5px 18px rgba(255,107,157,0.8),
+        0 0 25px rgba(255,183,197,0.6);
+}
+
+.scan-close-btn .close-icon {
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    line-height: 1;
+}
+
+@keyframes close-btn-pulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 3px 12px rgba(255,107,157,0.6), 0 0 15px rgba(255,183,197,0.4); }
+    50% { transform: scale(1.05); box-shadow: 0 4px 15px rgba(255,107,157,0.7), 0 0 20px rgba(255,183,197,0.5); }
+}
+
+/* ═══════════════════════════════════════════════════
+   ÉTOILES SCINTILLANTES
+   ═══════════════════════════════════════════════════ */
+.scan-stars {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 3;
+}
+
+.scan-star {
+    position: absolute;
+    color: var(--kawaii-gold);
+    font-size: 16px;
+    text-shadow: 0 0 10px var(--kawaii-gold), 0 0 20px rgba(255,215,0,0.5);
+    animation: star-twinkle 2s ease-in-out infinite;
+}
+
+.scan-star:nth-child(2) { animation-delay: -0.3s; color: var(--kawaii-pink); text-shadow: 0 0 10px var(--kawaii-pink); }
+.scan-star:nth-child(3) { animation-delay: -0.6s; font-size: 12px; }
+.scan-star:nth-child(4) { animation-delay: -0.9s; color: var(--kawaii-purple); text-shadow: 0 0 10px var(--kawaii-purple); }
+.scan-star:nth-child(5) { animation-delay: -1.2s; font-size: 14px; }
+.scan-star:nth-child(6) { animation-delay: -1.5s; color: white; font-size: 10px; }
+
+@keyframes star-twinkle {
+    0%, 100% { opacity: 0.4; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.3); }
+}
+
+/* ═══════════════════════════════════════════════════
+   MINI NEKO FLOTTANT
+   ═══════════════════════════════════════════════════ */
+.scan-mini-neko {
+    position: absolute;
+    z-index: 20;
+    filter: drop-shadow(0 0 15px rgba(255,183,197,0.6));
+    animation: neko-float 4s ease-in-out infinite;
+}
+
+.scan-mini-neko.right {
+    right: 8%;
+    bottom: 25%;
+}
+
+@keyframes neko-float {
+    0%, 100% { transform: translateY(0) rotate(-5deg); }
+    50% { transform: translateY(-15px) rotate(5deg); }
+}
+
+/* ═══════════════════════════════════════════════════
+   MIROIR MAGIQUE — CENTRE TRANSPARENT
+   ═══════════════════════════════════════════════════ */
+.scan-mirror {
+    position: relative;
+    width: 240px;
+    height: 240px;
+    z-index: 1;
+}
+
+/* Cadre doré - ANNEAU seulement */
+.mirror-frame {
+    position: absolute;
+    inset: -10px;
+    border-radius: 50%;
+    background: transparent;
+    border: 10px solid;
+    border-color: var(--kawaii-gold);
+    box-shadow: 
+        0 0 0 3px rgba(255,255,255,0.4),
+        0 0 30px rgba(255,215,0,0.6),
+        0 0 60px rgba(255,183,197,0.4),
+        inset 0 0 25px rgba(255,215,0,0.3);
+    animation: frame-glow 3s ease-in-out infinite alternate;
+}
+
+@keyframes frame-glow {
+    0% { box-shadow: 0 0 0 3px rgba(255,255,255,0.4), 0 0 30px rgba(255,215,0,0.6), 0 0 60px rgba(255,183,197,0.4), inset 0 0 25px rgba(255,215,0,0.3); }
+    100% { box-shadow: 0 0 0 3px rgba(255,255,255,0.6), 0 0 50px rgba(255,215,0,0.8), 0 0 80px rgba(255,183,197,0.6), inset 0 0 35px rgba(255,215,0,0.4); }
+}
+
+/* Décorations sur le miroir */
+.mirror-deco {
+    position: absolute;
+    font-size: 20px;
+    z-index: 5;
+    animation: deco-pulse 2s ease-in-out infinite;
+    filter: drop-shadow(0 0 8px currentColor);
+}
+
+.mirror-deco.top { top: -25px; left: 50%; transform: translateX(-50%); }
+.mirror-deco.bottom { bottom: -25px; left: 50%; transform: translateX(-50%); animation-delay: -0.5s; }
+.mirror-deco.left { left: -25px; top: 50%; transform: translateY(-50%); animation-delay: -1s; }
+.mirror-deco.right { right: -25px; top: 50%; transform: translateY(-50%); animation-delay: -1.5s; }
+
+@keyframes deco-pulse {
+    0%, 100% { transform: translateX(-50%) scale(1); opacity: 0.8; }
+    50% { transform: translateX(-50%) scale(1.2); opacity: 1; }
+}
+
+.mirror-deco.left, .mirror-deco.right {
+    animation-name: deco-pulse-y;
+}
+
+@keyframes deco-pulse-y {
+    0%, 100% { transform: translateY(-50%) scale(1); opacity: 0.8; }
+    50% { transform: translateY(-50%) scale(1.2); opacity: 1; }
+}
+
+/* Surface transparente */
+.mirror-surface {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: transparent;
+    border: 2px solid rgba(255,255,255,0.5);
+    box-shadow: inset 0 0 30px rgba(255,215,0,0.15);
+}
+
+/* Reflet subtil */
+.mirror-surface::before {
+    content: '';
+    position: absolute;
+    top: 8%;
+    left: 15%;
+    width: 25%;
+    height: 15%;
+    background: radial-gradient(ellipse, rgba(255,255,255,0.25) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+/* Anneaux magiques */
+.mirror-ring {
+    position: absolute;
+    inset: -30px;
+    border-radius: 50%;
+    border: 2px dashed rgba(255,215,0,0.4);
+    animation: ring-spin 15s linear infinite;
+}
+
+.mirror-ring-inner {
+    inset: -45px;
+    border-color: rgba(255,183,197,0.3);
+    animation-direction: reverse;
+    animation-duration: 20s;
+}
+
+@keyframes ring-spin { 100% { transform: rotate(360deg); } }
+
+/* États du miroir */
+.scan-active .mirror-frame {
+    animation: frame-glow 3s ease-in-out infinite alternate, frame-search 1.5s ease-in-out infinite;
+}
+
+@keyframes frame-search {
+    0%, 100% { border-color: var(--kawaii-gold); }
+    50% { border-color: var(--kawaii-pink); }
+}
+
+.scan-success .mirror-frame {
+    border-color: #90EE90 !important;
+    box-shadow: 0 0 50px rgba(144,238,144,0.8), 0 0 100px rgba(144,238,144,0.5) !important;
+    animation: none !important;
+}
+
+.scan-wrong .mirror-frame {
+    border-color: #ff6b6b !important;
+    animation: mirror-shake 0.4s ease !important;
+}
+
+@keyframes mirror-shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-8px) rotate(-2deg); }
+    75% { transform: translateX(8px) rotate(2deg); }
+}
+
+/* ═══════════════════════════════════════════════════
+   KODAMA GUIDE
+   ═══════════════════════════════════════════════════ */
+.scan-kodama {
+    position: absolute;
+    bottom: 20%;
+    left: 8%;
+    transform: scale(0.28);
+    z-index: 20;
+    filter: drop-shadow(0 0 25px var(--kodama-glow));
+}
+
+.scan-kodama .kodama-new-head {
+    animation: kodama-look 5s ease-in-out infinite !important;
+}
+
+@keyframes kodama-look {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(12deg); }
+    75% { transform: rotate(-12deg); }
+}
+
+.kodama-happy .kodama-new-head {
+    animation: kodama-jump 0.5s ease-out !important;
+    box-shadow: 0 0 50px rgba(255,215,0,0.7) !important;
+}
+
+@keyframes kodama-jump {
+    0%, 100% { transform: translateY(0) scale(1); }
+    40% { transform: translateY(-25px) scale(1.1); }
+}
+
+.kodama-shake .kodama-new-head {
+    animation: kodama-no 0.4s ease !important;
+}
+
+@keyframes kodama-no {
+    0%, 100% { transform: rotate(0); }
+    25% { transform: rotate(-15deg); }
+    75% { transform: rotate(15deg); }
+}
+
+/* Bulle de dialogue */
+.kodama-bubble {
+    position: absolute;
+    bottom: calc(20% + 90px);
+    left: 3%;
+    background: rgba(255,255,255,0.95);
+    border: 2px solid var(--kawaii-pink);
+    border-radius: 20px;
+    padding: 10px 16px;
+    max-width: 140px;
+    opacity: 0;
+    transform: translateY(10px) scale(0.9);
+    transition: all 0.3s ease;
+    z-index: 21;
+    box-shadow: 0 4px 15px rgba(255,183,197,0.3);
+}
+
+.kodama-bubble.visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+.kodama-bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 25px;
+    border: 10px solid transparent;
+    border-top-color: var(--kawaii-pink);
+    border-bottom: none;
+}
+
+#kodama-text {
+    color: #5d4037;
+    font-size: 13px;
+    font-family: 'Fredoka One', cursive;
+    text-align: center;
+    margin: 0;
+}
+
+/* ═══════════════════════════════════════════════════
+   LUCIOLES
+   ═══════════════════════════════════════════════════ */
+.scan-fireflies {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 4;
+}
+
+.scan-firefly {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background: radial-gradient(circle, var(--kodama-green) 0%, rgba(168,213,162,0.5) 50%, transparent 100%);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--kodama-green), 0 0 20px rgba(168,213,162,0.5);
+    animation: firefly-dance 8s ease-in-out infinite;
+}
+
+.scan-firefly:nth-child(1) { top: 20%; left: 15%; animation-delay: 0s; }
+.scan-firefly:nth-child(2) { top: 35%; right: 20%; animation-delay: -1.5s; }
+.scan-firefly:nth-child(3) { top: 55%; left: 20%; animation-delay: -3s; }
+.scan-firefly:nth-child(4) { top: 70%; right: 15%; animation-delay: -4.5s; }
+.scan-firefly:nth-child(5) { top: 45%; left: 8%; animation-delay: -2s; }
+.scan-firefly:nth-child(6) { top: 25%; right: 25%; animation-delay: -5s; }
+
+@keyframes firefly-dance {
+    0%, 100% { transform: translate(0, 0); opacity: 0.3; }
+    25% { transform: translate(25px, -15px); opacity: 1; }
+    50% { transform: translate(-10px, -30px); opacity: 0.5; }
+    75% { transform: translate(15px, -10px); opacity: 0.9; }
+}
+
+/* ═══════════════════════════════════════════════════
+   POLLEN
+   ═══════════════════════════════════════════════════ */
+.scan-pollen-container {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 50%;
+    pointer-events: none;
+    z-index: 3;
+}
+
+.scan-pollen {
+    position: absolute;
+    bottom: -5px;
+    width: 4px;
+    height: 4px;
+    background: rgba(255,255,255,0.8);
+    border-radius: 50%;
+    box-shadow: 0 0 6px white;
+    animation: pollen-up 10s linear infinite;
+}
+
+.scan-pollen:nth-child(1) { left: 10%; animation-delay: 0s; }
+.scan-pollen:nth-child(2) { left: 25%; animation-delay: -2s; }
+.scan-pollen:nth-child(3) { left: 40%; animation-delay: -4s; }
+.scan-pollen:nth-child(4) { left: 55%; animation-delay: -1s; }
+.scan-pollen:nth-child(5) { left: 70%; animation-delay: -3s; }
+.scan-pollen:nth-child(6) { left: 85%; animation-delay: -5s; }
+.scan-pollen:nth-child(7) { left: 18%; animation-delay: -6s; }
+.scan-pollen:nth-child(8) { left: 62%; animation-delay: -7s; }
+
+@keyframes pollen-up {
+    0% { transform: translateY(0); opacity: 0; }
+    10% { opacity: 0.8; }
+    90% { opacity: 0.3; }
+    100% { transform: translateY(-50vh); opacity: 0; }
+}
+
+/* ═══════════════════════════════════════════════════
+   TEXTE
+   ═══════════════════════════════════════════════════ */
+.scan-text {
+    color: white;
+    font-size: 18px;
+    font-family: 'Fredoka One', cursive !important;
+    text-align: center;
+    margin-top: 25px;
+    text-shadow: 
+        0 2px 10px rgba(0,0,0,0.9),
+        0 0 25px rgba(255,183,197,0.5),
+        0 0 40px rgba(255,215,0,0.3);
+    z-index: 10;
+    letter-spacing: 1px !important;
+    padding: 0 20px;
+}
+
+/* ═══════════════════════════════════════════════════
+   BOUTONS KAWAII
+   ═══════════════════════════════════════════════════ */
+.scan-buttons-bottom {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+    z-index: 10;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.scan-btn.kawaii {
+    padding: 12px 24px;
+    border-radius: 30px;
+    border: 3px solid white;
+    background: linear-gradient(135deg, var(--kawaii-pink) 0%, #ff9eb5 100%);
+    color: white;
+    font-size: 15px;
+    font-family: 'Fredoka One', cursive;
+    cursor: pointer;
+    box-shadow: 
+        0 4px 15px rgba(255,183,197,0.5),
+        inset 0 2px 4px rgba(255,255,255,0.3);
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.scan-btn.kawaii:hover,
+.scan-btn.kawaii:active {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255,183,197,0.7);
+}
+
+.scan-btn.kawaii.validate {
+    background: linear-gradient(135deg, var(--kawaii-gold) 0%, #ffcc00 100%);
+    color: #5d4037;
+    box-shadow: 0 4px 15px rgba(255,215,0,0.5);
+}
+
+/* ═══════════════════════════════════════════════════
+   ENTRÉE MANUELLE
+   ═══════════════════════════════════════════════════ */
+#manual-entry {
+    z-index: 10;
+    text-align: center;
+    margin-top: 20px;
+    background: rgba(255,255,255,0.95);
+    padding: 20px 25px;
+    border-radius: 25px;
+    border: 3px solid var(--kawaii-pink);
+    box-shadow: 0 8px 30px rgba(255,183,197,0.4);
+}
+
+.manual-entry-title {
+    color: var(--kawaii-pink);
+    font-size: 16px;
+    font-family: 'Fredoka One', cursive;
+    margin: 0 0 15px 0;
+}
+
+#manual-code {
+    width: 130px;
+    padding: 14px;
+    font-size: 26px;
+    text-align: center;
+    border-radius: 15px;
+    border: 3px solid var(--kawaii-gold);
+    background: #fff9e6;
+    color: #5d4037;
+    font-family: 'Fredoka One', cursive;
+    letter-spacing: 5px;
+    box-shadow: inset 0 2px 8px rgba(255,215,0,0.2);
+}
+
+#manual-code:focus {
+    outline: none;
+    border-color: var(--kawaii-pink);
+    box-shadow: 0 0 15px rgba(255,183,197,0.5);
+}
+
+#manual-entry .scan-btn.kawaii {
+    margin-top: 15px;
+}
+
+/* ═══════════════════════════════════════════════════
+   ZOOM INDICATOR
+   ═══════════════════════════════════════════════════ */
+#zoom-indicator {
+    position: absolute;
+    bottom: 120px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 8px;
+    background: rgba(255,255,255,0.3);
+    border-radius: 10px;
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity 0.3s;
+    z-index: 15;
+    border: 2px solid rgba(255,255,255,0.5);
+}
+
+#zoom-indicator.visible { opacity: 1; }
+
+#zoom-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--kodama-green), var(--kawaii-gold));
+    border-radius: 10px;
+    transition: width 0.15s;
+}
+
+/* Hint zoom */
+.zoom-hint {
+    position: absolute;
+    bottom: 150px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    background: rgba(255,255,255,0.9);
+    border-radius: 25px;
+    border: 2px solid var(--kawaii-pink);
+    opacity: 0;
+    animation: hint-show 0.5s ease 2s forwards, hint-hide 0.5s ease 6s forwards;
+    z-index: 15;
+}
+
+.zoom-hint-icon { font-size: 18px; }
+.zoom-hint-text { 
+    color: #5d4037;
+    font-size: 13px;
+    font-family: 'Fredoka One', cursive;
+}
+
+@keyframes hint-show { to { opacity: 1; } }
+@keyframes hint-hide { to { opacity: 0; pointer-events: none; } }
+
+/* ═══════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════ */
+@media (max-width: 380px) {
+    .scan-kodama { transform: scale(0.22); left: 5%; bottom: 18%; }
+    .scan-mini-neko.right { right: 5%; bottom: 22%; }
+    .scan-mini-neko svg { width: 40px; height: 34px; }
+    .scan-mirror { width: 200px; height: 200px; }
+    .scan-close-btn { width: 44px; height: 44px; font-size: 18px; top: 15px; right: 15px; }
+    .scan-text { font-size: 15px; }
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+    .scan-kodama { transform: scale(0.18); bottom: 10%; }
+    .scan-mini-neko.right { bottom: 15%; }
+    .scan-mirror { width: 160px; height: 160px; }
+    .scan-text { margin-top: 10px; font-size: 14px; }
+}
+
+/* ═══════════════════════════════════════════════════
+   MINI NEKOS DÉCORATIFS 🐱
+   ═══════════════════════════════════════════════════ */
+.scan-mini-nekos {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 6;
+}
+
+.scan-mini-neko {
+    position: absolute;
+    font-size: 28px;
+    filter: drop-shadow(0 2px 8px rgba(255,183,197,0.6));
+    animation: mini-neko-bounce 3s ease-in-out infinite;
+}
+
+.scan-mini-neko:nth-child(1) { bottom: 8%; left: 8%; animation-delay: 0s; }
+.scan-mini-neko:nth-child(2) { bottom: 12%; right: 10%; animation-delay: -1s; transform: scaleX(-1); }
+.scan-mini-neko:nth-child(3) { top: 12%; right: 8%; animation-delay: -2s; font-size: 22px; }
+
+@keyframes mini-neko-bounce {
+    0%, 100% { transform: translateY(0) rotate(-3deg); }
+    50% { transform: translateY(-8px) rotate(3deg); }
+}
+
+.scan-mini-neko:nth-child(2) {
+    animation-name: mini-neko-bounce-flip;
+}
+
+@keyframes mini-neko-bounce-flip {
+    0%, 100% { transform: scaleX(-1) translateY(0) rotate(3deg); }
+    50% { transform: scaleX(-1) translateY(-8px) rotate(-3deg); }
+}
+
+/* Pattes kawaii dans les coins du cadre QR */
+.scan-paws {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 3;
+}
+
+.scan-paw {
+    position: absolute;
+    font-size: 20px;
+    filter: drop-shadow(0 2px 6px rgba(255,183,197,0.5));
+    opacity: 0.8;
+}
+
+.scan-paw.top-left { top: 25%; left: 22%; transform: rotate(-30deg); }
+.scan-paw.top-right { top: 25%; right: 22%; transform: rotate(30deg); }
+.scan-paw.bottom-left { bottom: 28%; left: 22%; transform: rotate(-15deg); }
+.scan-paw.bottom-right { bottom: 28%; right: 22%; transform: rotate(15deg); }
+
+/* ═══════════════════════════════════════════════════
+   MODE LITE
+   ═══════════════════════════════════════════════════ */
+.lite-mode .scan-firefly:nth-child(n+4) { display: none; }
+.lite-mode .scan-pollen:nth-child(n+5) { display: none; }
+.lite-mode .scan-star:nth-child(n+4) { display: none; }
+.lite-mode .scan-mini-neko:nth-child(n+2) { display: none; }
+.lite-mode .mirror-ring { animation: none; }
+
+/* GPU hints */
+.scan-firefly, .scan-pollen, .scan-kodama, .scan-mini-neko, .scan-star, .mirror-frame {
+    will-change: transform, opacity;
+}

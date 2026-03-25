@@ -44,17 +44,18 @@ const TEXTS_EMBEDDED = {
     "title": "BOUSSOLE SACRÉE",
     "guardiansLabel": "Gardiens libérés :",
     "scanButton": "🔮 SONDER L'AURA",
-    "cancelButton": "❌ ANNULER LA VISION"
+    "cancelButton": "✕"
   },
   "scan": {
-    "approaching": "Approchez le miroir du sceau...",
-    "found": "{name} trouvé !",
-    "success": "✦ Sceau déchiffré ! ✦",
-    "wrongCode": "Ce n'est pas le bon sceau... Continuez de chercher !",
-    "error": "Le miroir ne s'ouvre pas...",
-    "torchHint": "Le sceau résiste... Essayez de l'éclairer.",
-    "manualHint": "Le miroir peine à lire ce sceau...",
-    "manualPrompt": "Entrez le code inscrit sous le sceau :",
+    "approaching": "✨ Révèle l'aura du Gardien... ✨",
+    "searching": "Le miroir cherche les sceaux cachés...",
+    "found": "✦ {name} s'éveille ! ✦",
+    "success": "🌸 Le Gardien t'a reconnu ! 🌸",
+    "wrongCode": "Ce n'est pas le bon Gardien... Continue de chercher !",
+    "error": "Le miroir reste endormi...",
+    "torchHint": "✨ Éclaire le Gardien avec ta lumière...",
+    "manualHint": "Le Gardien est timide... Entre son nom secret !",
+    "manualPrompt": "✨ Code secret du Gardien :",
     "torchOn": "🔦 Éclairer",
     "torchOff": "🔦 Éteindre",
     "torchUnsupported": "🔦 Non supporté"

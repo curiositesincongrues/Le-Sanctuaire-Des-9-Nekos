@@ -43,7 +43,7 @@
     "title": "BOUSSOLE SACRÉE",
     "guardiansLabel": "Gardiens libérés :",
     "scanButton": "🔮 SONDER L'AURA",
-    "cancelButton": "❌ ANNULER LA VISION"
+    "cancelButton": "✕"
   },
   "scan": {
     "approaching": "Approchez le miroir du sceau...",
