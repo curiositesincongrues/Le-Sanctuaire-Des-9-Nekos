@@ -10,26 +10,20 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="9 Nekos">
     <link rel="manifest" href="manifest.json">
-    <link rel="icon" type="image/png" href="icons/icon-96x96.png" sizes="96x96">
-    <link rel="apple-touch-icon" href="icons/icon-152x152.png">
-    <link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152x152.png">
-    <link rel="apple-touch-icon" sizes="167x167" href="icons/icon-192x192.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-192x192.png">
-    <link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192x192.png"> 
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    
     <title>🌸 LE SANCTUAIRE DES 9 NEKOS SACRÉS 🌸</title>
     
-    <!-- html5-qrcode chargé à la demande au moment du scan — pas au démarrage -->
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js" defer></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" defer></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Ma+Shan+Zheng&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-    <noscript><link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Ma+Shan+Zheng&display=swap" rel="stylesheet"></noscript>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
     
     <!-- CSS DÉCOUPÉ -->
-    <link rel="stylesheet" href="css/base.css?v=940048">
-    <link rel="stylesheet" href="css/cinematics.css?v=940048">
-    <link rel="stylesheet" href="css/game.css?v=940048">
+    <link rel="stylesheet" href="css/base.css?v=111811">
+    <link rel="stylesheet" href="css/cinematics.css?v=811113">
+    <link rel="stylesheet" href="css/game.css?v=11181">
     
     <script id="bg-vs" type="x-shader/x-vertex">
         attribute vec2 aPos; varying vec2 vUv;
@@ -438,8 +432,8 @@
                 </div>
 
                 <!-- Container CARRÉ centré sur le neko pour que le cercle soit rond -->
-                <div id="ghost-guardians-container" style="position:absolute; width:min(500px,84vw); height:min(500px,84vw); left:50%; top:50%; transform:translate(-50%,-50%); z-index:5; overflow:visible; pointer-events:none;">
-                    <canvas id="guardian-constellation" style="position:absolute; inset:0; pointer-events:none; width:100%; height:100%;"></canvas>
+                <div id="ghost-guardians-container" style="position:absolute; width:500px; height:500px; left:50%; top:50%; transform:translate(-50%,-50%); z-index:5; overflow:visible; pointer-events:none;">
+                    <canvas id="guardian-constellation" width="500" height="500" style="position:absolute; inset:0; pointer-events:none;"></canvas>
                 </div>
 
                 <div id="kusanagi-sword" class="kusanagi-throne" style="display:none; top: 0px;">
@@ -643,7 +637,7 @@
     </div>
 
     <div id="screen-final" class="screen">
-        <h1 style="color:var(--gold); font-size: 30px; text-shadow: 0 0 20px var(--gold); margin: 0 0 10px 0; display: none; opacity: 0; transform: translateY(-20px); transition: 1s;" id="final-title">SANCTUAIRE RESTAURÉ !</h1>
+        <h1 style="color:var(--gold); font-size: 30px; text-shadow: 0 0 20px var(--gold); margin: 0 0 10px 0; opacity: 0; transform: translateY(-20px); transition: 1s;" id="final-title">SANCTUAIRE RESTAURÉ !</h1>
         <div id="final-circ-nekos">
             <div id="final-daruma" class="noface-container awake" style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);"></div>
             <div id="final-neko-hero" class="neko-stage happy" style="opacity: 0; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) scale(1.1);">
@@ -669,7 +663,7 @@
             <p>Sanctuaire purifié en : <b id="cert-time" style="color: var(--oni)">--</b></p>
             <div class="cert-names">Ava • Nelya • Mariam • Antinea<br>Rosa-Louise • Romane • Bahia • Fatima</div>
         </div>
-        <button id="btn-download" class="btn-grad pulse-btn" style="display:none; transform:scale(0); transition:0.5s;" onclick="openMirrorAndCapture()">✨ Figer notre légende ✨</button>
+        <button id="btn-download" class="btn-grad pulse-btn" style="display:none; transform:scale(0); transition:0.5s;" onclick="openMirror()">🪞 OUVRIR LE MIROIR DES ESPRITS</button>
         <canvas id="polaroid-canvas" style="display:none;"></canvas>
         
         <!-- Scène bateau épilogue -->
@@ -697,31 +691,24 @@
             <div class="mirror-frame"></div>
         </div>
         <p class="mirror-instruction">Placez vos visages dans le miroir...</p>
-        <button id="btn-capture" onclick="captureEstampe()" style="display:none;">🌸 SCELLER LE REFLET 🌸</button>
+        <button id="btn-capture" onclick="captureEstampe()">🌸 SCELLER LE REFLET 🌸</button>
     </div>
 
 <!-- JS DÉCOUPÉ (ordre de dépendance) -->
-<script src="js/state.js?v=940050" defer></script>
-<script src="js/storage.js?v=940050" defer></script>
-<script src="js/data.js?v=940050" defer></script>
-<script src="js/texts.js?v=940050" defer></script>
-<script src="js/audio.js?v=940050" defer></script>
-<script src="js/renderer.js?v=940050" defer></script>
-<script src="js/cinematics.js?v=940050" defer></script>
-<script src="js/hub.js?v=940050" defer></script>
-<script src="js/scan.js?v=940050" defer></script>
-<script src="js/reveal.js?v=940050" defer></script>
-<script src="js/rewards.js?v=940050" defer></script>
-<script src="js/game.js?v=940050" defer></script>
-<script src="js/debug.js?v=940050" defer></script>
-<script src="js/app.js?v=940050" defer></script>
+<script src="js/data.js?v=100000"></script>
+<script src="js/texts.js?v=113"></script>
+<script src="js/audio.js?v=1900"></script>
+<script src="js/renderer.js?v=111900"></script>
+<script src="js/cinematics.js?v=111901"></script>
+<script src="js/game.js?v=111901"></script>
+<script src="js/debug.js?v=114"></script>
 
 <!-- PWA : Service Worker + Device Detection -->
 <script>
 /* Service Worker Registration */
 if ('serviceWorker' in navigator && (location.protocol === 'http:' || location.protocol === 'https:')) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=940049')
+        navigator.serviceWorker.register('/sw.js')
             .then(reg => console.log('[PWA] SW enregistré:', reg.scope))
             .catch(err => console.log('[PWA] SW erreur:', err));
     });
@@ -771,18 +758,6 @@ document.addEventListener('visibilitychange', () => {
     }
 });
 
-
-
-document.addEventListener('DOMContentLoaded', () => {
-    if (typeof bootApp === 'function') bootApp();
-});
-
-/* Mobile Shell bootstrap */
-window.__SANCTUARY_SHELL_CONFIG__ = {
-    mobile: /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent || ''),
-    standalone: window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true
-};
-
 /* Camera Permission State Tracking */
 window.cameraPermission = 'unknown'; // 'granted', 'denied', 'unknown'
 window.cameraStream = null;
@@ -796,23 +771,5 @@ window.addEventListener('load', () => {
     }
 });
 </script>
-
-
-
-
-    <div id="kokoro-splash" style="position:fixed;inset:0;z-index:99999;background:linear-gradient(135deg,#0d001a 0%,#1a0030 50%,#0d001a 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;transition:opacity 0.8s ease;font-family:'Fredoka One',cursive;">
-        <div style="font-size:64px;animation:kokoro-bounce 1.2s ease-in-out infinite;">🐱</div>
-        <div style="text-align:center;">
-            <div style="font-size:22px;color:#ffb7c5;letter-spacing:3px;text-shadow:0 0 20px rgba(255,183,197,0.6);">LE SANCTUAIRE DES 9 NEKOS</div>
-            <div style="font-size:13px;color:rgba(255,183,197,0.5);margin-top:6px;letter-spacing:2px;">聖域を目覚めさせよ</div>
-        </div>
-        <div style="width:min(280px,70vw);height:4px;background:rgba(255,183,197,0.15);border-radius:4px;overflow:hidden;">
-            <div id="kokoro-progress-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#ffb7c5,#ffd700);border-radius:4px;transition:width 0.4s ease;"></div>
-        </div>
-        <div id="kokoro-splash-status" style="font-size:13px;color:rgba(255,183,197,0.6);letter-spacing:1px;">Éveil du Sanctuaire...</div>
-        <button id="kokoro-skip-btn" onclick="kokoroSplashDone()" style="display:none;opacity:0;transition:opacity 0.5s;background:transparent;border:1px solid rgba(255,183,197,0.3);color:rgba(255,183,197,0.5);font-family:'Fredoka One',cursive;font-size:11px;padding:6px 16px;border-radius:20px;cursor:pointer;letter-spacing:1px;">Passer →</button>
-    </div>
-    <style>@keyframes kokoro-bounce{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-12px) scale(1.05)}}</style>
-
 </body>
 </html>

@@ -14,113 +14,54 @@
 
         const overlay = document.createElement('div');
         overlay.id = 'discovery-overlay';
-        overlay.style.cssText = 'position:fixed;inset:0;z-index:9500;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#0a0010;opacity:0;transition:opacity 0.4s ease;';
+        overlay.className = 'discovery-overlay';
+        overlay.style.setProperty('--reveal-color', color);
+        overlay.style.setProperty('--reveal-dark', dark);
+        overlay.innerHTML = `
+            <div class="discovery-bg"></div>
+            <div class="discovery-kanji-bg">${kanji}</div>
+            <div class="discovery-card">
+                <div class="discovery-halo">
+                    <div class="discovery-halo-ring"></div>
+                    <div class="discovery-relic">${getRelicSVG(idx)}</div>
+                </div>
+                <div class="discovery-name">${g.n}</div>
+                <div class="discovery-kanji-small">${kanji}</div>
+                <div class="discovery-text"></div>
+                <button class="ritual-cta discovery-cta">✨ Que l'épreuve commence...</button>
+            </div>
+        `;
         document.body.appendChild(overlay);
 
-        const flash = document.createElement('div');
-        flash.style.cssText = `position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,${color} 0%,transparent 70%);opacity:0;pointer-events:none;transition:opacity 0.3s ease;`;
-        overlay.appendChild(flash);
-
-        const kanjiEl = document.createElement('div');
-        kanjiEl.textContent = kanji;
-        kanjiEl.style.cssText = `position:absolute;font-family:'Ma Shan Zheng',cursive;font-size:min(55vw,340px);color:${color};opacity:0.07;pointer-events:none;user-select:none;line-height:1;`;
-        overlay.appendChild(kanjiEl);
-
-        const halo = document.createElement('div');
-        halo.style.cssText = 'position:relative;width:220px;height:220px;display:flex;align-items:center;justify-content:center;margin-bottom:24px;';
-        const haloRing = document.createElement('div');
-        haloRing.style.cssText = `position:absolute;inset:-20px;border-radius:50%;background:conic-gradient(${color},${dark},#fff,${color});opacity:0;animation:discoveryHaloSpin 3s linear infinite;filter:blur(8px);transition:opacity 0.8s ease;`;
-        halo.appendChild(haloRing);
-
-        const relicWrap = document.createElement('div');
-        relicWrap.style.cssText = `position:relative;z-index:2;width:180px;height:180px;display:flex;align-items:center;justify-content:center;transform:scale(0);transition:transform 0.6s cubic-bezier(0.17,0.89,0.32,1.49);filter:drop-shadow(0 0 30px ${color});`;
-        relicWrap.innerHTML = getRelicSVG(idx);
-        const svg = relicWrap.querySelector('svg');
-        if (svg) {
-            svg.style.width = '180px';
-            svg.style.height = '180px';
-        }
-        halo.appendChild(relicWrap);
-        overlay.appendChild(halo);
-
-        const nameEl = document.createElement('div');
-        nameEl.textContent = g.n;
-        nameEl.style.cssText = `font-family:'Ma Shan Zheng',cursive;font-size:54px;color:${color};text-shadow:0 0 30px ${color},0 0 60px ${dark};opacity:0;transform:translateY(20px);transition:opacity 0.6s ease,transform 0.6s ease;margin-bottom:8px;text-align:center;`;
-        overlay.appendChild(nameEl);
-
-        const kanjiSmall = document.createElement('div');
-        kanjiSmall.textContent = kanji;
-        kanjiSmall.style.cssText = `font-family:'Ma Shan Zheng',cursive;font-size:24px;color:${dark};opacity:0;transition:opacity 0.6s ease 0.2s;margin-bottom:20px;`;
-        overlay.appendChild(kanjiSmall);
-
-        const textEl = document.createElement('div');
-        textEl.style.cssText = `font-family:'Ma Shan Zheng',cursive;font-size:18px;color:rgba(255,255,255,0.85);text-align:center;max-width:320px;line-height:1.7;opacity:0;transition:opacity 0.6s ease 0.4s;margin-bottom:32px;padding:0 20px;`;
-        overlay.appendChild(textEl);
-
-        const btn = document.createElement('button');
-        btn.textContent = '✨ Que l\'épreuve commence...';
-        btn.style.cssText = `font-family:'Ma Shan Zheng',cursive;font-size:20px;color:#fff;background:linear-gradient(135deg,${dark},${color});border:none;border-radius:50px;padding:14px 32px;cursor:pointer;opacity:0;transform:scale(0.8);transition:opacity 0.5s ease 0.6s,transform 0.5s ease 0.6s;box-shadow:0 4px 20px ${dark}88;`;
-        overlay.appendChild(btn);
-
-        requestAnimationFrame(() => {
-            overlay.style.opacity = '1';
-        });
-
+        requestAnimationFrame(() => overlay.classList.add('show'));
         setTimeout(() => {
-            flash.style.opacity = '0.6';
-        }, 100);
-        setTimeout(() => {
-            flash.style.opacity = '0';
-        }, 500);
+            try { playGameSFX('chime_portal'); } catch (e) {}
+            if (navigator.vibrate) navigator.vibrate([80, 40, 120]);
+        }, 350);
 
+        const textEl = overlay.querySelector('.discovery-text');
         setTimeout(() => {
-            haloRing.style.opacity = '0.8';
-            relicWrap.style.transform = 'scale(1)';
-            try {
-                playGameSFX('chime_portal');
-            } catch (e) {}
-            for (let i = 0; i < 12; i++) {
-                const p = document.createElement('div');
-                const a = (i / 12) * Math.PI * 2;
-                const d = 80 + Math.random() * 120;
-                p.style.cssText = `position:absolute;left:50%;top:50%;width:${4 + Math.random() * 6}px;height:${4 + Math.random() * 6}px;border-radius:50%;background:${color};box-shadow:0 0 8px ${color};transform:translate(-50%,-50%);animation:discoveryParticle 1s ease-out forwards;--tx:${Math.cos(a) * d}px;--ty:${Math.sin(a) * d}px;animation-delay:${Math.random() * 0.3}s;pointer-events:none;`;
-                overlay.appendChild(p);
-                setTimeout(() => p.remove(), 1400);
-            }
-        }, 600);
-
-        setTimeout(() => {
-            nameEl.style.opacity = '1';
-            nameEl.style.transform = 'translateY(0)';
-            kanjiSmall.style.opacity = '1';
-        }, 1200);
-
-        setTimeout(() => {
-            textEl.style.opacity = '1';
             let i = 0;
             const chars = discoveryText.split('');
             const tw = setInterval(() => {
-                textEl.textContent += chars[i];
+                if (!textEl) return clearInterval(tw);
+                textEl.textContent += chars[i] || '';
                 i++;
                 if (i >= chars.length) clearInterval(tw);
-            }, 40);
-        }, 1600);
+            }, 26);
+        }, 900);
 
-        setTimeout(() => {
-            btn.style.opacity = '1';
-            btn.style.transform = 'scale(1)';
-        }, 2400);
-
-        btn.onclick = () => {
-            overlay.style.opacity = '0';
+        overlay.querySelector('.discovery-cta')?.addEventListener('click', () => {
+            overlay.classList.remove('show');
             setTimeout(() => {
                 overlay.remove();
                 stopScan();
                 clearInterval(heartInterval);
                 setupQuiz();
-            }, 400);
-        };
+            }, 320);
+        });
     }
+
 
     function winGame() {
         const wonIndex = currentFound;
@@ -199,6 +140,9 @@
                     updateMikoBelt();
                     if (window.syncStateFromGlobals) syncStateFromGlobals();
                     if (typeof saveProgress === 'function') saveProgress();
+                    if (window.RewardsModule?.checkMilestoneRewards) {
+                        setTimeout(() => window.RewardsModule.checkMilestoneRewards(), 450);
+                    }
                     setTimeout(() => targetSlot.classList.remove('just-unlocked'), 700);
                 }, 1000);
             }, 100);

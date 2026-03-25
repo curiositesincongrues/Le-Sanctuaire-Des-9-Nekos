@@ -40,7 +40,10 @@
                     foundGuardians: [],
                     hpOni: 0,
                     currentGuardianId: null,
-                    bonusUnlocked: { tier3: false, tier6: false, tier9: false }
+                    bonusUnlocked: { tier3: false, tier6: false, tier9: false },
+                    assistsAvailable: 0,
+                    shrineLevel: 0,
+                    attemptMap: {}
                 });
             }
             if (typeof syncGlobalsFromState === 'function') syncGlobalsFromState();

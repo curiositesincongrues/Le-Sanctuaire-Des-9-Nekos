@@ -546,6 +546,11 @@ function setupQuiz() {
     document.getElementById('quiz-question').innerText = g.q;
     let html = ""; g.a.forEach((opt, idx) => html += `<div id="opt-${idx}" class="btn-ema" onclick="verifyQuiz(${idx})">${opt}</div>`);
     document.getElementById('quiz-options').innerHTML = html;
+    const quizOptionsEl = document.getElementById('quiz-options');
+    if (quizOptionsEl && !document.getElementById('quiz-assist')) {
+        quizOptionsEl.insertAdjacentHTML('afterend', `<div id="quiz-assist" class="quiz-assist"></div>`);
+    }
+    if (window.RewardsModule?.renderQuizAssist) window.RewardsModule.renderQuizAssist(currentFound);
     
     transitionScreen('screen-quiz');
     
@@ -576,6 +581,8 @@ function setupQuiz() {
             playWrong();
             document.body.classList.add('shake-screen');
             setTimeout(() => document.body.classList.remove('shake-screen'), 500);
+            if (window.RewardsModule?.markFailureForGuardian) window.RewardsModule.markFailureForGuardian(currentFound);
+            if (window.RewardsModule?.renderQuizAssist) window.RewardsModule.renderQuizAssist(currentFound);
             quizFuseTime = 100;
             hintGiven2 = false;
         }
@@ -590,6 +597,7 @@ function verifyQuiz(idx) {
         // Flash vert sur la bonne réponse
         const correctEl = document.getElementById(`opt-${idx}`);
         if(correctEl) { correctEl.style.background = 'rgba(110,231,183,0.4)'; correctEl.style.borderColor = '#6ee7b7'; correctEl.style.transform = 'scale(1.04)'; }
+        if (window.RewardsModule?.clearFailuresForGuardian) window.RewardsModule.clearFailuresForGuardian(currentFound);
         playCorrect(); confetti({ particleCount: 50, colors: ['#ffd700', '#ffb7c5', '#ffffff'] }); 
         setTimeout(() => playMinigame(), 700); 
     } 
@@ -601,6 +609,8 @@ function verifyQuiz(idx) {
         playWrong(); 
         document.body.classList.add('shake-screen'); 
         setTimeout(() => document.body.classList.remove('shake-screen'), 500); 
+        if (window.RewardsModule?.markFailureForGuardian) window.RewardsModule.markFailureForGuardian(currentFound);
+        if (window.RewardsModule?.renderQuizAssist) window.RewardsModule.renderQuizAssist(currentFound);
         quizFuseTime -= 25;
         if(navigator.vibrate) navigator.vibrate([100, 50, 100]);
     }
@@ -913,29 +923,7 @@ function playMinigame() {
             doSwipe(dx, dy);
         };
         window.addEventListener('keydown', _swipeKey);
-        // Boutons directionnels visibles sur desktop
-        const dpadWrap = document.createElement('div');
-        dpadWrap.id = 'swipe-dpad';
-        dpadWrap.style.cssText = 'display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:1fr 1fr 1fr;gap:6px;width:150px;height:150px;margin-top:16px;';
-        const btnStyle = 'width:44px;height:44px;border-radius:12px;border:2px solid rgba(255,105,180,0.5);background:rgba(255,105,180,0.12);font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.1s;color:#ff69b4;';
-        const dpad = [
-            {dir:'↑',dx:0,dy:-100,col:2,row:1},
-            {dir:'←',dx:-100,dy:0,col:1,row:2},
-            {dir:'→',dx:100,dy:0,col:3,row:2},
-            {dir:'↓',dx:0,dy:100,col:2,row:3},
-        ];
-        dpad.forEach(({dir,dx,dy,col,row}) => {
-            const btn = document.createElement('button');
-            btn.textContent = dir;
-            btn.style.cssText = btnStyle + `grid-column:${col};grid-row:${row};`;
-            btn.onmousedown = () => { btn.style.background='rgba(255,105,180,0.35)'; };
-            btn.onclick = () => { btn.style.background='rgba(255,105,180,0.12)'; doSwipe(dx,dy); };
-            dpadWrap.appendChild(btn);
-        });
-        // Afficher le dpad uniquement sur non-touch
-        if (!('ontouchstart' in window)) {
-            tg.closest('div').appendChild(dpadWrap);
-        }
+        // Desktop garde le clavier, mais sans flèches visuelles à l'écran.
         // Nettoyage clavier à la fin du jeu (winGame supprime l'arena)
         const _origWin = winGame;
         const _cleanSwipe = () => { window.removeEventListener('keydown', _swipeKey); };

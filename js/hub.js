@@ -59,6 +59,7 @@
 
         updateDynamicMusic();
         document.documentElement.style.setProperty('--bg-lightness', (10 + (foundGuardians.size * 8)) + '%');
+        if (window.RewardsModule?.applyShrineVisualState) window.RewardsModule.applyShrineVisualState();
         hubTimer = 0;
         document.documentElement.style.setProperty('--darkness', 0);
         document.getElementById('shadow-heart')?.style.setProperty('transform', 'scale(1)');

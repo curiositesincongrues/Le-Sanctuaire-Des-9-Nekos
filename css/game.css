@@ -1260,3 +1260,108 @@
 .kd-ground-glow, .mirror-name-rain {
     will-change: transform, opacity;
 }
+
+
+/* ===============================
+   SPRINT 3 — reveal / rewards / assists
+   =============================== */
+.discovery-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at center, rgba(255,255,255,0.03), rgba(10,0,16,0.96));
+    opacity: 0;
+    transition: opacity .32s ease;
+    overflow: hidden;
+}
+.discovery-overlay.show { opacity: 1; }
+.discovery-bg {
+    position:absolute; inset:0;
+    background: radial-gradient(circle at 50% 36%, color-mix(in srgb, var(--reveal-color) 38%, transparent), transparent 60%);
+    opacity:.9;
+}
+.discovery-kanji-bg {
+    position:absolute; left:50%; top:50%; transform:translate(-50%,-56%);
+    font-family:'Ma Shan Zheng',cursive;
+    font-size:min(50vw,320px); line-height:1;
+    color:var(--reveal-color); opacity:.08; pointer-events:none;
+}
+.discovery-card {
+    position:relative; z-index:2;
+    width:min(92vw, 420px);
+    padding:28px 24px 24px;
+    border-radius:28px;
+    border:1px solid rgba(255,255,255,.08);
+    background:linear-gradient(180deg, rgba(27,12,40,.86), rgba(10,3,18,.92));
+    box-shadow:0 24px 80px rgba(0,0,0,.35), 0 0 0 1px rgba(255,255,255,.03) inset;
+    text-align:center;
+    transform:translateY(18px) scale(.98);
+    transition:transform .42s ease;
+}
+.discovery-overlay.show .discovery-card { transform:translateY(0) scale(1); }
+.discovery-halo { position:relative; width:210px; height:210px; margin:0 auto 16px; display:flex; align-items:center; justify-content:center; }
+.discovery-halo-ring {
+    position:absolute; inset:0; border-radius:50%;
+    background:conic-gradient(from 0deg, var(--reveal-color), var(--reveal-dark), #fff, var(--reveal-color));
+    filter:blur(10px); opacity:.65; animation:discoveryHaloSpin 4.5s linear infinite;
+}
+.discovery-relic { position:relative; z-index:1; width:168px; height:168px; filter:drop-shadow(0 0 28px var(--reveal-color)); }
+.discovery-relic svg { width:168px; height:168px; }
+.discovery-name {
+    font-family:'Ma Shan Zheng',cursive; font-size:48px; color:var(--reveal-color);
+    text-shadow:0 0 24px color-mix(in srgb, var(--reveal-color) 65%, transparent);
+}
+.discovery-kanji-small { font-family:'Ma Shan Zheng',cursive; color:var(--reveal-dark); font-size:22px; margin:2px 0 14px; }
+.discovery-text { min-height:72px; color:rgba(255,255,255,.86); line-height:1.65; font-size:17px; margin-bottom:20px; }
+.ritual-cta {
+    border:none; border-radius:999px; padding:14px 28px; cursor:pointer;
+    font-family:'Ma Shan Zheng',cursive; font-size:20px; color:white;
+    background:linear-gradient(135deg, var(--reveal-dark, #8b5cf6), var(--reveal-color, #f472b6));
+    box-shadow:0 12px 30px rgba(0,0,0,.22);
+}
+.ritual-cta:hover { transform:translateY(-1px) scale(1.01); }
+.milestone-overlay {
+    position:fixed; inset:0; z-index:9600; display:flex; align-items:center; justify-content:center;
+    opacity:0; transition:opacity .28s ease; pointer-events:none;
+}
+.milestone-overlay.show { opacity:1; pointer-events:auto; }
+.milestone-backdrop { position:absolute; inset:0; background:rgba(6,0,10,.76); backdrop-filter: blur(8px); }
+.milestone-panel {
+    position:relative; z-index:1; width:min(92vw,460px); padding:30px 24px 24px;
+    border-radius:28px; text-align:center;
+    background:linear-gradient(180deg, rgba(25,11,37,.96), rgba(12,3,20,.98));
+    border:1px solid rgba(255,255,255,.08); box-shadow:0 28px 90px rgba(0,0,0,.45);
+}
+.milestone-badge { color:#ffd700; font-size:12px; letter-spacing:2px; margin-bottom:10px; font-weight:700; font-family:'Fredoka One',cursive; text-transform:uppercase; }
+.milestone-title { font-family:'Fredoka One',cursive; font-size:40px; color:#fff2c6; margin-bottom:8px; line-height:1.1; }
+.milestone-subtitle { color:rgba(255,255,255,.86); font-size:18px; margin-bottom:12px; font-family:'Fredoka One',cursive; }
+.milestone-body { color:rgba(255,255,255,.72); line-height:1.7; margin-bottom:18px; font-family:'Fredoka One',cursive; }
+.milestone-cta { font-family:'Fredoka One',cursive; font-size:18px; letter-spacing:.2px; }
+.milestone-overlay.theme-rose .milestone-title { color:#ffd7ea; text-shadow:0 0 24px rgba(255,183,197,.35); }
+.milestone-overlay.theme-gold .milestone-title { color:#ffe69a; text-shadow:0 0 24px rgba(255,215,0,.35); }
+.milestone-overlay.theme-violet .milestone-title { color:#d9c6ff; text-shadow:0 0 24px rgba(167,139,250,.35); }
+.quiz-assist {
+    margin:14px auto 0; max-width:420px; min-height:24px; padding:0 10px;
+    color:rgba(255,242,198,.86); text-align:center; line-height:1.5; font-size:15px; opacity:0;
+    transform:translateY(6px); transition:opacity .22s ease, transform .22s ease;
+}
+.quiz-assist.visible { opacity:1; transform:translateY(0); }
+.btn-ema.option-guided { border-color:rgba(255,215,0,.45) !important; box-shadow:0 0 0 1px rgba(255,215,0,.16) inset; }
+.btn-ema.option-guided-strong { border-color:#ffd700 !important; box-shadow:0 0 18px rgba(255,215,0,.25); background:rgba(255,215,0,.10) !important; }
+:root[data-shrine-level="1"] #screen-hub::before,
+:root[data-shrine-level="2"] #screen-hub::before,
+:root[data-shrine-level="3"] #screen-hub::before {
+    content:''; position:absolute; inset:0; pointer-events:none;
+    background:radial-gradient(circle at 50% 10%, rgba(255,215,0,.06), transparent 46%);
+}
+:root[data-shrine-level="2"] #screen-hub::after,
+:root[data-shrine-level="3"] #screen-hub::after {
+    content:''; position:absolute; inset:0; pointer-events:none;
+    background-image:radial-gradient(circle, rgba(255,215,0,.22) 0 1px, transparent 1.2px);
+    background-size:26px 26px; opacity:.16; animation:rewardDust 14s linear infinite;
+}
+:root[data-shrine-level="3"] .slot.unlocked { box-shadow:0 0 20px rgba(255,215,0,.18), inset 0 0 12px rgba(255,255,255,.04); }
+@keyframes rewardDust { from { transform:translateY(0); } to { transform:translateY(26px); } }

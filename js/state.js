@@ -13,7 +13,10 @@
             tier3: false,
             tier6: false,
             tier9: false
-        }
+        },
+        assistsAvailable: 0,
+        shrineLevel: 0,
+        attemptMap: {}
     };
 
     const state = window.GameState = Object.assign({}, defaultState, window.GameState || {});
@@ -34,6 +37,9 @@
             tier6: !!state.bonusUnlocked.tier6,
             tier9: !!state.bonusUnlocked.tier9
         };
+        state.assistsAvailable = Number.isFinite(Number(state.assistsAvailable)) ? Math.max(0, Number(state.assistsAvailable)) : 0;
+        state.shrineLevel = Number.isFinite(Number(state.shrineLevel)) ? Math.max(0, Number(state.shrineLevel)) : 0;
+        if (!state.attemptMap || typeof state.attemptMap !== 'object' || Array.isArray(state.attemptMap)) state.attemptMap = {};
     }
 
     normalizeState();
@@ -45,7 +51,10 @@
             foundGuardians: [...state.foundGuardians],
             hpOni: state.hpOni,
             currentGuardianId: state.currentGuardianId || null,
-            bonusUnlocked: { ...state.bonusUnlocked }
+            bonusUnlocked: { ...state.bonusUnlocked },
+            assistsAvailable: state.assistsAvailable,
+            shrineLevel: state.shrineLevel,
+            attemptMap: { ...state.attemptMap }
         };
     };
 
@@ -56,6 +65,9 @@
         state.hpOni = data.hpOni;
         state.currentGuardianId = data.currentGuardianId || null;
         state.bonusUnlocked = data.bonusUnlocked || state.bonusUnlocked;
+        state.assistsAvailable = data.assistsAvailable;
+        state.shrineLevel = data.shrineLevel;
+        state.attemptMap = data.attemptMap || state.attemptMap;
         normalizeState();
     };
 
