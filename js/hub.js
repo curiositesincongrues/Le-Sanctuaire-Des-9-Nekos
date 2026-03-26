@@ -42,6 +42,13 @@
         }
 
         transitionScreen('screen-hub');
+        
+        // TOUJOURS réafficher le bouton scanner (fix bug où il disparaît)
+        const btnScan = document.getElementById('btn-scan');
+        if (btnScan) {
+            btnScan.removeAttribute('style');
+            btnScan.style.cssText = 'display: block !important; visibility: visible !important; pointer-events: auto !important;';
+        }
 
         bindHiddenRitualTrigger();
         const grid = document.getElementById('grid-nekos');

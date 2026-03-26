@@ -45,7 +45,7 @@
         }
     }
 
-    function showRewardOverlay(def) {
+    function showRewardOverlay(def, tierKey) {
         const old = document.getElementById('milestone-overlay');
         if (old) old.remove();
 
@@ -59,7 +59,24 @@
                 <div class="milestone-title">${def.title}</div>
                 <div class="milestone-subtitle">${def.subtitle}</div>
                 <div class="milestone-body">${def.body}</div>
-                <button class="ritual-cta milestone-cta">Continuer l'aventure</button>
+                <button class="milestone-cta" style="
+                    display:block;
+                    width:100%;
+                    margin-top:20px;
+                    border:none;
+                    border-radius:999px;
+                    padding:16px 28px;
+                    cursor:pointer;
+                    font-family:'Fredoka One',cursive;
+                    font-size:18px;
+                    color:#5d4037;
+                    letter-spacing:.2px;
+                    background:linear-gradient(135deg, #ffd700, #ffaa00);
+                    box-shadow:0 8px 25px rgba(255,215,0,0.4);
+                    opacity:1;
+                    transform:none;
+                    transition: transform 0.2s, box-shadow 0.2s;
+                ">✨ Relever le défi !</button>
             </div>
         `;
         document.body.appendChild(overlay);
@@ -70,7 +87,16 @@
 
         overlay.querySelector('.milestone-cta')?.addEventListener('click', () => {
             overlay.classList.remove('show');
-            setTimeout(() => overlay.remove(), 280);
+            setTimeout(() => {
+                overlay.remove();
+                // Lancer l'énigme correspondante
+                if (typeof Enigmes !== 'undefined') {
+                    const enigmeNumber = tierKey === 'tier3' ? 1 : tierKey === 'tier6' ? 2 : tierKey === 'tier9' ? 3 : 0;
+                    if (enigmeNumber > 0) {
+                        Enigmes.show(enigmeNumber);
+                    }
+                }
+            }, 280);
         });
     }
 
@@ -84,7 +110,7 @@
         state.shrineLevel = Math.max(state.shrineLevel || 0, def.shrineLevel);
         applyShrineVisualState();
         save();
-        showRewardOverlay(def);
+        showRewardOverlay(def, key);
         return true;
     }
 

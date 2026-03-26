@@ -144,6 +144,7 @@
     }
 
     function winGame() {
+        console.log('[REVEAL] winGame appelé');
         const wonIndex = currentFound;
         foundGuardians.add(wonIndex);
         if (window.syncStateFromGlobals) syncStateFromGlobals();
@@ -166,15 +167,30 @@
         const instr = document.getElementById('game-instr');
         if (instr) instr.innerText = 'RÉUSSI !';
         setTimeout(() => {
-            if (foundGuardians.size >= 9) launchFinalCinematic();
-            else showPostWinReveal(wonIndex);
+            console.log('[REVEAL] foundGuardians.size =', foundGuardians.size);
+            if (foundGuardians.size >= 9) {
+                console.log('[REVEAL] → launchFinalCinematic');
+                launchFinalCinematic();
+            } else {
+                console.log('[REVEAL] → showPostWinReveal');
+                showPostWinReveal(wonIndex);
+            }
         }, 1100);
     }
 
     function animateSoulToHub(idx) {
         transitionScreen('screen-hub');
         document.getElementById('miko-belt')?.classList.add('visible');
+        
         setTimeout(() => {
+            // TOUJOURS réafficher le bouton scanner (fix critique - DOIT être après transitionScreen)
+            const btnScan = document.getElementById('btn-scan');
+            if (btnScan) {
+                btnScan.removeAttribute('style');
+                btnScan.style.cssText = 'display: block !important; visibility: visible !important; pointer-events: auto !important;';
+                console.log('[FIX] Bouton scan réaffiché');
+            }
+            
             const grid = document.getElementById('grid-nekos');
             if (!grid) return;
             grid.innerHTML = '';
@@ -220,6 +236,15 @@
                     updateMikoBelt();
                     if (window.syncStateFromGlobals) syncStateFromGlobals();
                     if (typeof saveProgress === 'function') saveProgress();
+                    
+                    // FIX FINAL : Réafficher le bouton après TOUTES les animations
+                    const btnScanFinal = document.getElementById('btn-scan');
+                    if (btnScanFinal) {
+                        btnScanFinal.removeAttribute('style');
+                        btnScanFinal.style.cssText = 'display: block !important; visibility: visible !important; pointer-events: auto !important;';
+                        console.log('[FIX FINAL] Bouton scan réaffiché après animation');
+                    }
+                    
                     if (window.RewardsModule?.checkMilestoneRewards) {
                         setTimeout(() => window.RewardsModule.checkMilestoneRewards(), 450);
                     }

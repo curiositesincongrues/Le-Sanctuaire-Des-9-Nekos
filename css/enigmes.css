@@ -1,0 +1,1274 @@
+/* ============================================
+   ENIGMES.CSS — Les 3 Épreuves du Sanctuaire
+   Style kawaii pop acidulé
+   ============================================ */
+
+/* ═══════════════════════════════════════════════════
+   ÉCRAN ÉNIGME — BASE
+   ═══════════════════════════════════════════════════ */
+.enigme-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 600;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: radial-gradient(ellipse at center, #2d1b4e 0%, #1a0d2e 100%);
+    overflow: hidden;
+    pointer-events: none;
+    visibility: hidden;
+}
+
+.enigme-screen.active {
+    display: flex;
+    pointer-events: auto;
+    visibility: visible;
+    animation: enigme-appear 0.5s ease-out;
+}
+
+@keyframes enigme-appear {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+/* Vignette mystique */
+.enigme-screen::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, transparent 30%, rgba(0,0,0,0.4) 100%);
+    pointer-events: none;
+}
+
+/* Particules flottantes */
+.enigme-particles {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.enigme-particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: var(--kawaii-gold);
+    border-radius: 50%;
+    opacity: 0.6;
+    animation: particle-float 8s ease-in-out infinite;
+}
+
+.enigme-particle:nth-child(1) { left: 10%; top: 20%; animation-delay: 0s; }
+.enigme-particle:nth-child(2) { left: 85%; top: 15%; animation-delay: -2s; }
+.enigme-particle:nth-child(3) { left: 20%; top: 70%; animation-delay: -4s; }
+.enigme-particle:nth-child(4) { left: 75%; top: 80%; animation-delay: -1s; }
+.enigme-particle:nth-child(5) { left: 50%; top: 10%; animation-delay: -3s; }
+
+@keyframes particle-float {
+    0%, 100% { transform: translateY(0) scale(1); opacity: 0.6; }
+    50% { transform: translateY(-20px) scale(1.5); opacity: 1; }
+}
+
+/* ═══════════════════════════════════════════════════
+   HEADER ÉNIGME
+   ═══════════════════════════════════════════════════ */
+.enigme-header {
+    text-align: center;
+    margin-bottom: 20px;
+    z-index: 1;
+}
+
+.enigme-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 24px;
+    color: var(--kawaii-gold);
+    text-shadow: 0 2px 10px rgba(255,215,0,0.5), 0 0 30px rgba(255,215,0,0.3);
+    margin: 0 0 10px 0;
+}
+
+.enigme-subtitle {
+    font-family: 'Fredoka One', cursive;
+    font-size: 14px;
+    color: var(--kawaii-pink);
+    opacity: 0.9;
+}
+
+/* ═══════════════════════════════════════════════════
+   KODAMA GUIDE
+   ═══════════════════════════════════════════════════ */
+.enigme-kodama {
+    position: absolute;
+    bottom: 15%;
+    left: 5%;
+    transform: scale(0.25);
+    z-index: 10;
+    filter: drop-shadow(0 0 20px var(--kodama-glow));
+}
+
+.enigme-kodama-bubble {
+    position: absolute;
+    bottom: calc(15% + 80px);
+    left: 3%;
+    background: rgba(255,255,255,0.95);
+    border: 3px solid var(--kawaii-pink);
+    border-radius: 20px;
+    padding: 12px 18px;
+    max-width: 180px;
+    z-index: 11;
+    box-shadow: 0 5px 20px rgba(255,183,197,0.4);
+    animation: bubble-bounce 0.4s ease-out;
+}
+
+.enigme-kodama-bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -12px;
+    left: 30px;
+    border: 12px solid transparent;
+    border-top-color: var(--kawaii-pink);
+    border-bottom: none;
+}
+
+.enigme-kodama-text {
+    font-family: 'Fredoka One', cursive;
+    font-size: 13px;
+    color: #5d4037;
+    text-align: center;
+    margin: 0;
+    line-height: 1.4;
+}
+
+@keyframes bubble-bounce {
+    0% { transform: scale(0) translateY(20px); opacity: 0; }
+    50% { transform: scale(1.1) translateY(-5px); }
+    100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+/* ═══════════════════════════════════════════════════
+   ZONE DE JEU
+   ═══════════════════════════════════════════════════ */
+.enigme-game-area {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* ═══════════════════════════════════════════════════
+   ÉNIGME 1 — LANTERNES
+   ═══════════════════════════════════════════════════ */
+.lantern-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    padding: 15px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 20px;
+    border: 2px solid rgba(255,215,0,0.3);
+    touch-action: manipulation; /* Évite le zoom accidentel */
+    user-select: none;
+}
+
+.lantern-cell {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    touch-action: manipulation;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    background: rgba(40,30,50,0.6);
+}
+
+/* Case mystère (non révélée) - toutes identiques */
+.lantern-cell.mystery {
+    background: rgba(40,30,50,0.6);
+}
+
+.lantern-cell.mystery:hover {
+    background: rgba(60,50,70,0.7);
+    transform: scale(1.02);
+}
+
+/* Mur révélé */
+.lantern-cell.wall.lit {
+    background: rgba(139,90,43,0.8);
+    cursor: default;
+    border: 2px solid rgba(101,67,33,0.8);
+}
+
+/* Chemin révélé */
+.lantern-cell.path.lit {
+    background: rgba(255,215,0,0.25);
+    box-shadow: 0 0 20px rgba(255,215,0,0.4);
+}
+
+.lantern-cell.start {
+    background: rgba(168,213,162,0.5);
+    border: 3px solid var(--kodama-green);
+    box-shadow: 0 0 15px rgba(168,213,162,0.4);
+}
+
+.lantern-cell.end {
+    background: rgba(255,183,197,0.5);
+    border: 3px solid var(--kawaii-pink);
+    box-shadow: 0 0 15px rgba(255,183,197,0.4);
+}
+
+.lantern-cell.selected {
+    background: rgba(255,215,0,0.5) !important;
+    transform: scale(1.05);
+    border: 2px solid var(--kawaii-gold);
+}
+
+.lantern-cell svg {
+    width: 40px;
+    height: 40px;
+    transition: all 0.3s ease;
+}
+
+.lantern-cell.lit svg {
+    filter: drop-shadow(0 0 10px rgba(255,215,0,0.8));
+}
+
+/* Animation d'éclairage */
+.lantern-cell.lit {
+    animation: cell-reveal 0.4s ease-out;
+}
+
+@keyframes cell-reveal {
+    0% { transform: scale(0.9); opacity: 0.5; }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* Compteur de lanternes */
+.lantern-counter {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 15px;
+    padding: 10px 20px;
+    background: rgba(0,0,0,0.4);
+    border-radius: 25px;
+    border: 2px solid var(--kawaii-gold);
+}
+
+.lantern-counter-text {
+    font-family: 'Fredoka One', cursive;
+    font-size: 14px;
+    color: white;
+}
+
+.lantern-counter-dots {
+    display: flex;
+    gap: 6px;
+}
+
+.lantern-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.3);
+    transition: all 0.3s ease;
+}
+
+.lantern-dot.used {
+    background: var(--kawaii-gold);
+    box-shadow: 0 0 10px var(--kawaii-gold);
+}
+
+/* ═══════════════════════════════════════════════════
+   ÉNIGME 2 — BALANCE
+   ═══════════════════════════════════════════════════ */
+.balance-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.balance-scale {
+    position: relative;
+    width: 280px;
+    height: 180px;
+}
+
+.balance-beam {
+    position: absolute;
+    top: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 240px;
+    height: 12px;
+    background: linear-gradient(135deg, var(--kawaii-gold) 0%, #ffaa00 100%);
+    border-radius: 6px;
+    transform-origin: center;
+    transition: transform 0.5s ease;
+    box-shadow: 0 4px 15px rgba(255,215,0,0.4);
+}
+
+.balance-beam.left-heavy {
+    transform: translateX(-50%) rotate(-8deg);
+}
+
+.balance-beam.right-heavy {
+    transform: translateX(-50%) rotate(8deg);
+}
+
+.balance-beam.balanced {
+    transform: translateX(-50%) rotate(0deg);
+    box-shadow: 0 0 30px rgba(144,238,144,0.8);
+}
+
+.balance-pivot {
+    position: absolute;
+    top: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 30px;
+    background: linear-gradient(135deg, #ffd700 0%, #ff8c00 100%);
+    clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+}
+
+.balance-plate {
+    position: absolute;
+    bottom: 20px;
+    width: 90px;
+    height: 70px;
+    background: rgba(255,255,255,0.1);
+    border: 2px dashed rgba(255,255,255,0.4);
+    border-radius: 15px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 8px;
+    transition: all 0.3s ease;
+}
+
+.balance-plate.left {
+    left: 10px;
+}
+
+.balance-plate.right {
+    right: 10px;
+}
+
+.balance-plate.drop-target {
+    border-color: var(--kawaii-gold);
+    background: rgba(255,215,0,0.2);
+}
+
+.balance-plate .offering-item {
+    width: 35px;
+    height: 35px;
+}
+
+/* Poids cible */
+.target-weight {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 15px;
+    background: rgba(0,0,0,0.4);
+    border-radius: 20px;
+    border: 2px solid var(--kawaii-pink);
+}
+
+.target-weight-text {
+    font-family: 'Fredoka One', cursive;
+    font-size: 13px;
+    color: white;
+}
+
+.target-weight-feathers {
+    display: flex;
+    gap: 3px;
+}
+
+.feather-icon {
+    width: 16px;
+    height: 16px;
+    fill: var(--kawaii-pink);
+}
+
+/* Offrandes disponibles */
+.offerings-tray {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 15px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 20px;
+    border: 2px solid rgba(255,255,255,0.2);
+    max-width: 320px;
+}
+
+.offering-item {
+    width: 50px;
+    height: 50px;
+    padding: 8px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 12px;
+    cursor: grab;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.offering-item:hover {
+    transform: scale(1.1);
+    background: rgba(255,255,255,0.2);
+}
+
+.offering-item:active {
+    cursor: grabbing;
+    transform: scale(1.15);
+}
+
+.offering-item.selected {
+    box-shadow: 0 0 15px var(--kawaii-gold);
+    border: 2px solid var(--kawaii-gold);
+}
+
+.offering-item svg {
+    width: 100%;
+    height: 100%;
+}
+
+.offering-weight {
+    position: absolute;
+    bottom: -5px;
+    right: -5px;
+    background: var(--kawaii-pink);
+    color: white;
+    font-family: 'Fredoka One', cursive;
+    font-size: 10px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+/* ═══════════════════════════════════════════════════
+   ÉNIGME 3 — DÉCODAGE
+   ═══════════════════════════════════════════════════ */
+.decode-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+/* Pierre de Rosette (clé) */
+.rosetta-stone {
+    background: linear-gradient(145deg, #8b7355 0%, #6b5344 100%);
+    border-radius: 15px;
+    padding: 15px 20px;
+    border: 3px solid #5d4037;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.4), inset 0 2px 4px rgba(255,255,255,0.1);
+}
+
+.rosetta-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 12px;
+    color: var(--kawaii-gold);
+    text-align: center;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.rosetta-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+
+.rosetta-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.rosetta-symbol {
+    width: 35px;
+    height: 35px;
+}
+
+.rosetta-text {
+    font-family: 'Fredoka One', cursive;
+    font-size: 12px;
+    color: white;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}
+
+/* Message codé */
+.coded-message {
+    display: flex;
+    gap: 15px;
+    padding: 15px 25px;
+    background: rgba(0,0,0,0.4);
+    border-radius: 15px;
+    border: 2px solid var(--kawaii-gold);
+}
+
+.coded-symbol {
+    width: 50px;
+    height: 50px;
+    padding: 8px;
+    background: rgba(255,215,0,0.2);
+    border-radius: 10px;
+    animation: symbol-glow 2s ease-in-out infinite;
+}
+
+.coded-symbol svg {
+    width: 100%;
+    height: 100%;
+}
+
+@keyframes symbol-glow {
+    0%, 100% { box-shadow: 0 0 10px rgba(255,215,0,0.3); }
+    50% { box-shadow: 0 0 20px rgba(255,215,0,0.6); }
+}
+
+/* Zone de réponse */
+.answer-zone {
+    display: flex;
+    gap: 10px;
+}
+
+.answer-slot {
+    width: 50px;
+    height: 50px;
+    background: rgba(255,255,255,0.1);
+    border: 2px dashed rgba(255,255,255,0.4);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Fredoka One', cursive;
+    font-size: 18px;
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.answer-slot.filled {
+    background: rgba(255,215,0,0.3);
+    border: 2px solid var(--kawaii-gold);
+}
+
+.answer-slot.correct {
+    background: rgba(144,238,144,0.4);
+    border-color: #90EE90;
+}
+
+.answer-slot.wrong {
+    background: rgba(255,107,107,0.4);
+    border-color: #ff6b6b;
+    animation: shake 0.3s ease;
+}
+
+/* Syllabes disponibles */
+.syllables-tray {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 300px;
+}
+
+.syllable-btn {
+    padding: 12px 18px;
+    background: linear-gradient(135deg, var(--kawaii-pink) 0%, #ff9eb5 100%);
+    border: none;
+    border-radius: 12px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 16px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 10px rgba(255,183,197,0.4);
+}
+
+.syllable-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(255,183,197,0.6);
+}
+
+.syllable-btn:active {
+    transform: translateY(0);
+}
+
+.syllable-btn.used {
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+/* ═══════════════════════════════════════════════════
+   INSTRUCTIONS
+   ═══════════════════════════════════════════════════ */
+.enigme-instructions {
+    background: rgba(0,0,0,0.4);
+    border-radius: 20px;
+    padding: 15px 20px;
+    margin-bottom: 20px;
+    max-width: 350px;
+    border: 1px solid rgba(255,215,0,0.3);
+    z-index: 1;
+}
+
+.instruction-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.instruction-icon {
+    display: flex;
+    gap: 2px;
+}
+
+.instruction-icon svg {
+    width: 28px;
+    height: 28px;
+}
+
+.instruction-text {
+    font-family: 'Fredoka One', cursive;
+    font-size: 14px;
+    color: white;
+    line-height: 1.4;
+}
+
+.instruction-text strong {
+    color: var(--kawaii-gold);
+}
+
+.instruction-text .highlight {
+    color: var(--kawaii-gold);
+    font-weight: bold;
+}
+
+.instruction-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.instruction-steps p {
+    font-family: 'Fredoka One', cursive;
+    font-size: 12px;
+    color: rgba(255,255,255,0.85);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.step-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    background: var(--kawaii-pink);
+    color: white;
+    border-radius: 50%;
+    font-size: 11px;
+    flex-shrink: 0;
+}
+
+/* ═══════════════════════════════════════════════════
+   ÉNIGME 2 — BALANCE AMÉLIORÉE
+   ═══════════════════════════════════════════════════ */
+.balance-display {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 15px;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.balance-target, .balance-current {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.balance-label {
+    font-family: 'Fredoka One', cursive;
+    font-size: 14px;
+    color: rgba(255,255,255,0.8);
+    min-width: 80px;
+}
+
+.balance-stars {
+    display: flex;
+    gap: 4px;
+}
+
+.star-icon {
+    width: 24px;
+    height: 24px;
+}
+
+.star-icon svg {
+    width: 100%;
+    height: 100%;
+}
+
+.target-stars .star-icon {
+    opacity: 0.5;
+}
+
+.balance-number {
+    font-family: 'Fredoka One', cursive;
+    font-size: 20px;
+    color: white;
+    margin-left: auto;
+    padding: 4px 12px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+}
+
+.balance-current.too-low .balance-number {
+    color: #81d4fa;
+}
+
+.balance-current.too-high .balance-number {
+    color: #ff8a80;
+}
+
+.balance-current.perfect .balance-number {
+    color: #a5d6a7;
+    background: rgba(144,238,144,0.2);
+}
+
+/* Cartes d'offrandes */
+.offerings-tray {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    padding: 15px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 20px;
+    max-width: 320px;
+}
+
+.offering-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px 8px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 15px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 2px solid transparent;
+}
+
+.offering-card:hover {
+    background: rgba(255,255,255,0.15);
+}
+
+.offering-card.selected {
+    background: rgba(255,215,0,0.2);
+    border-color: var(--kawaii-gold);
+    box-shadow: 0 0 15px rgba(255,215,0,0.3);
+}
+
+.offering-image {
+    width: 45px;
+    height: 45px;
+}
+
+.offering-image svg {
+    width: 100%;
+    height: 100%;
+}
+
+.offering-name {
+    font-family: 'Fredoka One', cursive;
+    font-size: 11px;
+    color: white;
+    margin-top: 6px;
+}
+
+.offering-weight {
+    display: flex;
+    gap: 2px;
+    margin-top: 4px;
+}
+
+.mini-star {
+    width: 14px;
+    height: 14px;
+}
+
+.mini-star svg {
+    width: 100%;
+    height: 100%;
+}
+
+/* ═══════════════════════════════════════════════════
+   ÉNIGME 3 — DÉCODAGE AMÉLIORÉ
+   ═══════════════════════════════════════════════════ */
+.rosetta-stone {
+    background: linear-gradient(145deg, #6d5d4e 0%, #5d4d3e 100%);
+    border-radius: 15px;
+    padding: 15px;
+    border: 3px solid #4d3d2e;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+    margin-bottom: 20px;
+}
+
+.rosetta-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 12px;
+    color: var(--kawaii-gold);
+    text-align: center;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.rosetta-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+}
+
+.rosetta-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 8px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 10px;
+}
+
+.rosetta-symbol {
+    width: 35px;
+    height: 35px;
+}
+
+.rosetta-symbol svg {
+    width: 100%;
+    height: 100%;
+}
+
+.rosetta-arrow {
+    font-size: 14px;
+    color: var(--kawaii-gold);
+}
+
+.rosetta-text {
+    font-family: 'Fredoka One', cursive;
+    font-size: 14px;
+    color: white;
+}
+
+.decode-section, .answer-section, .syllables-section {
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.decode-label, .answer-label, .syllables-label {
+    font-family: 'Fredoka One', cursive;
+    font-size: 13px;
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 8px;
+}
+
+.coded-message {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+.coded-symbol {
+    width: 55px;
+    height: 55px;
+    padding: 8px;
+    background: rgba(255,215,0,0.15);
+    border-radius: 12px;
+    border: 2px solid rgba(255,215,0,0.4);
+}
+
+.coded-symbol svg {
+    width: 100%;
+    height: 100%;
+}
+
+.answer-zone {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}
+
+.answer-slot {
+    width: 55px;
+    height: 55px;
+    background: rgba(255,255,255,0.1);
+    border: 2px dashed rgba(255,255,255,0.4);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Fredoka One', cursive;
+    font-size: 20px;
+    color: rgba(255,255,255,0.5);
+    transition: all 0.3s ease;
+}
+
+.answer-slot.filled {
+    background: rgba(255,215,0,0.2);
+    border: 2px solid var(--kawaii-gold);
+    color: white;
+}
+
+.answer-slot.correct {
+    background: rgba(144,238,144,0.3);
+    border-color: #90EE90;
+    color: #90EE90;
+}
+
+.answer-slot.wrong {
+    background: rgba(255,107,107,0.3);
+    border-color: #ff6b6b;
+    color: #ff6b6b;
+    animation: shake 0.3s ease;
+}
+
+.syllables-tray {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+}
+
+.syllable-btn {
+    padding: 12px 20px;
+    background: linear-gradient(135deg, var(--kawaii-pink) 0%, #ff9eb5 100%);
+    border: none;
+    border-radius: 12px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 16px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 10px rgba(255,183,197,0.4);
+}
+
+.syllable-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(255,183,197,0.6);
+}
+
+.syllable-btn.used {
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+/* ═══════════════════════════════════════════════════
+   SUCCÈS OVERLAY
+   ═══════════════════════════════════════════════════ */
+.enigme-success-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    animation: success-appear 0.5s ease-out;
+}
+
+@keyframes success-appear {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.success-icon {
+    width: 100px;
+    height: 100px;
+    animation: success-bounce 0.6s ease-out;
+}
+
+.success-icon svg {
+    width: 100%;
+    height: 100%;
+}
+
+@keyframes success-bounce {
+    0% { transform: scale(0); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+.success-text {
+    font-family: 'Fredoka One', cursive;
+    font-size: 32px;
+    color: white;
+    text-shadow: 0 3px 10px rgba(0,0,0,0.5);
+    margin-top: 20px;
+}
+
+.success-subtext {
+    font-family: 'Fredoka One', cursive;
+    font-size: 18px;
+    color: var(--kawaii-gold);
+    margin-top: 8px;
+}
+.enigme-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+    z-index: 1;
+}
+
+.enigme-btn {
+    padding: 14px 28px;
+    border-radius: 30px;
+    border: 3px solid white;
+    font-family: 'Fredoka One', cursive;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.enigme-btn-validate {
+    background: linear-gradient(135deg, var(--kawaii-gold) 0%, #ffaa00 100%);
+    color: #5d4037;
+    box-shadow: 0 4px 15px rgba(255,215,0,0.5);
+}
+
+.enigme-btn-validate:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255,215,0,0.7);
+}
+
+.enigme-btn-reset {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    border-color: rgba(255,255,255,0.5);
+}
+
+.enigme-btn-reset:hover {
+    background: rgba(255,255,255,0.3);
+}
+
+.enigme-btn-hint {
+    background: linear-gradient(135deg, var(--kawaii-purple) 0%, #c490e4 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(212,165,255,0.5);
+}
+
+/* ═══════════════════════════════════════════════════
+   FEEDBACK
+   ═══════════════════════════════════════════════════ */
+.enigme-success-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(144,238,144,0.3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    animation: success-flash 0.5s ease-out;
+}
+
+@keyframes success-flash {
+    0% { opacity: 0; }
+    50% { opacity: 1; }
+    100% { opacity: 0.8; }
+}
+
+.success-icon {
+    font-size: 80px;
+    animation: success-bounce 0.6s ease-out;
+}
+
+@keyframes success-bounce {
+    0% { transform: scale(0); }
+    50% { transform: scale(1.3); }
+    100% { transform: scale(1); }
+}
+
+.success-text {
+    font-family: 'Fredoka One', cursive;
+    font-size: 28px;
+    color: white;
+    text-shadow: 0 3px 10px rgba(0,0,0,0.5);
+    margin-top: 15px;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+/* ═══════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════ */
+@media (max-width: 380px) {
+    .enigme-title { font-size: 20px; }
+    .lantern-cell { width: 50px; height: 50px; }
+    .lantern-cell svg { width: 30px; height: 30px; }
+    .offering-item { width: 45px; height: 45px; }
+    .coded-symbol { width: 40px; height: 40px; }
+    .answer-slot { width: 45px; height: 45px; }
+    .syllable-btn { padding: 10px 14px; font-size: 14px; }
+    .enigme-btn { padding: 12px 22px; font-size: 14px; }
+}
+
+@media (max-height: 700px) {
+    .enigme-header { margin-bottom: 10px; }
+    .enigme-kodama { transform: scale(0.2); bottom: 10%; }
+    .enigme-kodama-bubble { bottom: calc(10% + 60px); }
+}
+
+/* ═══════════════════════════════════════════════════
+   RESPONSIVE MOBILE COMPLET
+   ═══════════════════════════════════════════════════ */
+
+/* Petits téléphones (iPhone SE, etc.) */
+@media (max-width: 375px) {
+    .enigme-screen { padding: 10px; }
+    .enigme-title { font-size: 18px; }
+    
+    .enigme-instructions { 
+        padding: 10px 12px; 
+        margin-bottom: 12px;
+        max-width: 100%;
+    }
+    .instruction-box { gap: 8px; margin-bottom: 8px; padding-bottom: 8px; }
+    .instruction-icon svg { width: 22px; height: 22px; }
+    .instruction-text { font-size: 12px; }
+    .instruction-steps p { font-size: 11px; gap: 6px; }
+    .step-num { width: 16px; height: 16px; font-size: 10px; }
+    
+    /* Grille lanternes plus petite */
+    .lantern-grid { gap: 6px; padding: 10px; }
+    .lantern-cell { width: 48px; height: 52px; border-radius: 8px; }
+    .lantern-cell svg { width: 32px; height: 36px; }
+    
+    /* Offrandes plus compactes */
+    .offerings-tray { gap: 8px; padding: 10px; max-width: 280px; }
+    .offering-card { padding: 8px 6px; border-radius: 10px; }
+    .offering-image { width: 36px; height: 36px; }
+    .offering-name { font-size: 10px; margin-top: 4px; }
+    .mini-star { width: 12px; height: 12px; }
+    
+    /* Décodage plus compact */
+    .rosetta-stone { padding: 10px; }
+    .rosetta-grid { gap: 6px; }
+    .rosetta-symbol { width: 28px; height: 28px; }
+    .rosetta-text { font-size: 11px; }
+    .coded-symbol { width: 42px; height: 42px; padding: 6px; }
+    .answer-slot { width: 42px; height: 42px; font-size: 16px; }
+    .syllable-btn { padding: 8px 12px; font-size: 13px; }
+    
+    /* Boutons */
+    .enigme-actions { gap: 10px; margin-top: 12px; }
+    .enigme-btn { padding: 10px 18px; font-size: 13px; }
+    
+    /* Kodama */
+    .enigme-kodama { transform: scale(0.2); left: 2%; bottom: 12%; }
+    .enigme-kodama-bubble { 
+        max-width: 130px; 
+        padding: 8px 12px; 
+        bottom: calc(12% + 55px);
+        left: 1%;
+    }
+    .enigme-kodama-text { font-size: 11px; }
+    
+    /* Balance */
+    .balance-display { padding: 10px; gap: 10px; }
+    .balance-label { font-size: 12px; min-width: 70px; }
+    .star-icon { width: 18px; height: 18px; }
+    .balance-number { font-size: 16px; padding: 3px 10px; }
+}
+
+/* Téléphones moyens */
+@media (max-width: 414px) and (min-width: 376px) {
+    .enigme-instructions { max-width: 95%; }
+    .lantern-cell { width: 55px; height: 58px; }
+    .lantern-cell svg { width: 36px; height: 40px; }
+    .offerings-tray { max-width: 300px; }
+}
+
+/* Hauteur limitée (mode paysage ou petits écrans) */
+@media (max-height: 600px) {
+    .enigme-screen { padding: 8px; }
+    .enigme-header { margin-bottom: 5px; }
+    .enigme-title { font-size: 16px; }
+    
+    .enigme-instructions { 
+        padding: 8px 10px; 
+        margin-bottom: 8px;
+    }
+    .instruction-box { display: none; } /* Cache le but sur écrans très petits */
+    .instruction-steps p { font-size: 10px; }
+    
+    .lantern-grid { gap: 4px; padding: 8px; }
+    .lantern-cell { width: 44px; height: 48px; }
+    .lantern-cell svg { width: 28px; height: 32px; }
+    
+    .lantern-counter { padding: 6px 12px; margin-top: 8px; }
+    .lantern-counter-text { font-size: 11px; }
+    .lantern-dot { width: 20px; height: 24px; }
+    
+    .enigme-actions { margin-top: 8px; }
+    .enigme-btn { padding: 8px 16px; font-size: 12px; }
+    
+    .enigme-kodama { display: none; }
+    .enigme-kodama-bubble { 
+        position: fixed;
+        bottom: auto;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        max-width: 250px;
+    }
+    .enigme-kodama-bubble::after { display: none; }
+}
+
+/* Touch-friendly : zones de tap plus grandes */
+@media (hover: none) and (pointer: coarse) {
+    .lantern-cell { min-height: 48px; }
+    .offering-card { min-height: 70px; }
+    .syllable-btn { min-height: 44px; }
+    .enigme-btn { min-height: 44px; }
+}
+

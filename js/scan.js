@@ -226,8 +226,8 @@
 
         if (TEST_MODE) {
             console.log('[Scan] Mode TEST activé - bypass caméra');
-            const btn = document.getElementById('btn-scan');
-            if (btn) btn.style.display = 'none';
+            // NOTE: On ne cache PAS le bouton ici car le flux TEST ne passe pas par stopScan()
+            // Le bouton sera naturellement là quand on revient au hub
             setTimeout(() => {
                 playGameSFX('pop');
                 const flash = document.getElementById('flash');
