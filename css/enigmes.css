@@ -7,16 +7,27 @@
    ÉCRAN ÉNIGME — BASE
    ═══════════════════════════════════════════════════ */
 .enigme-screen {
+    /* ── Variables kawaii manquantes (non définies dans base.css) ── */
+    --kawaii-gold: #ffd700;
+    --kawaii-pink: #ffb7c5;
+    --kawaii-purple: #c084fc;
+    --kodama-glow: rgba(168, 213, 162, 0.6);
+    --kodama-green: #a8d5a2;
+
     position: fixed;
     inset: 0;
     z-index: 600;
     display: none;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    /* justify-content: center retiré → le contenu dépassait la hauteur mobile */
+    justify-content: flex-start;
     padding: 20px;
+    padding-bottom: 40px;
     background: radial-gradient(ellipse at center, #2d1b4e 0%, #1a0d2e 100%);
-    overflow: hidden;
+    /* overflow: hidden remplacé → permet le scroll sur petits écrans */
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     pointer-events: none;
     visibility: hidden;
 }
