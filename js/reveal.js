@@ -169,8 +169,20 @@
         setTimeout(() => {
             console.log('[REVEAL] foundGuardians.size =', foundGuardians.size);
             if (foundGuardians.size >= 9) {
-                console.log('[REVEAL] → launchFinalCinematic');
-                launchFinalCinematic();
+                console.log('[REVEAL] → tier9 : forcer reset + checkMilestoneRewards');
+                // IMPORTANT : tier9 peut être true dans le localStorage depuis une session précédente.
+                // Si on ne le remet pas à false, unlockTier retourne false → enigme 3 sautée.
+                if (window.GameState && window.GameState.bonusUnlocked) {
+                    window.GameState.bonusUnlocked.tier9 = false;
+                }
+                const milestoneShown = window.RewardsModule && window.RewardsModule.checkMilestoneRewards
+                    ? window.RewardsModule.checkMilestoneRewards()
+                    : false;
+                if (!milestoneShown) {
+                    // enigmes.js non chargé ou autre souci → fallback cinématique directe
+                    console.warn('[REVEAL] → launchFinalCinematic (fallback : milestone non affiché)');
+                    launchFinalCinematic();
+                }
             } else {
                 console.log('[REVEAL] → showPostWinReveal');
                 showPostWinReveal(wonIndex);

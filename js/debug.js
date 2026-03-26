@@ -310,6 +310,10 @@
         if(typeof heartInterval !== 'undefined') clearInterval(heartInterval);
         if(typeof quizInterval !== 'undefined') clearInterval(quizInterval);
         currentFound = parseInt(index);
+        // Pré-remplir foundGuardians avec tous les gardiens 0..index-1
+        // Sans ça, foundGuardians.size n'atteint jamais 9 et le flow enigme 3 + cinématique finale ne se déclenche pas
+        for (let _i = 0; _i < parseInt(index); _i++) foundGuardians.add(_i);
+        if (window.syncStateFromGlobals) syncStateFromGlobals();
         if (typeof setupQuiz === 'function') setupQuiz();
     }
 
@@ -332,22 +336,26 @@
         if (typeof resetFinalScreenState === 'function') resetFinalScreenState();
 
         if (type === 'final') {
-            const finalScreen = document.getElementById('screen-final');
-            if(finalScreen) finalScreen.classList.add('active');
-            // Init audio complet si pas encore fait (mode debug saute initSfx normalement)
-            const launchWithAudio = () => {
-                if (typeof initSfx === 'function' && !audioCtx) {
-                    try { initSfx(); } catch(e) {}
-                }
-                if (audioCtx && audioCtx.state === 'suspended') {
-                    audioCtx.resume().catch(() => {});
-                }
-                if (typeof setMusicMood === 'function') {
-                    try { setMusicMood('VOYAGE'); } catch(e) {}
-                }
+            // Init audio d'abord
+            if (typeof initSfx === 'function' && !audioCtx) { try { initSfx(); } catch(e) {} }
+            if (audioCtx && audioCtx.state === 'suspended') { audioCtx.resume().catch(() => {}); }
+            if (typeof setMusicMood === 'function') { try { setMusicMood('VOYAGE'); } catch(e) {} }
+
+            // Passer par enigme 3 avant la cinématique — même flow que la production
+            // On réinitialise tier9 pour que checkMilestoneRewards le déclenche même en debug
+            if (window.GameState && window.GameState.bonusUnlocked) {
+                window.GameState.bonusUnlocked.tier9 = false;
+            }
+            if (window.syncStateFromGlobals) syncStateFromGlobals();
+            const milestoneShown = window.RewardsModule && window.RewardsModule.checkMilestoneRewards
+                ? window.RewardsModule.checkMilestoneRewards()
+                : false;
+            if (!milestoneShown) {
+                // Fallback si RewardsModule absent
+                const finalScreen = document.getElementById('screen-final');
+                if (finalScreen) finalScreen.classList.add('active');
                 if (typeof launchFinalCinematic === 'function') launchFinalCinematic();
-            };
-            launchWithAudio();
+            }
         } 
         else if (type === 'cert') {
             if (typeof allowFinalPostUI === 'function') allowFinalPostUI();

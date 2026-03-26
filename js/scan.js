@@ -258,6 +258,9 @@
 
         console.log('[Scan] Activation mode AR...');
         document.body.classList.add('ar-mode');
+        // Restaurer le container si stopScan l'avait masqué explicitement
+        const qrContainer = document.getElementById('qr-reader-container');
+        if (qrContainer) qrContainer.style.display = '';
         document.getElementById('btn-scan')?.style.setProperty('display', 'none');
         document.getElementById('btn-cancel-scan')?.style.setProperty('display', 'block');
 
@@ -382,13 +385,27 @@
         document.body.classList.remove('ar-mode');
         document.getElementById('btn-scan')?.style.setProperty('display', 'block');
         document.getElementById('btn-cancel-scan')?.style.setProperty('display', 'none');
-        
+
+        // Masquage explicite du container — évite le bleeding du kodama sur mobile
+        // (le CSS ar-mode seul ne suffit pas, les enfants positionnés absolument peuvent rester visibles)
+        const container = document.getElementById('qr-reader-container');
+        if (container) container.style.display = 'none';
+
+        // Nettoyage des états du kodama — empêche la bulle et le personnage de rester affichés
+        const kodama = document.querySelector('.scan-kodama');
+        if (kodama) kodama.classList.remove('kodama-happy', 'kodama-shake');
+        const bubble = document.getElementById('kodama-bubble');
+        if (bubble) {
+            bubble.classList.remove('visible');
+            clearTimeout(bubble._hideTimeout);
+        }
+
         // Reset zoom
         currentZoom = 1;
         applyCSSZoom(1);
         videoTrack = null;
         supportsNativeZoom = false;
-        
+
         if (html5QrcodeScanner) html5QrcodeScanner.stop().catch(e => console.log(e));
     }
 

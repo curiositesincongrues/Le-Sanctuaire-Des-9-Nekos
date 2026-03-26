@@ -903,4 +903,11 @@ function onEnigmeSuccess(enigmeNumber) {
         btnScan.style.cssText = 'display: block !important; visibility: visible !important; pointer-events: auto !important;';
         console.log('[ENIGME] Bouton scan réaffiché après énigme');
     }
+    // Énigme 3 = dernier verrou avant la cinématique finale (9 gardiens débloqués)
+    if (enigmeNumber === 3 && typeof foundGuardians !== 'undefined' && foundGuardians.size >= 9) {
+        console.log('[ENIGME] Énigme 3 réussie — lancement cinématique finale');
+        setTimeout(() => {
+            if (typeof launchFinalCinematic === 'function') launchFinalCinematic();
+        }, 500);
+    }
 }
