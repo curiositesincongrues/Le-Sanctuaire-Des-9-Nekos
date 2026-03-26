@@ -68,7 +68,8 @@
         updateMikoBelt();
         document.getElementById('miko-belt')?.classList.add('visible');
 
-        updateDynamicMusic();
+        // Musique hub MP3 — remplace la musique procédurale
+        if (typeof playHubMusic === 'function') playHubMusic();
         document.documentElement.style.setProperty('--bg-lightness', (10 + (foundGuardians.size * 8)) + '%');
         if (window.RewardsModule?.applyShrineVisualState) window.RewardsModule.applyShrineVisualState();
         hubTimer = 0;

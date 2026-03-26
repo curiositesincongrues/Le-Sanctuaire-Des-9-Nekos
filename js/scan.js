@@ -257,6 +257,7 @@
         }
 
         console.log('[Scan] Activation mode AR...');
+        // Hub music continue pendant le scan — pas besoin de la couper
         document.body.classList.add('ar-mode');
         // Restaurer le container si stopScan l'avait masqué explicitement
         const qrContainer = document.getElementById('qr-reader-container');

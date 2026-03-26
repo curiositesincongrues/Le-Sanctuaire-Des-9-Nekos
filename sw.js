@@ -2,7 +2,7 @@
    SERVICE WORKER — Cache PWA stable (Sprint 1)
    ============================================ */
 
-const CACHE_VERSION = 'v12-audio-premium';
+const CACHE_VERSION = 'v13-hub-music';
 const SHELL_CACHE = `neko-shell-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `neko-runtime-${CACHE_VERSION}`;
 
@@ -25,7 +25,8 @@ const SHELL_ASSETS = [
     'js/debug.js',
     'js/app.js',
     'icons/icon-192x192.png',
-    'icons/icon-512x512.png'
+    'icons/icon-512x512.png',
+    'audio/hub_music.mp3'
 ];
 
 function scopeUrl(path = '') {

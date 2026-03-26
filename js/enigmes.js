@@ -195,34 +195,37 @@ const Enigmes = {
     // ═══════════════════════════════════════════════════
     
     enigme1: {
-        // Grille améliorée avec plusieurs chemins possibles et vrais choix
-        // 0=chemin, 1=mur, 2=départ (Kodama), 3=arrivée (Neko)
+        // 0=chemin, 1=mur, 2=départ(Kodama), 3=arrivée(Neko)
+        // Grille 3×3 — un seul chemin valide : (0,0)→(0,1)→(0,2)→(1,2)→(2,2)
         grid: [
-            [2, 0, 0, 1],
-            [1, 1, 0, 0],
-            [0, 0, 1, 0],
-            [0, 1, 0, 3]
+            [2, 0, 0],
+            [1, 1, 0],
+            [0, 0, 3]
         ],
-        lanternsLeft: 3,  // Réduit à 3 pour plus de challenge
+        ROWS: 3,
+        COLS: 3,
+        lanternsLeft: 3,
         litCells: [],
+        litTimers: [],
         path: [],
         tracing: false,
-        
+
         init() {
             this.lanternsLeft = 3;
             this.litCells = [];
+            this.litTimers.forEach(t => clearTimeout(t));
+            this.litTimers = [];
             this.path = [];
             this.tracing = false;
             Enigmes.errors = 0;
             this.render();
         },
-        
+
         render() {
             const html = `
                 <div class="enigme-header">
                     <h2 class="enigme-title">Le Chemin des Lanternes</h2>
                 </div>
-                
                 <div class="enigme-instructions">
                     <div class="instruction-box">
                         <div class="instruction-icon">${Enigmes.SVG.lanternOn}</div>
@@ -231,74 +234,53 @@ const Enigmes = {
                         </div>
                     </div>
                     <div class="instruction-steps">
-                        <p><span class="step-num">1</span> Tout est caché ! Tape sur une case pour l'éclairer</p>
-                        <p><span class="step-num">2</span> Tu as seulement <strong>3 lanternes</strong></p>
-                        <p><span class="step-num">3</span> La lumière s'éteint après 4 secondes - mémorise !</p>
-                        <p><span class="step-num">4</span> Clique "Tracer" et trace ton chemin</p>
+                        <p><span class="step-num">1</span> Tape pour éclairer — 4 secondes seulement !</p>
+                        <p><span class="step-num">2</span> Tu as <strong>3 lanternes</strong> — mémorise !</p>
+                        <p><span class="step-num">3</span> Clique "Tracer" puis trace ton chemin case par case</p>
                     </div>
                 </div>
-                
                 <div class="enigme-game-area">
-                    <div class="lantern-grid" id="lantern-grid"></div>
-                    
+                    <div class="lantern-grid-wrap">
+                        <div class="lantern-grid-3" id="lantern-grid"></div>
+                        <svg class="path-svg" id="path-svg" viewBox="0 0 3 3" preserveAspectRatio="none"></svg>
+                    </div>
                     <div class="lantern-counter">
                         <span class="lantern-counter-text">Lanternes :</span>
                         <div class="lantern-counter-dots" id="lantern-dots"></div>
                     </div>
                 </div>
-                
                 <div class="enigme-actions">
                     <button class="enigme-btn enigme-btn-reset" onclick="Enigmes.enigme1.reset()">Recommencer</button>
                     <button class="enigme-btn enigme-btn-validate" id="btn-trace" onclick="Enigmes.enigme1.validate()">Tracer le chemin</button>
                 </div>
-                
-                <div class="enigme-kodama">
-                    <div class="kodama-new-head">
-                        <div class="kodama-new-left-eye"></div>
-                        <div class="kodama-new-right-eye"></div>
-                    </div>
-                    <div class="kodama-new-body"></div>
-                </div>
-                
-                <div class="enigme-kodama-bubble">
-                    <p class="enigme-kodama-text" id="kodama-hint">Tout est sombre... Éclaire les cases pour découvrir le chemin !</p>
-                </div>
-                
                 <div class="enigme-particles">
                     <div class="enigme-particle"></div>
                     <div class="enigme-particle"></div>
                     <div class="enigme-particle"></div>
-                </div>
-            `;
-            
+                </div>`;
             document.getElementById('enigme-screen').innerHTML = html;
             this.renderGrid();
             this.renderDots();
         },
-        
+
         renderGrid() {
             const gridEl = document.getElementById('lantern-grid');
+            if (!gridEl) return;
             let html = '';
-            
-            for (let y = 0; y < 4; y++) {
-                for (let x = 0; x < 4; x++) {
+            for (let y = 0; y < this.ROWS; y++) {
+                for (let x = 0; x < this.COLS; x++) {
                     const cell = this.grid[y][x];
                     const isLit = this.litCells.some(c => c[0] === y && c[1] === x);
                     const inPath = this.path.some(c => c[0] === y && c[1] === x);
-                    
-                    let classes = 'lantern-cell';
+                    let classes = 'lantern-cell lc3';
                     let content = '';
-                    
-                    // Départ et arrivée toujours visibles
                     if (cell === 2) {
                         classes += ' start';
                         content = Enigmes.SVG.miniKodama;
                     } else if (cell === 3) {
                         classes += ' end';
                         content = Enigmes.SVG.miniNeko;
-                    } 
-                    // Si éclairé : montrer la vraie nature
-                    else if (isLit) {
+                    } else if (isLit) {
                         if (cell === 1) {
                             classes += ' wall lit';
                             content = Enigmes.SVG.wall;
@@ -306,542 +288,556 @@ const Enigmes = {
                             classes += ' path lit';
                             content = Enigmes.SVG.lanternOn;
                         }
-                    }
-                    // Non éclairé : tout est mystère (même apparence)
-                    else {
+                    } else {
                         classes += ' mystery';
                         content = Enigmes.SVG.lanternOff;
                     }
-                    
                     if (inPath) classes += ' selected';
-                    
                     html += `<div class="${classes}" data-y="${y}" data-x="${x}" onclick="Enigmes.enigme1.tapCell(${y},${x})">${content}</div>`;
                 }
             }
-            
             gridEl.innerHTML = html;
+            this.drawPathLine();
         },
-        
+
+        drawPathLine() {
+            const svg = document.getElementById('path-svg');
+            if (!svg || this.path.length < 2) { if (svg) svg.innerHTML = ''; return; }
+            const pts = this.path.map(([y, x]) => `${x + 0.5},${y + 0.5}`).join(' ');
+            svg.innerHTML = `
+                <polyline points="${pts}" fill="none"
+                    stroke="rgba(255,215,0,0.85)" stroke-width="0.18"
+                    stroke-linecap="round" stroke-linejoin="round"
+                    filter="url(#glow-path)"/>
+                <defs>
+                    <filter id="glow-path">
+                        <feGaussianBlur stdDeviation="0.08" result="blur"/>
+                        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                    </filter>
+                </defs>`;
+        },
+
         renderDots() {
             const dotsEl = document.getElementById('lantern-dots');
+            if (!dotsEl) return;
             let html = '';
             for (let i = 0; i < 3; i++) {
-                const used = i >= this.lanternsLeft;
-                html += `<div class="lantern-dot ${used ? 'used' : ''}">${Enigmes.SVG.lanternOn}</div>`;
+                html += `<div class="lantern-dot ${i >= this.lanternsLeft ? 'used' : ''}">${Enigmes.SVG.lanternOn}</div>`;
             }
             dotsEl.innerHTML = html;
         },
-        
+
         tapCell(y, x) {
             const cell = this.grid[y][x];
-            
-            if (this.tracing) {
-                this.addToPath(y, x);
-                return;
-            }
-            
+            if (this.tracing) { this.addToPath(y, x); return; }
             if (cell === 0 && this.lanternsLeft > 0) {
+                // Onde radiale depuis la case tapée
                 const toLight = [[y, x]];
                 if (y > 0) toLight.push([y-1, x]);
-                if (y < 3) toLight.push([y+1, x]);
+                if (y < this.ROWS-1) toLight.push([y+1, x]);
                 if (x > 0) toLight.push([y, x-1]);
-                if (x < 3) toLight.push([y, x+1]);
-                
-                toLight.forEach(c => {
-                    if (!this.litCells.some(l => l[0] === c[0] && l[1] === c[1])) {
-                        this.litCells.push(c);
-                    }
+                if (x < this.COLS-1) toLight.push([y, x+1]);
+                // Allumer avec délai progressif (effet onde)
+                toLight.forEach((c, i) => {
+                    setTimeout(() => {
+                        if (!this.litCells.some(l => l[0]===c[0] && l[1]===c[1])) {
+                            this.litCells.push(c);
+                        }
+                        this.renderGrid();
+                    }, i * 80);
                 });
-                
                 this.lanternsLeft--;
-                this.renderGrid();
                 this.renderDots();
-                
-                setTimeout(() => {
-                    this.litCells = this.litCells.filter(c => {
-                        return !toLight.some(t => t[0] === c[0] && t[1] === c[1]);
-                    });
+                try { if (typeof playGameSFX === 'function') playGameSFX('pop'); } catch(e) {}
+                const t = setTimeout(() => {
+                    this.litCells = this.litCells.filter(c => !toLight.some(t => t[0]===c[0] && t[1]===c[1]));
                     this.renderGrid();
                 }, 4000);
+                this.litTimers.push(t);
+            } else if (cell === 1) {
+                // Mur tapé en dehors du tracé — juste feedback visuel sur la case
+                const el = document.querySelector(`[data-y="${y}"][data-x="${x}"]`);
+                if (el) {
+                    el.classList.add('wall-tap');
+                    setTimeout(() => el.classList.remove('wall-tap'), 400);
+                }
+                try { if (typeof playWrong === 'function') playWrong(); } catch(e) {}
             }
         },
-        
+
         validate() {
             if (!this.tracing) {
                 this.tracing = true;
                 this.path = [[0, 0]];
-                document.getElementById('btn-trace').textContent = 'Valider mon chemin';
-                document.getElementById('kodama-hint').textContent = 'Tape sur les cases une par une pour tracer !';
+                const btn = document.getElementById('btn-trace');
+                if (btn) btn.textContent = 'Valider mon chemin';
                 this.renderGrid();
             } else {
                 this.checkPath();
             }
         },
-        
+
         addToPath(y, x) {
             const last = this.path[this.path.length - 1];
             const cell = this.grid[y][x];
-            
             if (cell === 1) {
-                document.getElementById('kodama-hint').textContent = "Oups ! C'est un mur, tu ne peux pas passer !";
+                // Mur : feedback shake sur la case uniquement
+                const el = document.querySelector(`[data-y="${y}"][data-x="${x}"]`);
+                if (el) { el.classList.add('wall-tap'); setTimeout(() => el.classList.remove('wall-tap'), 400); }
+                try { if (typeof playWrong === 'function') playWrong(); } catch(e) {}
                 return;
             }
-            
-            const isAdjacent = (Math.abs(last[0] - y) + Math.abs(last[1] - x)) === 1;
-            if (!isAdjacent) {
-                document.getElementById('kodama-hint').textContent = "Avance case par case, pas de saut !";
-                return;
-            }
-            
-            const idx = this.path.findIndex(c => c[0] === y && c[1] === x);
+            const isAdjacent = (Math.abs(last[0]-y) + Math.abs(last[1]-x)) === 1;
+            if (!isAdjacent) return;
+            const idx = this.path.findIndex(c => c[0]===y && c[1]===x);
             if (idx >= 0) {
                 this.path = this.path.slice(0, idx + 1);
             } else {
                 this.path.push([y, x]);
             }
-            
+            try { if (typeof playGameSFX === 'function') playGameSFX('pop'); } catch(e) {}
             this.renderGrid();
         },
-        
+
         checkPath() {
             const last = this.path[this.path.length - 1];
-            
-            if (last[0] === 3 && last[1] === 3) {
+            const nekoY = this.ROWS - 1, nekoX = this.COLS - 1;
+            if (last[0] === nekoY && last[1] === nekoX) {
                 let valid = true;
                 for (const p of this.path) {
-                    if (this.grid[p[0]][p[1]] === 1) {
-                        valid = false;
-                        break;
-                    }
+                    if (this.grid[p[0]][p[1]] === 1) { valid = false; break; }
                 }
-                
                 if (valid) {
                     Enigmes.success(1);
                 } else {
-                    document.getElementById('kodama-hint').textContent = "Ton chemin passe par un mur !";
                     Enigmes.errors++;
-                    this.giveHint();
+                    this.shakeWrongPath();
                 }
             } else {
-                document.getElementById('kodama-hint').textContent = "Tu n'as pas atteint le Neko !";
                 Enigmes.errors++;
-                this.giveHint();
+                this.shakeWrongPath();
             }
         },
-        
-        giveHint() {
-            if (Enigmes.errors >= 2) {
-                document.getElementById('kodama-hint').textContent = "Indice : Le chemin passe par le centre de la grille !";
+
+        shakeWrongPath() {
+            const grid = document.getElementById('lantern-grid');
+            if (grid) {
+                grid.classList.add('grid-wrong-shake');
+                setTimeout(() => grid.classList.remove('grid-wrong-shake'), 500);
             }
+            try { if (typeof playWrong === 'function') playWrong(); } catch(e) {}
         },
-        
+
+        giveHint() {},
+
         reset() {
             this.tracing = false;
             this.path = [];
             this.lanternsLeft = 3;
             this.litCells = [];
-            document.getElementById('btn-trace').textContent = 'Tracer le chemin';
+            this.litTimers.forEach(t => clearTimeout(t));
+            this.litTimers = [];
+            const btn = document.getElementById('btn-trace');
+            if (btn) btn.textContent = 'Tracer le chemin';
             this.renderGrid();
             this.renderDots();
-            document.getElementById('kodama-hint').textContent = 'Tout est sombre... Éclaire les cases pour découvrir le chemin !';
         }
     },
-    
+
     // ═══════════════════════════════════════════════════
-    // ÉNIGME 2 — LES OFFRANDES DU TEMPLE
+    // ÉNIGME 2 — LA BALANCE DU TEMPLE
     // ═══════════════════════════════════════════════════
-    
+
     enigme2: {
         offerings: [
-            { id: 'rice', name: 'Riz', weight: 1 },
-            { id: 'sake', name: 'Saké', weight: 2 },
-            { id: 'fish', name: 'Poisson', weight: 3 },
-            { id: 'fruit', name: 'Fruit', weight: 2 },
-            { id: 'incense', name: 'Encens', weight: 1 },
-            { id: 'bell', name: 'Clochette', weight: 4 }
+            { id: 'rice',     name: 'Riz',       weight: 1, size: 'sm' },
+            { id: 'sake',     name: 'Saké',      weight: 2, size: 'md' },
+            { id: 'fish',     name: 'Poisson',   weight: 3, size: 'lg' },
+            { id: 'fruit',    name: 'Fruit',     weight: 2, size: 'md' },
+            { id: 'incense',  name: 'Encens',    weight: 1, size: 'sm' },
+            { id: 'bell',     name: 'Clochette', weight: 4, size: 'xl' }
         ],
         targetWeight: 5,
         plateItems: [],
-        
+        successTriggered: false,
+
         init() {
             this.plateItems = [];
+            this.successTriggered = false;
             Enigmes.errors = 0;
             this.render();
         },
-        
+
         render() {
             const html = `
                 <div class="enigme-header">
-                    <h2 class="enigme-title">Les Offrandes du Temple</h2>
+                    <h2 class="enigme-title">La Balance du Temple</h2>
                 </div>
-                
                 <div class="enigme-instructions">
                     <div class="instruction-box">
-                        <div class="instruction-icon">${Enigmes.SVG.star}${Enigmes.SVG.star}${Enigmes.SVG.star}${Enigmes.SVG.star}${Enigmes.SVG.star}</div>
+                        <div class="instruction-icon" style="font-size:32px;">⚖️</div>
                         <div class="instruction-text">
-                            <strong>But :</strong> Choisis des offrandes pour obtenir exactement <span class="highlight">5 étoiles</span> !
+                            <strong>But :</strong> Équilibre la balance sacrée !
                         </div>
                     </div>
                     <div class="instruction-steps">
-                        <p><span class="step-num">1</span> Chaque offrande a un poids en étoiles</p>
-                        <p><span class="step-num">2</span> Tape sur une offrande pour l'ajouter</p>
-                        <p><span class="step-num">3</span> Tape encore pour la retirer</p>
-                        <p><span class="step-num">4</span> Le total doit faire exactement 5 !</p>
+                        <p><span class="step-num">1</span> Le plateau de droite porte le poids sacré</p>
+                        <p><span class="step-num">2</span> Tape des offrandes pour les poser à gauche</p>
+                        <p><span class="step-num">3</span> Quand les deux côtés s'équilibrent — victoire !</p>
                     </div>
                 </div>
-                
                 <div class="enigme-game-area">
-                    <div class="balance-display">
-                        <div class="balance-target">
-                            <span class="balance-label">Objectif :</span>
-                            <div class="balance-stars target-stars">
-                                ${Array(5).fill('<div class="star-icon">' + Enigmes.SVG.star + '</div>').join('')}
-                            </div>
-                        </div>
-                        
-                        <div class="balance-current">
-                            <span class="balance-label">Ton total :</span>
-                            <div class="balance-stars current-stars" id="current-stars"></div>
-                            <span class="balance-number" id="current-weight-num">0</span>
-                        </div>
+                    <div class="balance-wrap" id="balance-wrap">
+                        <svg class="balance-svg" id="balance-svg" viewBox="-60 -20 120 90">
+                            <!-- Pivot central -->
+                            <rect x="-2" y="0" width="4" height="28" rx="2" fill="#8d6e63"/>
+                            <polygon points="0,-8 -6,0 6,0" fill="#5d4037"/>
+                            <!-- Bras de balance -->
+                            <g id="balance-beam" style="transform-origin:0px 0px;transform:rotate(0deg);transition:transform 0.5s cubic-bezier(0.34,1.56,0.64,1)">
+                                <rect x="-52" y="-3" width="104" height="5" rx="2.5" fill="#6d4c41"/>
+                                <!-- Fils gauche -->
+                                <line x1="-45" y1="2" x2="-45" y2="22" stroke="#a1887f" stroke-width="1.5"/>
+                                <line x1="-38" y1="2" x2="-38" y2="22" stroke="#a1887f" stroke-width="1.5"/>
+                                <!-- Plateau gauche -->
+                                <ellipse cx="-41.5" cy="24" rx="12" ry="4" fill="#5d4037"/>
+                                <g id="left-offerings"></g>
+                                <!-- Fils droite -->
+                                <line x1="38" y1="2" x2="38" y2="22" stroke="#a1887f" stroke-width="1.5"/>
+                                <line x1="45" y1="2" x2="45" y2="22" stroke="#a1887f" stroke-width="1.5"/>
+                                <!-- Plateau droit -->
+                                <ellipse cx="41.5" cy="24" rx="12" ry="4" fill="#5d4037"/>
+                                <!-- Flamme sacrée (poids cible) -->
+                                <ellipse cx="41.5" cy="16" rx="6" ry="9" fill="#ffd54f" opacity="0.7"/>
+                                <ellipse cx="41.5" cy="14" rx="4" ry="7" fill="#ffeb3b" opacity="0.8"/>
+                                <ellipse cx="41.5" cy="12" rx="2" ry="4" fill="#fff9c4"/>
+                            </g>
+                        </svg>
                     </div>
-                    
-                    <div class="offerings-tray" id="offerings-tray"></div>
+                    <div class="offerings-grid-2" id="offerings-tray"></div>
                 </div>
-                
                 <div class="enigme-actions">
                     <button class="enigme-btn enigme-btn-reset" onclick="Enigmes.enigme2.reset()">Recommencer</button>
-                    <button class="enigme-btn enigme-btn-validate" onclick="Enigmes.enigme2.validate()">Valider</button>
                 </div>
-                
-                <div class="enigme-kodama">
-                    <div class="kodama-new-head">
-                        <div class="kodama-new-left-eye"></div>
-                        <div class="kodama-new-right-eye"></div>
-                    </div>
-                    <div class="kodama-new-body"></div>
-                </div>
-                
-                <div class="enigme-kodama-bubble">
-                    <p class="enigme-kodama-text" id="kodama-hint">Tape sur les offrandes pour les sélectionner !</p>
-                </div>
-                
                 <div class="enigme-particles">
                     <div class="enigme-particle"></div>
                     <div class="enigme-particle"></div>
                     <div class="enigme-particle"></div>
-                </div>
-            `;
-            
+                </div>`;
             document.getElementById('enigme-screen').innerHTML = html;
             this.renderOfferings();
-            this.updateDisplay();
+            this.updateBalance();
         },
-        
+
         renderOfferings() {
             const tray = document.getElementById('offerings-tray');
+            if (!tray) return;
             let html = '';
-            
             this.offerings.forEach(o => {
                 const inPlate = this.plateItems.includes(o.id);
-                html += `
-                    <div class="offering-card ${inPlate ? 'selected' : ''}" onclick="Enigmes.enigme2.toggleOffering('${o.id}')">
-                        <div class="offering-image">${Enigmes.SVG[o.id]}</div>
-                        <div class="offering-name">${o.name}</div>
-                        <div class="offering-weight">
-                            ${Array(o.weight).fill('<span class="mini-star">' + Enigmes.SVG.star + '</span>').join('')}
-                        </div>
-                    </div>
-                `;
+                html += `<div class="offering-card-2 size-${o.size} ${inPlate ? 'selected' : ''}"
+                    onclick="Enigmes.enigme2.toggleOffering('${o.id}')">
+                    <div class="offering-image-2">${Enigmes.SVG[o.id]}</div>
+                    <div class="offering-name-2">${o.name}</div>
+                </div>`;
             });
-            
             tray.innerHTML = html;
         },
-        
+
         toggleOffering(id) {
+            if (this.successTriggered) return;
             const idx = this.plateItems.indexOf(id);
-            if (idx >= 0) {
-                this.plateItems.splice(idx, 1);
-            } else {
-                this.plateItems.push(id);
-            }
+            if (idx >= 0) { this.plateItems.splice(idx, 1); }
+            else { this.plateItems.push(id); }
+            try { if (typeof playGameSFX === 'function') playGameSFX('pop'); } catch(e) {}
             this.renderOfferings();
-            this.updateDisplay();
+            this.updateBalance();
         },
-        
+
         getCurrentWeight() {
             return this.plateItems.reduce((sum, id) => {
                 const o = this.offerings.find(x => x.id === id);
                 return sum + (o ? o.weight : 0);
             }, 0);
         },
-        
-        updateDisplay() {
-            const weight = this.getCurrentWeight();
-            
-            // Mettre à jour les étoiles
-            const starsEl = document.getElementById('current-stars');
-            let starsHtml = '';
-            for (let i = 0; i < weight; i++) {
-                starsHtml += '<div class="star-icon filled">' + Enigmes.SVG.star + '</div>';
+
+        updateBalance() {
+            const w = this.getCurrentWeight();
+            const diff = w - this.targetWeight;
+            // Angle : penche à gauche si trop lourd, droite si trop léger
+            const angle = Math.max(-32, Math.min(32, diff * 9));
+            const beam = document.getElementById('balance-beam');
+            if (!beam) return;
+            beam.style.transform = `rotate(${angle}deg)`;
+
+            // Mettre à jour les offrandes sur le plateau gauche (icônes empilées)
+            const leftOfferings = document.getElementById('left-offerings');
+            if (leftOfferings) {
+                let svgItems = '';
+                this.plateItems.forEach((id, i) => {
+                    const o = this.offerings.find(x => x.id === id);
+                    if (!o) return;
+                    // Stack les icônes sur le plateau gauche
+                    svgItems += `<g transform="translate(${-48 + (i % 3) * 7}, ${18 - Math.floor(i/3) * 6}) scale(0.12)">
+                        ${Enigmes.SVG[id]}
+                    </g>`;
+                });
+                leftOfferings.innerHTML = svgItems;
             }
-            starsEl.innerHTML = starsHtml;
-            
-            // Mettre à jour le nombre
-            document.getElementById('current-weight-num').textContent = weight;
-            
-            // Feedback visuel
-            const currentEl = document.querySelector('.balance-current');
-            currentEl.classList.remove('too-low', 'too-high', 'perfect');
-            
-            if (weight < this.targetWeight) {
-                currentEl.classList.add('too-low');
-            } else if (weight > this.targetWeight) {
-                currentEl.classList.add('too-high');
-            } else {
-                currentEl.classList.add('perfect');
-            }
-        },
-        
-        validate() {
-            const weight = this.getCurrentWeight();
-            
-            if (weight === this.targetWeight) {
-                Enigmes.success(2);
-            } else {
-                Enigmes.errors++;
-                
-                if (weight < this.targetWeight) {
-                    document.getElementById('kodama-hint').textContent = `Il te manque ${this.targetWeight - weight} étoile(s) ! Ajoute des offrandes.`;
-                } else {
-                    document.getElementById('kodama-hint').textContent = `Tu as ${weight - this.targetWeight} étoile(s) en trop ! Retire des offrandes.`;
+
+            const wrap = document.getElementById('balance-wrap');
+            if (!wrap) return;
+            wrap.classList.remove('balance-heavy', 'balance-light', 'balance-perfect');
+
+            if (diff === 0 && w > 0) {
+                wrap.classList.add('balance-perfect');
+                if (!this.successTriggered) {
+                    this.successTriggered = true;
+                    try { if (typeof playGameSFX === 'function') playGameSFX('chime_portal'); } catch(e) {}
+                    if (navigator.vibrate) navigator.vibrate([60, 30, 90]);
+                    setTimeout(() => Enigmes.success(2), 900);
                 }
-                
-                this.giveHint();
+            } else if (diff > 0) {
+                wrap.classList.add('balance-heavy');
+                if (typeof playWrong === 'function') try { playWrong(); } catch(e) {}
+                if (navigator.vibrate) navigator.vibrate(80);
+            } else if (diff < 0 && w > 0) {
+                wrap.classList.add('balance-light');
             }
         },
-        
-        giveHint() {
-            if (Enigmes.errors >= 3) {
-                document.getElementById('kodama-hint').textContent = "Indice : Riz (1) + Clochette (4) = 5 étoiles !";
-            }
-            if (Enigmes.errors >= 5) {
-                document.getElementById('kodama-hint').textContent = "Autre idée : Poisson (3) + Saké (2) = 5 étoiles !";
-            }
-        },
-        
+
+        giveHint() {},
+
         reset() {
             this.plateItems = [];
+            this.successTriggered = false;
             this.renderOfferings();
-            this.updateDisplay();
-            document.getElementById('kodama-hint').textContent = 'Tape sur les offrandes pour les sélectionner !';
+            this.updateBalance();
         }
     },
-    
+
     // ═══════════════════════════════════════════════════
-    // ÉNIGME 3 — LE MESSAGE DES ANCÊTRES
+    // ÉNIGME 3 — LE MIROIR DE L'OMBRE
     // ═══════════════════════════════════════════════════
-    
+
     enigme3: {
-        key: [
-            { symbol: 'sun', syllable: 'NE' },
-            { symbol: 'moon', syllable: 'KO' },
-            { symbol: 'wave', syllable: 'SA' },
-            { symbol: 'flower', syllable: 'RA' }
+        // 4 reliques utilisées — visuellement très distinctes
+        relics: [
+            { idx: 0, color: '#ffb7c5', dark: '#ff1493', kanji: '花' }, // mochi rose
+            { idx: 1, color: '#98e8d4', dark: '#00b386', kanji: '剣' }, // épée cyan
+            { idx: 3, color: '#fde68a', dark: '#f59e0b', kanji: '照' }, // gemme dorée
+            { idx: 4, color: '#fdba74', dark: '#f97316', kanji: '藻' }  // masque orange
         ],
-        codedMessage: ['sun', 'moon'],
-        solution: ['NE', 'KO'],
-        solutionWord: 'NEKO',
-        playerAnswer: [],
-        
+        sequence: [],    // ordre aléatoire de 0..3 (indices dans relics[])
+        tapped: [],
+        phase: 'show',   // 'show' | 'play'
+        showTimer: null,
+
         init() {
-            this.playerAnswer = [];
+            this.tapped = [];
+            this.phase = 'show';
+            if (this.showTimer) clearTimeout(this.showTimer);
+            // Séquence aléatoire
+            this.sequence = [0, 1, 2, 3].sort(() => Math.random() - 0.5);
             Enigmes.errors = 0;
             this.render();
+            setTimeout(() => this.startShowPhase(), 600);
         },
-        
+
         render() {
+            const relicsHtml = this.relics.map((r, i) => `
+                <div class="ombre-relic-slot" id="relic-slot-${i}"
+                    style="--relic-color:${r.color};--relic-dark:${r.dark}"
+                    onclick="Enigmes.enigme3.tapRelic(${i})">
+                    <div class="ombre-relic-inner">
+                        <div class="ombre-relic-svg">${typeof getRelicSVG === 'function' ? getRelicSVG(r.idx) : ''}</div>
+                        <div class="ombre-relic-kanji">${r.kanji}</div>
+                    </div>
+                    <div class="ombre-chain" id="chain-${i}"></div>
+                </div>`).join('');
+
             const html = `
                 <div class="enigme-header">
-                    <h2 class="enigme-title">Le Message des Ancêtres</h2>
+                    <h2 class="enigme-title">Le Miroir de l'Ombre</h2>
                 </div>
-                
                 <div class="enigme-instructions">
                     <div class="instruction-box">
-                        <div class="instruction-icon">${Enigmes.SVG.sun}${Enigmes.SVG.moon}</div>
+                        <div class="instruction-icon" style="font-size:28px;">🌑</div>
                         <div class="instruction-text">
-                            <strong>But :</strong> Traduis les symboles en syllabes pour découvrir le mot secret !
+                            <strong>But :</strong> Scelle l'Ombre en touchant les reliques dans le bon ordre !
                         </div>
                     </div>
                     <div class="instruction-steps">
-                        <p><span class="step-num">1</span> Regarde le tableau de correspondance</p>
-                        <p><span class="step-num">2</span> Chaque symbole = une syllabe</p>
-                        <p><span class="step-num">3</span> Tape sur les syllabes dans l'ordre</p>
-                        <p><span class="step-num">4</span> Trouve le mot caché !</p>
+                        <p><span class="step-num">1</span> L'Ombre révèle 4 reliques dans l'ordre</p>
+                        <p><span class="step-num">2</span> Mémorise bien l'ordre !</p>
+                        <p><span class="step-num">3</span> Touche-les dans le même ordre pour la sceller</p>
                     </div>
                 </div>
-                
-                <div class="enigme-game-area">
-                    <div class="rosetta-stone">
-                        <div class="rosetta-title">Tableau de traduction</div>
-                        <div class="rosetta-grid">
-                            ${this.key.map(k => `
-                                <div class="rosetta-item">
-                                    <div class="rosetta-symbol">${Enigmes.SVG[k.symbol]}</div>
-                                    <div class="rosetta-arrow">=</div>
-                                    <div class="rosetta-text">${k.syllable}</div>
-                                </div>
-                            `).join('')}
+                <div class="enigme-game-area ombre-arena">
+                    <!-- L'Ombre -->
+                    <div class="ombre-figure" id="ombre-figure">
+                        <div class="ombre-smoke"></div>
+                        <div class="ombre-eyes">
+                            <div class="ombre-eye"></div>
+                            <div class="ombre-eye"></div>
                         </div>
+                        <div class="ombre-kanji" id="ombre-kanji">封</div>
                     </div>
-                    
-                    <div class="decode-section">
-                        <div class="decode-label">Message à décoder :</div>
-                        <div class="coded-message">
-                            ${this.codedMessage.map(s => `
-                                <div class="coded-symbol">${Enigmes.SVG[s]}</div>
-                            `).join('')}
-                        </div>
+                    <!-- Indicateur de phase -->
+                    <div class="ombre-phase-label" id="ombre-phase-label">L'Ombre s'éveille...</div>
+                    <!-- Les 4 reliques en 2×2 -->
+                    <div class="ombre-relics-grid" id="ombre-relics-grid">
+                        ${relicsHtml}
                     </div>
-                    
-                    <div class="answer-section">
-                        <div class="answer-label">Ta réponse :</div>
-                        <div class="answer-zone" id="answer-zone">
-                            ${this.codedMessage.map((_, i) => `
-                                <div class="answer-slot" id="slot-${i}">?</div>
-                            `).join('')}
-                        </div>
-                    </div>
-                    
-                    <div class="syllables-section">
-                        <div class="syllables-label">Choisis les syllabes :</div>
-                        <div class="syllables-tray" id="syllables-tray"></div>
+                    <!-- Progression : chaînes -->
+                    <div class="ombre-chains-progress" id="ombre-chains-progress">
+                        ${[0,1,2,3].map(i => `<div class="ombre-chain-dot" id="cdot-${i}"></div>`).join('')}
                     </div>
                 </div>
-                
                 <div class="enigme-actions">
-                    <button class="enigme-btn enigme-btn-reset" onclick="Enigmes.enigme3.reset()">Recommencer</button>
-                    <button class="enigme-btn enigme-btn-validate" onclick="Enigmes.enigme3.validate()">Valider</button>
+                    <button class="enigme-btn enigme-btn-reset" onclick="Enigmes.enigme3.init()">Recommencer</button>
                 </div>
-                
-                <div class="enigme-kodama">
-                    <div class="kodama-new-head">
-                        <div class="kodama-new-left-eye"></div>
-                        <div class="kodama-new-right-eye"></div>
-                    </div>
-                    <div class="kodama-new-body"></div>
-                </div>
-                
-                <div class="enigme-kodama-bubble">
-                    <p class="enigme-kodama-text" id="kodama-hint">Utilise le tableau pour traduire chaque symbole !</p>
-                </div>
-                
                 <div class="enigme-particles">
                     <div class="enigme-particle"></div>
                     <div class="enigme-particle"></div>
                     <div class="enigme-particle"></div>
-                </div>
-            `;
-            
+                </div>`;
             document.getElementById('enigme-screen').innerHTML = html;
-            this.renderSyllables();
+            // Désactiver les reliques pendant le show
+            this.setRelicsInteractive(false);
         },
-        
-        renderSyllables() {
-            const tray = document.getElementById('syllables-tray');
-            const syllables = ['NE', 'KO', 'SA', 'RA', 'MI', 'TA'];
-            
-            let html = '';
-            syllables.forEach(s => {
-                const timesUsed = this.playerAnswer.filter(a => a === s).length;
-                const timesInSolution = this.solution.filter(a => a === s).length;
-                const isDisabled = timesUsed >= Math.max(timesInSolution, 1) && !this.solution.includes(s);
-                
-                html += `<button class="syllable-btn ${isDisabled ? 'used' : ''}" onclick="Enigmes.enigme3.addSyllable('${s}')">${s}</button>`;
-            });
-            
-            tray.innerHTML = html;
-        },
-        
-        addSyllable(syllable) {
-            if (this.playerAnswer.length < this.codedMessage.length) {
-                this.playerAnswer.push(syllable);
-                this.renderAnswer();
-                this.renderSyllables();
-            }
-        },
-        
-        renderAnswer() {
-            this.playerAnswer.forEach((s, i) => {
-                const slot = document.getElementById(`slot-${i}`);
-                if (slot) {
-                    slot.textContent = s;
-                    slot.classList.add('filled');
+
+        startShowPhase() {
+            this.phase = 'show';
+            const label = document.getElementById('ombre-phase-label');
+            if (label) label.textContent = "Mémorise l'ordre des reliques...";
+            this.setRelicsInteractive(false);
+
+            let step = 0;
+            const showNext = () => {
+                // Éteindre la précédente
+                if (step > 0) {
+                    const prevRelicIdx = this.sequence[step - 1];
+                    const prevSlot = document.getElementById(`relic-slot-${prevRelicIdx}`);
+                    if (prevSlot) prevSlot.classList.remove('relic-lit', 'relic-active');
                 }
-            });
-        },
-        
-        validate() {
-            if (this.playerAnswer.length < this.solution.length) {
-                document.getElementById('kodama-hint').textContent = "Complète toutes les cases d'abord !";
-                return;
-            }
-            
-            let correct = true;
-            for (let i = 0; i < this.solution.length; i++) {
-                const slot = document.getElementById(`slot-${i}`);
-                if (this.playerAnswer[i] === this.solution[i]) {
-                    slot.classList.add('correct');
-                } else {
-                    slot.classList.add('wrong');
-                    correct = false;
-                }
-            }
-            
-            if (correct) {
-                document.getElementById('kodama-hint').textContent = `Bravo ! Le mot était "${this.solutionWord}" !`;
-                setTimeout(() => Enigmes.success(3), 1200);
-            } else {
-                Enigmes.errors++;
-                document.getElementById('kodama-hint').textContent = "Ce n'est pas ça... Regarde bien le tableau !";
-                
-                setTimeout(() => {
-                    this.playerAnswer = [];
-                    for (let i = 0; i < this.solution.length; i++) {
-                        const slot = document.getElementById(`slot-${i}`);
-                        slot.textContent = '?';
-                        slot.classList.remove('filled', 'correct', 'wrong');
+                if (step < 4) {
+                    const relicIdx = this.sequence[step];
+                    const slot = document.getElementById(`relic-slot-${relicIdx}`);
+                    if (slot) {
+                        slot.classList.add('relic-lit', 'relic-active');
+                        // Son distinct par position
+                        try {
+                            if (typeof playMikoChime === 'function') playMikoChime(step * 2);
+                        } catch(e) {}
                     }
-                    this.renderSyllables();
-                    this.giveHint();
-                }, 1500);
-            }
-        },
-        
-        giveHint() {
-            if (Enigmes.errors >= 2) {
-                document.getElementById('kodama-hint').textContent = "Indice : Soleil = NE, Lune = KO...";
-            }
-            if (Enigmes.errors >= 4) {
-                document.getElementById('kodama-hint').textContent = "Le mot est un animal très mignon qu'on adore ici !";
-            }
-        },
-        
-        reset() {
-            this.playerAnswer = [];
-            for (let i = 0; i < this.solution.length; i++) {
-                const slot = document.getElementById(`slot-${i}`);
-                if (slot) {
-                    slot.textContent = '?';
-                    slot.classList.remove('filled', 'correct', 'wrong');
+                    step++;
+                    this.showTimer = setTimeout(showNext, 900);
+                } else {
+                    // Fin du show
+                    this.showTimer = setTimeout(() => this.startPlayPhase(), 800);
                 }
+            };
+            showNext();
+        },
+
+        startPlayPhase() {
+            this.phase = 'play';
+            this.tapped = [];
+            const label = document.getElementById('ombre-phase-label');
+            if (label) label.textContent = "Scelle l'Ombre — touche dans l'ordre !";
+            const figure = document.getElementById('ombre-figure');
+            if (figure) figure.classList.add('ombre-menace');
+            this.setRelicsInteractive(true);
+            // Remettre toutes les reliques en état neutre (grisé)
+            this.relics.forEach((r, i) => {
+                const slot = document.getElementById(`relic-slot-${i}`);
+                if (slot) slot.classList.remove('relic-lit', 'relic-active', 'relic-sealed', 'relic-wrong');
+                slot.classList.add('relic-play');
+            });
+        },
+
+        tapRelic(relicIdx) {
+            if (this.phase !== 'play') return;
+            const slot = document.getElementById(`relic-slot-${relicIdx}`);
+            if (!slot || slot.classList.contains('relic-sealed')) return;
+
+            const expectedRelicIdx = this.sequence[this.tapped.length];
+
+            if (relicIdx === expectedRelicIdx) {
+                // ✓ Bonne relique
+                slot.classList.add('relic-sealed');
+                slot.classList.remove('relic-play');
+                this.tapped.push(relicIdx);
+                try { if (typeof playMikoChime === 'function') playMikoChime(this.tapped.length * 2); } catch(e) {}
+                if (navigator.vibrate) navigator.vibrate(40);
+
+                // Allumer le dot de progression + chaîne
+                const dot = document.getElementById(`cdot-${this.tapped.length - 1}`);
+                if (dot) dot.classList.add('cdot-active');
+
+                // L'Ombre s'affaiblit
+                const figure = document.getElementById('ombre-figure');
+                if (figure) figure.style.opacity = String(1 - this.tapped.length * 0.2);
+
+                const label = document.getElementById('ombre-phase-label');
+                if (label) {
+                    const msgs = ['1 chaîne posée...', '2 chaînes ! Elle vacille...', '3 chaînes ! Encore une !', 'SCELLÉE !'];
+                    label.textContent = msgs[this.tapped.length - 1] || '';
+                }
+
+                if (this.tapped.length === 4) {
+                    setTimeout(() => {
+                        if (figure) { figure.style.opacity = '0'; figure.style.transform = 'scale(0)'; }
+                        setTimeout(() => Enigmes.success(3), 600);
+                    }, 500);
+                }
+            } else {
+                // ✗ Mauvaise relique
+                slot.classList.add('relic-wrong');
+                Enigmes.errors++;
+                try { if (typeof playWrong === 'function') playWrong(); } catch(e) {}
+                if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+
+                // L'Ombre rugit
+                const figure = document.getElementById('ombre-figure');
+                if (figure) { figure.classList.add('ombre-roar'); setTimeout(() => figure.classList.remove('ombre-roar'), 600); }
+
+                // Réinitialiser après 700ms
+                setTimeout(() => {
+                    this.tapped = [];
+                    this.relics.forEach((r, i) => {
+                        const s = document.getElementById(`relic-slot-${i}`);
+                        if (s) s.classList.remove('relic-sealed', 'relic-wrong');
+                        s.classList.add('relic-play');
+                    });
+                    document.querySelectorAll('.ombre-chain-dot').forEach(d => d.classList.remove('cdot-active'));
+                    if (figure) figure.style.opacity = '1';
+                    const label = document.getElementById('ombre-phase-label');
+                    if (label) label.textContent = "Recommence depuis le début !";
+                }, 700);
             }
-            this.renderSyllables();
-            document.getElementById('kodama-hint').textContent = "Utilise le tableau pour traduire chaque symbole !";
+        },
+
+        setRelicsInteractive(active) {
+            this.relics.forEach((r, i) => {
+                const slot = document.getElementById(`relic-slot-${i}`);
+                if (slot) slot.style.pointerEvents = active ? 'auto' : 'none';
+            });
+        },
+
+        giveHint() {},
+
+        reset() {
+            this.tapped = [];
+            this.phase = 'show';
+            if (this.showTimer) clearTimeout(this.showTimer);
+            this.sequence = [0, 1, 2, 3].sort(() => Math.random() - 0.5);
+            this.render();
+            setTimeout(() => this.startShowPhase(), 600);
         }
     },
-    
-    // ═══════════════════════════════════════════════════
+
+        // ═══════════════════════════════════════════════════
     // GESTION GLOBALE
     // ═══════════════════════════════════════════════════
     

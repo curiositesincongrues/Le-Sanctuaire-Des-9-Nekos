@@ -240,7 +240,7 @@
                     if (foundCountEl) foundCountEl.innerText = foundGuardians.size;
                     if (progressBarEl) progressBarEl.style.width = (foundGuardians.size / 9 * 100) + '%';
                     document.documentElement.style.setProperty('--bg-lightness', (10 + (foundGuardians.size * 8)) + '%');
-                    updateDynamicMusic();
+                    if (typeof playHubMusic === 'function') playHubMusic();
                     hubTimer = 0;
                     document.documentElement.style.setProperty('--darkness', 0);
                     if (heartInterval) clearInterval(heartInterval);

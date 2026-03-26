@@ -277,6 +277,11 @@ function initSfx() {
 
     syncAudioGlobals();
     if (window.GameState) GameState.isAudioReady = true;
+
+    // Pré-créer et déverrouiller le hub music ici — on est dans un contexte de geste utilisateur.
+    // Sans ça, new Audio().play() depuis un setTimeout est bloqué sur iOS/Android.
+    _preloadHubMusic();
+
     return audioCtx;
 }
 
@@ -483,6 +488,7 @@ function applySceneProfile(scene) {
 }
 
 function updateDynamicMusic() {
+    if (window.__hubMusicActive) return;
     if (!audioCtx) return;
     const count = getFoundCount();
     const now = audioCtx.currentTime;
@@ -504,6 +510,11 @@ function updateDynamicMusic() {
 function setMusicMood(scene) {
     if (window.__useIntroMusicOverride && ['VOYAGE','DECOUVERTE','SACRE','RUPTURE','CHUTE'].includes(scene)) {
         console.log('[Music Mood] blocked by intro override:', scene);
+        return;
+    }
+    // Bloquer la musique procédurale quand le MP3 hub joue
+    if (window.__hubMusicActive) {
+        console.log('[Music Mood] blocked by hub MP3:', scene);
         return;
     }
     if (!audioCtx) return;
@@ -1102,3 +1113,126 @@ cancelVoice = function() {
     if (_mp3CurrentSource) { try { _mp3CurrentSource.stop(); } catch(e) {} _mp3CurrentSource = null; }
     _cancelVoiceOriginal();
 };
+
+/* ═══════════════════════════════════════════════════════
+   HUB MUSIC — Lecture du MP3 hub_music.mp3
+   Remplace la musique procédurale pendant le hub
+   ═══════════════════════════════════════════════════════ */
+
+let _hubMusicEl = null;
+let _hubMusicFading = false;
+
+/**
+ * Lance la musique du hub (MP3).
+ * Coupe la musique procédurale le temps de la lecture.
+ * Loopable : se relance automatiquement à la fin.
+ */
+/**
+ * Pré-charge et déverrouille le hub music pendant un geste utilisateur.
+ * Doit être appelé depuis initSfx() (= contexte de clic).
+ */
+function _preloadHubMusic() {
+    try {
+        if (_hubMusicEl) return; // déjà créé
+        const a = new Audio('./audio/hub_music.mp3?v=1');
+        a.preload = 'auto';
+        a.loop = true;
+        a.volume = 0;
+        _hubMusicEl = a;
+        window.__hubMusicEl = a;
+        // Jouer puis mettre en pause immédiatement — déverrouille l'élément pour les appels futurs
+        a.play().then(() => {
+            a.pause();
+            a.currentTime = 0;
+            console.log('[Hub Music] pré-chargé et déverrouillé ✓');
+        }).catch(e => {
+            console.warn('[Hub Music] préchargement échoué:', e.message);
+            _hubMusicEl = null;
+            window.__hubMusicEl = null;
+        });
+    } catch(e) {
+        console.warn('[Hub Music] _preloadHubMusic erreur:', e.message);
+    }
+}
+
+async function playHubMusic() {
+    // Activer le flag — bloque toute musique procédurale pendant le hub
+    window.__hubMusicActive = true;
+    muteProceduralMusic(0.5);
+
+    try {
+        let a = _hubMusicEl;
+
+        if (!a) {
+            // Fallback : créer un nouvel élément (ne devrait pas arriver si _preloadHubMusic a tourné)
+            a = new Audio('./audio/hub_music.mp3?v=1');
+            a.preload = 'auto';
+            a.loop = true;
+            _hubMusicEl = a;
+            window.__hubMusicEl = a;
+        }
+
+        // Si déjà en cours, juste remonter le volume
+        if (!a.paused) {
+            a.volume = 0;
+            let n = 0;
+            const fadeIn = setInterval(() => {
+                n++;
+                try { a.volume = Math.min(0.30, 0.30 * (n / 30)); } catch(e) {}
+                if (n >= 30) clearInterval(fadeIn);
+            }, 50);
+            return;
+        }
+
+        // En pause — reprendre là où on en était (currentTime non remis à 0)
+        a.volume = 0;
+        await a.play();
+
+        // Fade in
+        let n = 0;
+        const fadeIn = setInterval(() => {
+            n++;
+            try { a.volume = Math.min(0.30, 0.30 * (n / 30)); } catch (e) {}
+            if (n >= 30) clearInterval(fadeIn);
+        }, 50);
+
+        console.log('[Hub Music] reprise ✓');
+    } catch (e) {
+        console.warn('[Hub Music] échec lecture:', e.message);
+    }
+}
+
+/**
+ * Arrête la musique du hub avec fondu.
+ * Relance la musique procédurale adaptée au contexte.
+ */
+function stopHubMusic(fadeMs = 1000, resumeProcedural = true) {
+    // Désactiver le flag procédural — bloque la musique procédurale
+    window.__hubMusicActive = false;
+    if (!_hubMusicEl) return;
+    if (_hubMusicFading) return;
+    _hubMusicFading = true;
+
+    const a = _hubMusicEl;
+    // NE PAS nullifier _hubMusicEl — on garde la référence déverrouillée pour iOS
+    // Si on la détruit, le prochain play() crée un nouvel élément non autorisé
+    const startVol = a.volume || 0.30;
+    const stepMs = 50;
+    const steps = Math.max(1, Math.round(fadeMs / stepMs));
+    let n = 0;
+
+    const fadeOut = setInterval(() => {
+        n++;
+        try { a.volume = Math.max(0, startVol * (1 - n / steps)); } catch (e) {}
+        if (n >= steps) {
+            clearInterval(fadeOut);
+            try { a.pause(); } catch (e) {}
+            // currentTime intentionnellement NON remis à 0 — reprend là où on était
+            _hubMusicFading = false;
+            console.log('[Hub Music] mise en pause ✓');
+        }
+    }, stepMs);
+}
+
+window.playHubMusic  = playHubMusic;
+window.stopHubMusic  = stopHubMusic;

@@ -537,82 +537,124 @@ function submitManualCode() { return window.ScanModule.submitManualCode.apply(th
 let quizFuseTime = 100;
 
 function setupQuiz() {
-    // FIX MURMURE EMPILÉ : On supprime les anciens indices
-    document.querySelectorAll('.quiz-hint').forEach(e => e.remove());
+    // Couper la musique hub à l'entrée du quiz
+    if (typeof stopHubMusic === 'function') stopHubMusic(600, false);
+    // Nettoyer le bouton continue d'un quiz précédent
+    const prevContinue = document.getElementById('quiz-continue-btn');
+    if (prevContinue) prevContinue.remove();
+    const fuseContainer = document.getElementById('fuse-container');
+    if (fuseContainer) fuseContainer.style.opacity = '';
 
     const g = guardianData[currentFound];
-    document.getElementById('quiz-emoji').innerHTML = getRelicSVG(currentFound); 
-    document.getElementById('quiz-title').innerText = "Garde " + g.n; 
+    document.getElementById('quiz-emoji').innerHTML = getRelicSVG(currentFound);
+    document.getElementById('quiz-title').innerText = "Garde " + g.n;
     document.getElementById('quiz-question').innerText = g.q;
-    let html = ""; g.a.forEach((opt, idx) => html += `<div id="opt-${idx}" class="btn-ema" onclick="verifyQuiz(${idx})">${opt}</div>`);
+    let html = "";
+    g.a.forEach((opt, idx) => {
+        html += `<div id="opt-${idx}" class="btn-ema" onclick="verifyQuiz(${idx})">${opt}</div>`;
+    });
     document.getElementById('quiz-options').innerHTML = html;
-    const quizOptionsEl = document.getElementById('quiz-options');
-    if (quizOptionsEl && !document.getElementById('quiz-assist')) {
-        quizOptionsEl.insertAdjacentHTML('afterend', `<div id="quiz-assist" class="quiz-assist"></div>`);
-    }
-    if (window.RewardsModule?.renderQuizAssist) window.RewardsModule.renderQuizAssist(currentFound);
-    
-    transitionScreen('screen-quiz');
-    
-    // Voix désactivée sur le quiz
 
-    quizFuseTime = 100; 
+    transitionScreen('screen-quiz');
+
+    quizFuseTime = 100;
     const fuseBar = document.getElementById('fuse-bar');
     const incenseTip = document.getElementById('incense-tip');
     fuseBar.setAttribute('width', '300');
-    let hintGiven2 = false;
 
-    if(quizInterval) clearInterval(quizInterval);
-    
+    if (quizInterval) clearInterval(quizInterval);
+
     function quizTick() {
-        quizFuseTime -= 1; 
+        quizFuseTime -= 1;
         const w = Math.max(quizFuseTime * 3, 0);
         fuseBar.setAttribute('width', w);
-        if(incenseTip) incenseTip.setAttribute('cx', w);
-        
-        if(quizFuseTime <= 20 && !hintGiven2) {
-            hintGiven2 = true;
-            const correctIdx = guardianData[currentFound].r;
-            const correctOpt = document.getElementById(`opt-${correctIdx}`);
-            if(correctOpt) correctOpt.style.borderColor = 'rgba(255,215,0,0.4)';
-        }
-        
-        if(quizFuseTime <= 0) { 
+        if (incenseTip) incenseTip.setAttribute('cx', w);
+
+        if (quizFuseTime <= 0) {
+            // Timeout — pas d'indice, juste feedback visuel + reset
             playWrong();
-            document.body.classList.add('shake-screen');
-            setTimeout(() => document.body.classList.remove('shake-screen'), 500);
-            if (window.RewardsModule?.markFailureForGuardian) window.RewardsModule.markFailureForGuardian(currentFound);
-            if (window.RewardsModule?.renderQuizAssist) window.RewardsModule.renderQuizAssist(currentFound);
+            if (navigator.vibrate) navigator.vibrate([150, 80, 150]);
+            // Faire trembler toutes les options encore disponibles
+            document.querySelectorAll('#quiz-options .btn-ema:not(.broken)').forEach(el => {
+                el.classList.add('quiz-timeout-shake');
+                setTimeout(() => el.classList.remove('quiz-timeout-shake'), 500);
+            });
             quizFuseTime = 100;
-            hintGiven2 = false;
         }
     }
-    
+
     quizInterval = setInterval(quizTick, 100);
 }
 
 function verifyQuiz(idx) {
-    if(idx === guardianData[currentFound].r) { 
-        clearInterval(quizInterval); cancelVoice();
-        // Flash vert sur la bonne réponse
+    if (idx === guardianData[currentFound].r) {
+        // ✓ Bonne réponse
+        clearInterval(quizInterval);
+        cancelVoice();
         const correctEl = document.getElementById(`opt-${idx}`);
-        if(correctEl) { correctEl.style.background = 'rgba(110,231,183,0.4)'; correctEl.style.borderColor = '#6ee7b7'; correctEl.style.transform = 'scale(1.04)'; }
-        if (window.RewardsModule?.clearFailuresForGuardian) window.RewardsModule.clearFailuresForGuardian(currentFound);
-        playCorrect(); confetti({ particleCount: 50, colors: ['#ffd700', '#ffb7c5', '#ffffff'] }); 
-        setTimeout(() => playMinigame(), 700); 
-    } 
-    else { 
-        // Flash rouge + perte vie
+        if (correctEl) {
+            correctEl.style.background = 'rgba(110,231,183,0.4)';
+            correctEl.style.borderColor = '#6ee7b7';
+            correctEl.style.transform = 'scale(1.06)';
+            correctEl.style.boxShadow = '0 0 20px rgba(110,231,183,0.5)';
+        }
+        playCorrect();
+        confetti({ particleCount: 60, colors: ['#ffd700', '#ffb7c5', '#ffffff', '#6ee7b7'] });
+        if (navigator.vibrate) navigator.vibrate([50, 30, 80]);
+
+        // Masquer le fuse, bloquer les autres options, afficher le bouton continuer
+        const fuseContainer = document.getElementById('fuse-container');
+        if (fuseContainer) fuseContainer.style.opacity = '0';
+        document.querySelectorAll('#quiz-options .btn-ema:not(.broken)').forEach(el => {
+            if (el.id !== `opt-${idx}`) {
+                el.style.opacity = '0.25';
+                el.style.pointerEvents = 'none';
+            }
+        });
+        // Injecter le bouton de confirmation
+        const quizScreen = document.getElementById('screen-quiz');
+        const existing = document.getElementById('quiz-continue-btn');
+        if (quizScreen && !existing) {
+            const btn = document.createElement('button');
+            btn.id = 'quiz-continue-btn';
+            btn.className = 'btn-grad pulse-btn';
+            btn.style.cssText = 'margin-top:24px;font-size:18px;padding:14px 32px;opacity:0;transform:translateY(12px);transition:opacity 0.4s ease,transform 0.4s ease;';
+            btn.innerHTML = "⚔️ Relever l'épreuve !";
+            btn.onclick = () => {
+                btn.remove();
+                if (fuseContainer) fuseContainer.style.opacity = '';
+                playMinigame();
+            };
+            quizScreen.appendChild(btn);
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    btn.style.opacity = '1';
+                    btn.style.transform = 'translateY(0)';
+                });
+            });
+        }
+    } else {
+        // ✗ Mauvaise réponse — option disparaît, fuse recule, pas de shake global
         const wrongEl = document.getElementById(`opt-${idx}`);
-        if(wrongEl) { wrongEl.style.background = 'rgba(252,165,165,0.4)'; wrongEl.style.borderColor = '#ef4444'; setTimeout(() => { wrongEl.style.background = ''; wrongEl.style.borderColor = ''; }, 600); }
-        wrongEl && wrongEl.classList.add('broken'); 
-        playWrong(); 
-        document.body.classList.add('shake-screen'); 
-        setTimeout(() => document.body.classList.remove('shake-screen'), 500); 
-        if (window.RewardsModule?.markFailureForGuardian) window.RewardsModule.markFailureForGuardian(currentFound);
-        if (window.RewardsModule?.renderQuizAssist) window.RewardsModule.renderQuizAssist(currentFound);
-        quizFuseTime -= 25;
-        if(navigator.vibrate) navigator.vibrate([100, 50, 100]);
+        if (wrongEl) {
+            // Flash rouge immédiat sur l'option tapée
+            wrongEl.style.background = 'rgba(239,68,68,0.35)';
+            wrongEl.style.borderColor = '#ef4444';
+            wrongEl.style.boxShadow = '0 0 14px rgba(239,68,68,0.4)';
+            wrongEl.classList.add('quiz-wrong-shake');
+            setTimeout(() => {
+                // L'option reste visible mais barrée et inutilisable (class broken)
+                wrongEl.classList.remove('quiz-wrong-shake');
+                wrongEl.classList.add('broken');
+                wrongEl.style.background = '';
+                wrongEl.style.borderColor = '';
+                wrongEl.style.boxShadow = '';
+            }, 400);
+        }
+        playWrong();
+        if (navigator.vibrate) navigator.vibrate([80, 40, 80]);
+        // Fuse recule de 30 (au lieu de 25) — plus de pression sans indice
+        quizFuseTime = Math.max(0, quizFuseTime - 30);
     }
 }
 
@@ -1318,6 +1360,8 @@ function setOutroMood() { return window.RevealModule.setOutroMood.apply(this, ar
 
 /* --- CINÉMATIQUE FINALE — TEXTE + WEBGL + VOIX JP --- */
 async function launchFinalCinematic() {
+    // Couper la musique hub avant la cinématique finale
+    if (typeof stopHubMusic === 'function') stopHubMusic(800, false);
     transitionScreen('screen-final', "✨");
     // Nettoyer le kanji d'acte intro (五幕·落) qui peut persister
     try { document.getElementById('act-counter')?.classList.remove('visible'); } catch(e) {}
