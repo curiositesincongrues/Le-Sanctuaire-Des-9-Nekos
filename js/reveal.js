@@ -99,12 +99,16 @@
             requestAnimationFrame(() => overlay.classList.add('staged'));
         });
 
-        setTimeout(() => {
-            try { playGameSFX('chime_portal'); } catch (e) {}
-            if (navigator.vibrate) navigator.vibrate([60, 30, 90]);
-        }, 180);
+        if (!(window.__silenceGameAudioUntilNextGame || window.__hubMusicActive)) {
+            setTimeout(() => {
+                try { playGameSFX('chime_portal'); } catch (e) {}
+                if (navigator.vibrate) navigator.vibrate([60, 30, 90]);
+            }, 180);
+        }
 
         overlay.querySelector('.discovery-cta')?.addEventListener('click', () => {
+            try { if (typeof stopAllGameAudioForHub === 'function') stopAllGameAudioForHub(); } catch (e) {}
+            try { if (typeof playHubMusic === 'function') playHubMusic(); } catch (e) {}
             overlay.classList.remove('show', 'staged');
             setTimeout(() => {
                 overlay.remove();
@@ -135,6 +139,8 @@
     }
 
     function showPostWinReveal(idx) {
+        try { if (typeof stopAllGameAudioForHub === 'function') stopAllGameAudioForHub(); } catch (e) {}
+        try { if (typeof playHubMusic === 'function') playHubMusic(); } catch (e) {}
         return buildGuardianOverlay(idx, {
             mode: 'postwin',
             lines: getRevealLines(guardianData[idx]),

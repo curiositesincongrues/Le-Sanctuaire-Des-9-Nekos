@@ -537,8 +537,8 @@ function submitManualCode() { return window.ScanModule.submitManualCode.apply(th
 let quizFuseTime = 100;
 
 function setupQuiz() {
-    // Couper la musique hub à l'entrée du quiz
-    if (typeof stopHubMusic === 'function') stopHubMusic(600, false);
+    try { if (typeof enableGameAudioFX === 'function') enableGameAudioFX(); } catch (e) {}
+    // Conserver le MP3 du hub pendant le quiz
     // Nettoyer le bouton continue d'un quiz précédent
     const prevContinue = document.getElementById('quiz-continue-btn');
     if (prevContinue) prevContinue.remove();
@@ -660,6 +660,7 @@ function verifyQuiz(idx) {
 
 /* --- MINIJEUX --- */
 function playMinigame() {
+    try { if (typeof enableGameAudioFX === 'function') enableGameAudioFX(); } catch (e) {}
     // Nettoyer les intervalles résiduels du quiz
     if (typeof quizInterval !== 'undefined' && quizInterval) { clearInterval(quizInterval); quizInterval = null; }
 

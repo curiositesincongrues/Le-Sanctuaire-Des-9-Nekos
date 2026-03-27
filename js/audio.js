@@ -389,6 +389,34 @@ function playTaikoHit() {
 
 let currentMusicMood = null;
 let introMusicEl = null;
+window.__silenceGameAudioUntilNextGame = window.__silenceGameAudioUntilNextGame || false;
+
+function shouldBlockGameAudio() {
+    return !!(window.__hubMusicActive || window.__silenceGameAudioUntilNextGame);
+}
+
+function stopAllGameAudioForHub() {
+    window.__silenceGameAudioUntilNextGame = true;
+    try { _chimeGen++; _melodyGen++; } catch (e) {}
+    try { if (taikoInterval) { clearInterval(taikoInterval); taikoInterval = null; } } catch (e) {}
+    try { muteProceduralMusic(0.03); } catch (e) {}
+    try { if (audioCtx && audioLayers?.wind?.gain) audioLayers.wind.gain.setValueAtTime(0, audioCtx.currentTime); } catch (e) {}
+    try { if (audioCtx && audioLayers?.pad?.gain) audioLayers.pad.gain.setValueAtTime(0, audioCtx.currentTime); } catch (e) {}
+    try { if (audioCtx && audioLayers?.chime?.gain) audioLayers.chime.gain.setValueAtTime(0, audioCtx.currentTime); } catch (e) {}
+    try { if (audioCtx && audioLayers?.melody?.gain) audioLayers.melody.gain.setValueAtTime(0, audioCtx.currentTime); } catch (e) {}
+    try { if (audioCtx && audioLayers?.ambience?.gain) audioLayers.ambience.gain.setValueAtTime(0, audioCtx.currentTime); } catch (e) {}
+    try { if (audioCtx && taikoGain?.gain) taikoGain.gain.setValueAtTime(0, audioCtx.currentTime); } catch (e) {}
+    try { if (audioCtx && subDroneGain?.gain) subDroneGain.gain.setValueAtTime(0, audioCtx.currentTime); } catch (e) {}
+    try { if (audioCtx && wetGain?.gain) wetGain.gain.setValueAtTime(0, audioCtx.currentTime); } catch (e) {}
+    try { if (audioCtx && sfxBus?.gain) sfxBus.gain.setValueAtTime(0, audioCtx.currentTime); } catch (e) {}
+    try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch (e) {}
+    currentMusicMood = null;
+}
+
+function enableGameAudioFX() {
+    window.__silenceGameAudioUntilNextGame = false;
+    try { if (audioCtx && sfxBus?.gain) sfxBus.gain.setValueAtTime(1, audioCtx.currentTime); } catch (e) {}
+}
 
 function _rampGainNode(gainNode, target, dur = 1.5) {
     if (!audioCtx || !gainNode) return;
@@ -407,8 +435,10 @@ function muteProceduralMusic(dur = 1.2) {
     try { _rampGainNode(audioLayers.pad.gain, 0, dur); } catch (e) {}
     try { _rampGainNode(audioLayers.chime.gain, 0, dur); } catch (e) {}
     try { _rampGainNode(audioLayers.melody.gain, 0, dur); } catch (e) {}
+    try { _rampGainNode(audioLayers.ambience.gain, 0, dur); } catch (e) {}
     try { _rampGainNode(taikoGain.gain, 0, dur); } catch (e) {}
     try { _rampGainNode(subDroneGain.gain, 0, dur); } catch (e) {}
+    try { if (wetGain && wetGain.gain) _rampGainNode(wetGain.gain, 0, Math.max(0.2, dur)); } catch (e) {}
     currentMusicMood = null;
 }
 
@@ -488,7 +518,7 @@ function applySceneProfile(scene) {
 }
 
 function updateDynamicMusic() {
-    if (window.__hubMusicActive) return;
+    if (shouldBlockGameAudio()) return;
     if (!audioCtx) return;
     const count = getFoundCount();
     const now = audioCtx.currentTime;
@@ -513,8 +543,8 @@ function setMusicMood(scene) {
         return;
     }
     // Bloquer la musique procédurale quand le MP3 hub joue
-    if (window.__hubMusicActive) {
-        console.log('[Music Mood] blocked by hub MP3:', scene);
+    if (shouldBlockGameAudio()) {
+        console.log('[Music Mood] blocked:', scene, { hub: !!window.__hubMusicActive, silenced: !!window.__silenceGameAudioUntilNextGame });
         return;
     }
     if (!audioCtx) return;
@@ -794,6 +824,7 @@ function findSageVoice() { return findBestVoice(); }
 
 /* ─── SFX — via sfxBus → masterGain (inclus dans fade final) ─── */
 function playGameSFX(type, freq=440) {
+    if (shouldBlockGameAudio()) return;
     if(!audioCtx || !sfxBus) return;
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
@@ -858,6 +889,7 @@ function playGameSFX(type, freq=440) {
 }
 
 function playThunder() {
+    if (shouldBlockGameAudio()) return;
     if(!audioCtx) return;
     const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
     osc.type = 'square'; osc.frequency.setValueAtTime(150, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(10, audioCtx.currentTime+1.5);
@@ -874,6 +906,7 @@ function playThunder() {
 }
 
 function playMikoChime(index) {
+    if (shouldBlockGameAudio()) return;
     if(!audioCtx || !sfxBus) return;
     const scale = [440, 493.88, 554.37, 659.25, 739.99, 880, 987.77, 1108.73];
     const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
@@ -883,6 +916,7 @@ function playMikoChime(index) {
 }
 
 function playCorrect() {
+    if (shouldBlockGameAudio()) return;
     if(!audioCtx || !sfxBus) return;
     const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
     osc.type = 'sine'; osc.frequency.setValueAtTime(600, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime+0.1);
@@ -891,6 +925,7 @@ function playCorrect() {
 }
 
 function playWrong() {
+    if (shouldBlockGameAudio()) return;
     if(!audioCtx || !sfxBus) return;
     const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
     osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(80, audioCtx.currentTime+0.3);
@@ -900,6 +935,7 @@ function playWrong() {
 
 function playEvilLaugh() {
     // Pas de voix — oscillateurs sawtooth uniquement pour l'ambiance
+    if (shouldBlockGameAudio()) return;
     if(!audioCtx || !sfxBus) return;
     [100, 115, 130].forEach(f => {
         const osc = audioCtx.createOscillator(); osc.type = 'sawtooth'; osc.frequency.value = f;
@@ -1158,7 +1194,7 @@ function _preloadHubMusic() {
 async function playHubMusic() {
     // Activer le flag — bloque toute musique procédurale pendant le hub
     window.__hubMusicActive = true;
-    muteProceduralMusic(0.5);
+    muteProceduralMusic(0.25);
 
     try {
         let a = _hubMusicEl;
@@ -1236,3 +1272,6 @@ function stopHubMusic(fadeMs = 1000, resumeProcedural = true) {
 
 window.playHubMusic  = playHubMusic;
 window.stopHubMusic  = stopHubMusic;
+
+window.stopAllGameAudioForHub = stopAllGameAudioForHub;
+window.enableGameAudioFX = enableGameAudioFX;
