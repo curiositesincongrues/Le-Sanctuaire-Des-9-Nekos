@@ -1,72 +1,43 @@
-# 🌸 LE SANCTUAIRE DES 9 NEKOS
+# Le Sanctuaire des 9 Nekos
 
-**Un petit jeu de piste pour s'amuser — Web, mobile et un peu de papier.**
+*Un espace qui a pris forme, presque en silence.*
 
-> *Au-delà des brumes du temps, loin du monde des hommes, un sanctuaire oublié attend ses gardiennes...*
-
----
-
-## 🎮 L'idée du jeu
-
-C'est un petit projet hybride pour une fête d'anniversaire avec **8 joueuses de 9 ans**. L'idée est de mêler le monde réel et l'écran : les enfants cherchent des **Nekos** cachés un peu partout. En scannant les qr code dessus, elles réveillent les **9 Nekos** (les chats gardiens) qui s'étaient perdus.
-
-L'ambiance visuelle s'inspire de l'encre de Chine et des dessins animés, avec quelque chose d'assez simple et doux.
-
-### 🌑 Le petit scénario
-Le Sceau de Nacre a été brisé par **L'ombre**, une entité un peu trop envahissante faite de suie et d'oubli. Pour ne pas disparaître, les **9 Nekos Gardiens** se sont cachés dans notre monde sous la forme de dessins et qr codes à flasher. 
-
-Les joueuses sont des Mikos (apprenties prêtresses) qui doivent retrouver ces chats, réussir leurs petits défis rituels et ramener un peu de lumière dans le sanctuaire.
+> Il y a, dans tout premier projet, une forme de seuil : celui où l’intention cesse d’être pensée pour devenir matière, structure, expérience. Un passage discret, presque invisible, mais décisif, où l’idée accepte enfin de se confronter au réel, avec ses limites, ses hésitations, ses détours.
 
 ---
 
-## 🛠️ Côté technique
+## Origine et Démarche
 
-C'est un projet fait par amour du code et par curiosité, pour voir ce qu'on peut créer simplement :
-*   **Pas d'images ni de MP3 :** Tout ce qu'on voit (les chats, les reliques) est dessiné en SVG ou en CSS. Les sons sont créés par le navigateur via la Web Audio API. 
-*   **Fonctionne sans réseau :** Une fois la page chargée, le jeu tourne tout seul. Même le scanner de QR codes fonctionne sans Wi-Fi, car toute la logique de reconnaissance est déjà stockée dans le téléphone.
+Ce jeu trouve son origine dans une demande simple, formulée à l’occasion d’un anniversaire. De cette intention initiale, concrète et circonscrite, s’est progressivement ouverte une démarche d’expérimentation : non plus seulement répondre, mais prolonger, observer, laisser apparaître ce que le jeu pouvait devenir au-delà de sa forme première.
 
----
+Il s’inscrit ainsi dans une recherche plus large : celle de ce que peut être un jeu lorsqu’il devient à la fois objet et processus. Non pas uniquement un espace à parcourir, mais un lieu de transformation, où se rencontrent intuition, contrainte et évolution.
 
-## 🎨 L'aspect visuel
+## Conception
 
-### L'ombre
-C'est une forme d'encre qui bouge un peu comme une goutte de liquide noir. Ses yeux sont comme des petites fenêtres qui montrent des étoiles à l'intérieur. On a utilisé des mélanges de flous pour donner cet effet de matière vivante et visqueuse.
+Conçu avec l’idée d’une accessibilité immédiate, il se développe comme un espace simple, presque silencieux. Mais cette simplicité relève d’une forme d’épure. Le projet se situe à la frontière du physique et du digital, non pour opposer ces dimensions, mais pour les faire dialoguer. Le support numérique y est envisagé comme un outil, un prolongement discret au service de l’expérience de l’enfant : non pas un écran qui capte, mais un instrument qui accompagne, révèle, suggère.
 
-### L'ambiance et les textures
-On a cherché à créer une atmosphère de "conte de fées ancien" :
-*   **Papier Washi :** Le fond du jeu a un grain qui rappelle le papier traditionnel japonais.
-*   **Couleurs :** Tout tourne autour du noir de l'encre, du blanc nacre et d'une touche de "Menthe Glacée" pour le côté magique et froid.
-*   **Pétales de Sakura :** Des petits pétales tombent doucement sur l'écran. Ils changent de couleur ou de vitesse selon l'humeur de l'histoire (calme, mystère ou danger).
-*   **Lueurs douces :** Les objets importants brillent discrètement pour contraster avec la profondeur de l'encre.
+Le processus de création lui-même s’inscrit dans cette logique. Il procède par essais, ajustements, retours. Une construction progressive, où chaque réponse ouvre de nouvelles interrogations. Le jeu, dans son état actuel, conserve les traces de ce cheminement : il est autant une forme que la mémoire de sa propre élaboration.
 
-### Les 9 Jeux et leurs Reliques
-Chaque code QR libère un jeu spécifique. Les illustrations **SVG "Sumi-e"** (à l'encre) représentent les reliques que les Nekos protègent :
+## Expérimenter le jeu
 
-| Jeu | Relique (SVG) | Ce qu'on fait | Mécanique |
-|:---|:---|:---|:---|
-| **Ken** | ⚔️ Le Katana | Avoir du courage | **Slash** : Glisser le doigt |
-| **Shinobi** | 🎭 Le Masque | Rester immobile | **Statue** : Ne plus bouger |
-| **Mochi** | 🍡 Le Mochi | Être patiente | **Hold** : Rester appuyé |
-| **Sumo** | 🥁 Le Tambour | Donner de l'énergie | **Mash** : Taper vite |
-| **Kitsune** | 🔔 La Clochette | Écouters les sons | **Memory** : Retrouver les paires |
-| **Sensu** | 🪭 L'Éventail | Souffler le nuage | **Swipe** : Balayer l'écran |
-| **Kasa** | ☂️ L'Ombrelle | Protéger les esprits | **Catch** : Rattraper les objets |
-| **Hanko** | 📜 Le Parchemin | Apprendre la sagesse | **Scratch** : Gratter l'encre |
-| **Chime** | 🏮 La Lanterne | Suivre le rythme | **Rhythm** : Taper en cadence |
+Comme tout système en devenir, le jeu expose également certains de ses mécanismes. Des chemins de test existent, non comme des raccourcis, mais comme des accès à sa structure interne, permettant d’en percevoir les équilibres et les fragilités.
+
+- 🎮 **[Jouer au Sanctuaire des 9 Nekos](https://curiositesincongrues.github.io/Le-Sanctuaire-Des-9-Nekos/)**
+- 🛠️ **[Accès debug](https://curiositesincongrues.github.io/Le-Sanctuaire-Des-9-Nekos/index.html?debug=true)**
+- ⚠️ **[Debug avancé](https://curiositesincongrues.github.io/Le-Sanctuaire-Des-9-Nekos/index.html?debug=hard)**
+
+> **Note :** Ces accès requièrent une attention particulière, en ce qu’ils exposent des zones où l’équilibre du jeu peut être altéré.
+
+## Code et Contribution
+
+Dans cette continuité, le code est laissé libre. Il ne constitue pas une clôture, mais une ouverture. Il peut être consulté, compris, modifié, prolongé. Il participe pleinement du projet, comme une invitation à poursuivre l’exploration au-delà de son point d’origine.
+
+🔗 **[Accéder au code source](https://github.com/curiositesincongrues/Le-Sanctuaire-Des-9-Nekos)**
+
+Pour celles et ceux qui souhaiteraient prolonger, modifier ou contribuer, vous êtes les bienvenus. Il est possible que subsistent encore certaines imperfections ; si tel est le cas, [leur signalement](https://github.com/curiositesincongrues/Le-Sanctuaire-Des-9-Nekos/issues) serait précieux.
 
 ---
 
-## 🏗️ Organisation des fichiers
+*Ce projet ne constitue pas une finalité, mais une première trace. Une tentative de donner forme à une intuition, et peut-être l’ébauche d’un langage en devenir.*
 
-```text
-neko-sanctuaire/
-├── index.html          # La page principale
-├── sw.js               # Le script pour jouer sans réseau
-├── css/
-│   ├── base.css        # La mise en page
-│   ├── cinematics.css  # L'ombre et les pétales
-│   └── game.css        # Le style des épreuves
-└── js/
-    ├── audio.js        # Les sons faits "maison"
-    ├── logic.js        # Le déroulement du jeu
-    └── data.js         # Les dessins SVG et les infos des Nekos
+**À ma merveilleuse, pour qui ce jeu trouve son origine et son sens.**
