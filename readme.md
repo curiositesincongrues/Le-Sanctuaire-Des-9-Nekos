@@ -2,6 +2,8 @@
 
 *Un espace qui a pris forme, presque en silence.*
 
+> 🌿 **Projet en développement :** Ce sanctuaire est une œuvre en mouvement. Le jeu, tout comme son code, est toujours en phase d'élaboration active. Il grandit, s'ajuste et s'affine au fil du temps.
+
 > Il y a, dans tout premier projet, une forme de seuil : celui où l’intention cesse d’être pensée pour devenir matière, structure, expérience. Un passage discret, presque invisible, mais décisif, où l’idée accepte enfin de se confronter au réel, avec ses limites, ses hésitations, ses détours.
 
 ---
@@ -34,7 +36,7 @@ Dans cette continuité, le code est laissé libre. Il ne constitue pas une clôt
 
 🔗 **[Accéder au code source](https://github.com/curiositesincongrues/Le-Sanctuaire-Des-9-Nekos)**
 
-Pour celles et ceux qui souhaiteraient prolonger, modifier ou contribuer, vous êtes les bienvenus. Il est possible que subsistent encore certaines imperfections ; si tel est le cas, [leur signalement](https://github.com/curiositesincongrues/Le-Sanctuaire-Des-9-Nekos/issues) serait précieux.
+Pour celles et ceux qui souhaiteraient prolonger, modifier ou contribuer, vous êtes les bienvenus. Il est possible que subsistent encore certaines imperfections dues à son développement en cours ; si tel est le cas, [leur signalement](https://github.com/curiositesincongrues/Le-Sanctuaire-Des-9-Nekos/issues) serait précieux.
 
 ---
 
